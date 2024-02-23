@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "684102066328",
+    "project_id": "significantother-415f1",
+    "storage_bucket": "significantother-415f1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:684102066328:android:66c03a58508466badcf0ed",
+        "android_client_info": {
+          "package_name": "com.gandalfio.significantotherapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5ghiCphcgaoAatagj7ptyYe-BuFhp-oU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
