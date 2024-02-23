@@ -25,8 +25,6 @@ export const useAuth = () => {
         description: 'You have been logged out',
         status: 'success',
       });
-
-      router.replace('/');
     });
   };
 

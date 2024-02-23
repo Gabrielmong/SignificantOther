@@ -34,6 +34,7 @@ export default function ForgotPassword() {
 
   return (
     <View
+      $dark-backgroundColor="#121212"
       style={{
         flex: 1,
         justifyContent: 'space-between',

@@ -11,14 +11,16 @@ export const EntryCheckerWrapper = ({ children }: { children: React.ReactNode })
   initialize();
 
   useEffect(() => {
+    console.log('isLogged', isLogged);
     if (isLogged === undefined) {
       return;
     }
 
     if (isLogged) {
-      router.navigate('(tabs)/Home');
+      router.navigate('/(tabs)/Home');
     } else {
-      router.navigate('Auth');
+      console.log('navigate to /Auth');
+      router.navigate('/Auth');
     }
   }, [isLogged]);
 

@@ -10,7 +10,19 @@ import { useEffect } from 'react';
 export default function HomeLayout() {
   return (
     <GluestackUIProvider config={config}>
-      <Tabs>
+      <Tabs
+        screenOptions={{
+          tabBarActiveBackgroundColor: '#2D3250',
+          tabBarInactiveBackgroundColor: '#2D3250',
+          tabBarActiveTintColor: '#F5E8C7',
+          tabBarInactiveTintColor: '#7077A1',
+          tabBarStyle: {
+            borderTopWidth: 0,
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            backgroundColor: '#2D3250',
+          },
+        }}>
         <Tabs.Screen
           name="Home"
           options={{

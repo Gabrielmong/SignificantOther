@@ -3,10 +3,9 @@ import { Text, View, Button } from '@gluestack-ui/themed';
 import { useAuth } from '../../../hooks/useAuth';
 
 export default function Home() {
-  const { logout } = useAuth();
-
   return (
     <View
+      $dark-backgroundColor="#121212"
       style={{
         flex: 1,
         justifyContent: 'center',
