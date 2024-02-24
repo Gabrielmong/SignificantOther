@@ -7,7 +7,9 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "eslint . --ext .ts,.tsx"
+    "lint": "eslint . --ext .ts,.tsx",
+    "build:preview": "eas build --profile preview --platform android",
+    "build:development": "eas build --profile development --platform android"
   },
   "dependencies": {
     "@gluestack-style/react": "^1.0.48",
