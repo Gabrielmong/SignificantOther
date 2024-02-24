@@ -1,8 +1,9 @@
-import { StatusBar } from 'expo-status-bar';
 import { Text, View, Button } from '@gluestack-ui/themed';
-import { useAuth } from '../../../hooks/useAuth';
+import { StatusBar } from 'expo-status-bar';
+import { useAppTheme } from '../../../hooks';
 
 export default function Home() {
+  const { colorMode } = useAppTheme();
   return (
     <View
       $dark-backgroundColor="#121212"
@@ -13,7 +14,7 @@ export default function Home() {
       }}>
       <Text>Stuff will be put here</Text>
 
-      <StatusBar style="auto" />
+      <StatusBar backgroundColor={colorMode === 'dark' ? '#000000' : '#F5F5F5'} />
     </View>
   );
 }

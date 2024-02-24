@@ -9,15 +9,17 @@ import {
   Icon,
 } from '@gluestack-ui/themed';
 import { useState } from 'react';
-import { useAuth } from '../../hooks';
+import { useAppTheme, useAuth } from '../../hooks';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { TouchableOpacity } from 'react-native';
-import { AuthFooter } from '../../components';
+import { AuthFooter, IconButton } from '../../components';
+import { StatusBar } from 'expo-status-bar';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const { colorMode } = useAppTheme();
   const { forgotPassword } = useAuth();
 
   const handleForgotPassword = async () => {
@@ -25,11 +27,6 @@ export default function ForgotPassword() {
     const success = await forgotPassword(email);
 
     setLoading(false);
-    if (success) {
-      console.log('Forgot password success');
-    } else {
-      console.log('Forgot password failed');
-    }
   };
 
   return (
@@ -41,32 +38,13 @@ export default function ForgotPassword() {
         alignItems: 'center',
         padding: 20,
       }}>
+      <StatusBar backgroundColor={colorMode === 'dark' ? '#000000' : '#F5F5F5'} />
+
       <Box
         style={{
           width: '100%',
         }}>
-        <TouchableOpacity
-          style={{
-            backgroundColor: 'grey',
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-          onPress={() => {
-            router.back();
-          }}>
-          <Icon
-            as={ArrowLeft}
-            style={{
-              color: 'white',
-              width: 20,
-              height: 20,
-            }}
-          />
-        </TouchableOpacity>
+        <IconButton icon={ArrowLeft} onPress={router.back} />
       </Box>
 
       <Box
@@ -88,7 +66,7 @@ export default function ForgotPassword() {
         </Input>
 
         <Button onPress={handleForgotPassword} isDisabled={loading}>
-          <Text>Sign In</Text>
+          <Text>Send code</Text>
 
           {loading && <ButtonSpinner />}
         </Button>

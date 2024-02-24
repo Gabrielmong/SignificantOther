@@ -1,4 +1,5 @@
 import { useToast, Toast, ToastDescription, ToastTitle, VStack } from '@gluestack-ui/themed';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface AppToast {
   title: string;
@@ -23,7 +24,7 @@ export function useAppToast() {
     title,
     description,
     duration = 5000,
-    placement = 'bottom',
+    placement = 'top',
     onCloseComplete,
     status,
   }: AppToast) => {
@@ -34,12 +35,17 @@ export function useAppToast() {
       render: ({ id }) => {
         const toastId = 'toast' + id;
         return (
-          <Toast nativeID={toastId}>
-            <VStack space="xs">
-              <ToastTitle>{title}</ToastTitle>
-              <ToastDescription>{description}</ToastDescription>
-            </VStack>
-          </Toast>
+          <SafeAreaView
+            style={{
+              flex: 1,
+            }}>
+            <Toast nativeID={toastId}>
+              <VStack space="xs">
+                <ToastTitle>{title}</ToastTitle>
+                <ToastDescription>{description}</ToastDescription>
+              </VStack>
+            </Toast>
+          </SafeAreaView>
         );
       },
     });

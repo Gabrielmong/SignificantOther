@@ -21,7 +21,8 @@ const initialState: UserState = {
   photoURL: '',
 };
 
-export type UserPayload = Pick<User, 'displayName' | 'email' | 'uid' | 'photoURL'>;
+export type UserPayload = Pick<UserState, 'displayName' | 'email' | 'uid' | 'photoURL'>;
+export type PartialUserPayload = Partial<UserState>;
 
 export const UserSlice = createSlice({
   name: 'User',
@@ -42,10 +43,15 @@ export const UserSlice = createSlice({
       state.photoURL = '';
       state.loggedIn = false;
     },
+    updateUser: (state, action: PayloadAction<PartialUserPayload>) => {
+      state.displayName = action.payload?.displayName || state.displayName;
+      state.email = action.payload?.email || state.email;
+      state.photoURL = action.payload?.photoURL || state.photoURL;
+    },
   },
 });
 
-export const { setUser, stateLogout } = UserSlice.actions;
+export const { setUser, stateLogout, updateUser } = UserSlice.actions;
 
 // Other code such as selectors can use the imported `RootState` type
 export const selectUser = (state: RootState) => state.user;

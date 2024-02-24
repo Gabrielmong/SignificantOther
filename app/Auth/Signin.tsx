@@ -16,6 +16,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { AuthFooter } from '../../components';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { TouchableOpacity } from 'react-native';
+import { useAppTheme } from '../../hooks';
 
 export default function Home() {
   const [email, setEmail] = useState('');
@@ -24,18 +25,13 @@ export default function Home() {
   const [visible, setVisible] = useState(false);
 
   const { signIn } = useAuth();
+  const { colorMode } = useAppTheme();
 
   const handleSignIn = async () => {
     setLoading(true);
     const success = await signIn(email, password);
 
     setLoading(false);
-    if (success) {
-      console.log('Sign in success');
-      router.replace('/(tabs)/Home');
-    } else {
-      console.log('Sign in failed');
-    }
   };
 
   return (
@@ -47,6 +43,8 @@ export default function Home() {
         alignItems: 'center',
         padding: 20,
       }}>
+      <StatusBar backgroundColor={colorMode === 'dark' ? '#000000' : '#F5F5F5'} />
+
       <Box
         style={{
           width: '100%',

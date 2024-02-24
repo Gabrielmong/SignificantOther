@@ -1,5 +1,5 @@
-import { Slot } from 'expo-router';
-import { useEffect } from 'react';
+import { Slot, useLocalSearchParams, useSegments, AllRoutes } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { useAppSelector } from '../../state';
 import { router } from 'expo-router';
 import { useAuth } from '../../hooks';
@@ -7,20 +7,30 @@ import { useAuth } from '../../hooks';
 export const EntryCheckerWrapper = ({ children }: { children: React.ReactNode }) => {
   const isLogged = useAppSelector((state) => state.user.loggedIn);
   const { initialize } = useAuth();
+  const segments = useSegments();
+  const [currentRoute, setCurrentRoute] = useState<AllRoutes | null>(null);
 
   initialize();
 
   useEffect(() => {
-    console.log('isLogged', isLogged);
+    if (segments) {
+      setCurrentRoute(('/' + segments.join('/')) as AllRoutes);
+    }
+  }, [segments]);
+
+  useEffect(() => {
     if (isLogged === undefined) {
       return;
     }
 
     if (isLogged) {
-      router.navigate('/(tabs)/Home');
+      if (currentRoute === '/' || currentRoute === null) {
+        router.replace('/(tabs)/Home');
+      } else if (currentRoute) {
+        router.replace(currentRoute);
+      }
     } else {
-      console.log('navigate to /Auth');
-      router.navigate('/Auth');
+      router.replace('/Auth/Signin');
     }
   }, [isLogged]);
 

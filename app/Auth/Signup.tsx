@@ -9,15 +9,17 @@ import {
   Box,
   Icon,
 } from '@gluestack-ui/themed';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { Link, router } from 'expo-router';
 import { useAuth } from '../../hooks/useAuth';
 import { AuthFooter } from '../../components/AuthFooter/AuthFooter';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
 import { TouchableOpacity } from 'react-native';
+import { useAppTheme } from '../../hooks';
+import { IconButton } from '../../components';
 
-export default function Home() {
+export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -26,11 +28,11 @@ export default function Home() {
   const [confirmVisible, setConfirmVisible] = useState(false);
 
   const { signUp } = useAuth();
+  const { colorMode } = useAppTheme();
 
   // TODO: put this in useAuth hook
   const handleSignUp = async () => {
     if (password !== confirmPassword) {
-      console.log('Password does not match');
       return;
     }
 
@@ -38,13 +40,6 @@ export default function Home() {
     const success = await signUp(email, password);
 
     setLoading(false);
-    if (success) {
-      console.log('Sign up success');
-
-      router.replace('/(tabs)/Home');
-    } else {
-      console.log('Sign up failed');
-    }
   };
 
   return (
@@ -56,32 +51,13 @@ export default function Home() {
         alignItems: 'center',
         padding: 20,
       }}>
+      <StatusBar backgroundColor={colorMode === 'dark' ? '#000000' : '#F5F5F5'} />
+
       <Box
         style={{
           width: '100%',
         }}>
-        <TouchableOpacity
-          style={{
-            backgroundColor: 'grey',
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-          onPress={() => {
-            router.back();
-          }}>
-          <Icon
-            as={ArrowLeft}
-            style={{
-              color: 'white',
-              width: 20,
-              height: 20,
-            }}
-          />
-        </TouchableOpacity>
+        <IconButton icon={ArrowLeft} onPress={router.back} />
       </Box>
 
       <Box
