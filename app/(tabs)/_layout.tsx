@@ -22,11 +22,11 @@ export default function HomeLayout() {
             borderTopRightRadius: 20,
             backgroundColor: '#2D3250',
           },
+          tabBarShowLabel: false,
         }}>
         <Tabs.Screen
           name="Home"
           options={{
-            title: 'Home',
             tabBarIcon: ({ color, size }) => <Icon as={Home} color={color} />,
             headerShown: false,
           }}
@@ -34,7 +34,6 @@ export default function HomeLayout() {
         <Tabs.Screen
           name="Profile"
           options={{
-            title: 'Profile',
             tabBarIcon: ({ color, size }) => <Icon as={CircleUserRound} color={color} />,
             headerShown: false,
           }}

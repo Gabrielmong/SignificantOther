@@ -7,6 +7,7 @@ import { Slot } from 'expo-router';
 import { EntryCheckerWrapper } from '../components';
 import { useMemo } from 'react';
 import { useAppTheme } from '../hooks/';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function AppLayout() {
   const { colorMode } = useAppTheme();
@@ -14,15 +15,20 @@ export default function AppLayout() {
   return (
     <Provider store={store}>
       <GluestackUIProvider config={config} colorMode={'dark'}>
-        <SafeAreaView
+        <GestureHandlerRootView
           style={{
             flex: 1,
           }}>
-          <StatusBar backgroundColor={colorMode === 'dark' ? '#121212' : '#F5F5F5'} />
-          <EntryCheckerWrapper>
-            <Slot />
-          </EntryCheckerWrapper>
-        </SafeAreaView>
+          <SafeAreaView
+            style={{
+              flex: 1,
+            }}>
+            <StatusBar backgroundColor={colorMode === 'dark' ? '#121212' : '#F5F5F5'} />
+            <EntryCheckerWrapper>
+              <Slot />
+            </EntryCheckerWrapper>
+          </SafeAreaView>
+        </GestureHandlerRootView>
       </GluestackUIProvider>
     </Provider>
   );

@@ -16,14 +16,14 @@ import {
 import { useFirebase } from './useFirebase';
 import { useAppToast } from './useAppToast';
 import { FirebaseError } from '@firebase/util';
-import { router } from 'expo-router';
-import { useEffect } from 'react';
+import { get, getDatabase, onValue, ref, update } from 'firebase/database';
 
 export const useAuth = () => {
   const { auth } = useFirebase();
   const dispatch = useAppDispatch();
   const { showToast } = useAppToast();
   const user = useAppSelector((state) => state.user);
+  const db = getDatabase();
 
   const logout = (): Promise<void> => {
     if (!auth) return Promise.resolve();
@@ -43,7 +43,9 @@ export const useAuth = () => {
     if (!auth) return Promise.resolve(false);
 
     return signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
+      .then(async (userCredential) => {
+        await getExtraProfile();
+
         const userPayload: UserPayload = {
           displayName: userCredential.user?.displayName,
           email: userCredential.user?.email,
@@ -111,8 +113,12 @@ export const useAuth = () => {
   const initialize = () => {
     if (!auth) return;
 
-    auth.onAuthStateChanged((user) => {
+    auth.onAuthStateChanged(async (user) => {
       if (user) {
+        user?.getIdTokenResult().then((idTokenResult) => {});
+
+        await getExtraProfile();
+
         const userPayload: UserPayload = {
           displayName: user.displayName,
           email: user.email,
@@ -168,8 +174,6 @@ export const useAuth = () => {
           description: 'Profile has been updated',
           status: 'success',
         });
-
-        router.back();
       })
       .catch((error: FirebaseError) => {
         const errorMessage = error.message;
@@ -182,6 +186,44 @@ export const useAuth = () => {
       });
   };
 
+  const editExtraProfile = ({ whiteboardId }: { whiteboardId?: string }) => {
+    if (!auth?.currentUser) return;
+
+    const updatedFields: PartialUserPayload = {};
+    if (whiteboardId && whiteboardId !== user?.whiteboardId)
+      updatedFields.whiteboardId = whiteboardId;
+
+    const userDocRef = ref(db, `users/${user?.uid}`);
+
+    update(userDocRef, updatedFields);
+
+    dispatch(updateUser(updatedFields));
+
+    showToast({
+      title: 'Profile updated',
+      description: 'Profile has been updated',
+      status: 'success',
+    });
+  };
+
+  const getExtraProfile = () => {
+    if (!auth?.currentUser) return;
+
+    const userDocRef = ref(db, `users/${user?.uid}`);
+
+    get(userDocRef).then((snapshot) => {
+      const data = snapshot.val();
+
+      if (data) {
+        const updatedFields: PartialUserPayload = {
+          whiteboardId: data.whiteboardId,
+        };
+
+        dispatch(updateUser(updatedFields));
+      }
+    });
+  };
+
   return {
     editProfile,
     forgotPassword,
@@ -190,5 +232,7 @@ export const useAuth = () => {
     signIn,
     signUp,
     user,
+    editExtraProfile,
+    getExtraProfile,
   };
 };

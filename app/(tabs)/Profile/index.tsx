@@ -66,6 +66,7 @@ export default function Profile() {
 
         <Text>{user?.displayName || 'Name not set'}</Text>
         <Text>{user?.email}</Text>
+        <Text>{user?.whiteboardId}</Text>
       </Box>
 
       <Box

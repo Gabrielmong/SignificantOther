@@ -31,6 +31,10 @@ export default function Home() {
     setLoading(true);
     const success = await signIn(email, password);
 
+    if (success) {
+      router.replace('/(tabs)/Home');
+    }
+
     setLoading(false);
   };
 

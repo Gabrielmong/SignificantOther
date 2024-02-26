@@ -30,15 +30,15 @@ export default function Signup() {
   const { signUp } = useAuth();
   const { colorMode } = useAppTheme();
 
-  // TODO: put this in useAuth hook
   const handleSignUp = async () => {
     if (password !== confirmPassword) {
       return;
     }
-
     setLoading(true);
     const success = await signUp(email, password);
-
+    if (success) {
+      router.replace('/(tabs)/Home');
+    }
     setLoading(false);
   };
 
@@ -137,7 +137,13 @@ export default function Signup() {
         <Button onPress={handleSignUp} isDisabled={loading}>
           <Text>Sign Up</Text>
 
-          {loading && <ButtonSpinner />}
+          {loading && (
+            <ButtonSpinner
+              style={{
+                marginLeft: 10,
+              }}
+            />
+          )}
         </Button>
 
         <Link href="/Auth/Signin">

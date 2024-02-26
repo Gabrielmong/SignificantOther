@@ -10,6 +10,7 @@ interface UserState {
   loggedIn: boolean | undefined;
   uid?: string;
   photoURL?: string | null;
+  whiteboardId?: string;
 }
 
 // Define the initial state using that type
@@ -19,9 +20,13 @@ const initialState: UserState = {
   loggedIn: undefined,
   uid: '',
   photoURL: '',
+  whiteboardId: '',
 };
 
-export type UserPayload = Pick<UserState, 'displayName' | 'email' | 'uid' | 'photoURL'>;
+export type UserPayload = Pick<
+  UserState,
+  'displayName' | 'email' | 'uid' | 'photoURL' | 'whiteboardId'
+>;
 export type PartialUserPayload = Partial<UserState>;
 
 export const UserSlice = createSlice({
@@ -35,6 +40,7 @@ export const UserSlice = createSlice({
       state.uid = action.payload.uid;
       state.photoURL = action.payload.photoURL;
       state.loggedIn = true;
+      state.whiteboardId = action.payload.whiteboardId || state.whiteboardId;
     },
     stateLogout: (state) => {
       state.displayName = '';
@@ -42,11 +48,13 @@ export const UserSlice = createSlice({
       state.uid = '';
       state.photoURL = '';
       state.loggedIn = false;
+      state.whiteboardId = '';
     },
     updateUser: (state, action: PayloadAction<PartialUserPayload>) => {
       state.displayName = action.payload?.displayName || state.displayName;
       state.email = action.payload?.email || state.email;
       state.photoURL = action.payload?.photoURL || state.photoURL;
+      state.whiteboardId = action.payload?.whiteboardId || state.whiteboardId;
     },
   },
 });
