@@ -1,13 +1,24 @@
 import { Tabs } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { GluestackUIProvider } from '@gluestack-ui/themed';
 import { config } from '@gluestack-ui/config';
 import { Icon } from '@gluestack-ui/themed';
 import { CircleUserRound, Home } from 'lucide-react-native';
-import { router } from 'expo-router';
-import { useEffect } from 'react';
+import { usePathname } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { TAB_HIDDEN_ROUTES } from '../../constants';
 
 export default function HomeLayout() {
+  const pathname = usePathname();
+  const [tabHidden, setTabHidden] = useState(false);
+
+  useEffect(() => {
+    if (TAB_HIDDEN_ROUTES.includes(pathname)) {
+      setTabHidden(true);
+    } else {
+      setTabHidden(false);
+    }
+  }, [pathname]);
+
   return (
     <GluestackUIProvider config={config}>
       <Tabs
@@ -21,6 +32,7 @@ export default function HomeLayout() {
             borderTopLeftRadius: 20,
             borderTopRightRadius: 20,
             backgroundColor: '#2D3250',
+            display: tabHidden ? 'none' : 'flex',
           },
           tabBarShowLabel: false,
         }}>

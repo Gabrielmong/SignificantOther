@@ -1,118 +1,74 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Button, Input, InputField, Text, View } from '@gluestack-ui/themed';
 import { StatusBar } from 'expo-status-bar';
 import { useAppTheme, useAuth, useFirebase } from '../../../hooks';
-import { PathData, Whiteboard } from '../../../components';
+import { PathData, WhiteBoardPreview } from '../../../components';
+import { router } from 'expo-router';
+import { RefreshControl } from '@gluestack-ui/themed';
+import { ScrollView } from '@gluestack-ui/themed';
 
 export default function Home() {
   const { colorMode } = useAppTheme();
   const [storedPaths, setStoredPaths] = useState<PathData[]>([]);
   const [storedCanvasColor, setStoredCanvasColor] = useState<string>('white');
-  const { user, editExtraProfile } = useAuth();
-  const [boardId, setBoardId] = useState<string>(user.whiteboardId || '');
+  const [boardName, setBoardName] = useState<string>('');
+  const { user } = useAuth();
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const {
-    joinWhiteboard,
-    createWhiteboard,
-    listenToWhiteboardEvents,
-    updateWhiteboard,
-    getWhiteboard,
-  } = useFirebase();
+  const { listenToWhiteboardEvents, getWhiteboard } = useFirebase();
+
+  const loadData = async () => {
+    if (user.whiteboardId) {
+      getWhiteboard(user.whiteboardId).then((snapshot) => {
+        const data = snapshot.val();
+        setStoredPaths(data.paths);
+        setStoredCanvasColor(data.canvasColor || 'white');
+        setBoardName(data.name || '');
+
+        setRefreshing(false);
+        setLoading(false);
+      });
+    }
+  };
+
+  useEffect(() => {
+    listenToWhiteboardEvents((data) => {
+      setStoredPaths(data.paths);
+      setStoredCanvasColor(data.canvasColor || 'white');
+      setBoardName(data.name || '');
+    }, user.whiteboardId || '');
+  }, []);
 
   useEffect(() => {
     if (user.whiteboardId) {
-      setBoardId(user.whiteboardId);
+      loadData();
     }
-  }, [user.whiteboardId]);
+  }, [user]);
 
-  useEffect(() => {
-    const loadData = async () => {
-      if (boardId) {
-        getWhiteboard(boardId).then((data) => {
-          setStoredPaths(data.paths);
-          setStoredCanvasColor(data.canvasColor || 'white');
-        });
-
-        listenToWhiteboardEvents((data) => {
-          setStoredPaths(data.paths);
-          setStoredCanvasColor(data.canvasColor || 'white');
-        }, boardId);
-      }
-    };
-
-    loadData();
-  }, [boardId]);
-
-  const pathsCallback = (paths: PathData[]) => {
-    setStoredPaths(paths);
-
-    if (boardId) {
-      updateWhiteboard(paths, boardId, storedCanvasColor);
-    }
-  };
-
-  const canvasCallback = (color: string) => {
-    setStoredCanvasColor(color);
-
-    if (boardId) {
-      updateWhiteboard(storedPaths, boardId, color);
-    }
-  };
-
-  const handleCreateWhiteboard = async () => {
-    const id = await createWhiteboard();
-    setBoardId(id);
-
-    editExtraProfile({ whiteboardId: id });
+  const handleOpenWhiteboard = () => {
+    router.push('/(tabs)/Home/WhiteBoard');
   };
 
   return (
-    <View
+    <ScrollView
       $dark-backgroundColor="#121212"
-      style={{
+      contentContainerStyle={{
         flex: 1,
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         alignItems: 'center',
         padding: 20,
-      }}>
-      <Whiteboard
-        pathCallback={pathsCallback}
-        canvasColorCallback={canvasCallback}
-        incomingPaths={storedPaths}
-        incomingCanvasColor={storedCanvasColor}
+      }}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} />}>
+      <WhiteBoardPreview
+        boardName={boardName}
+        paths={storedPaths}
+        canvasColor={storedCanvasColor}
+        height={100}
+        onPress={handleOpenWhiteboard}
+        loading={loading}
       />
 
-      <Input>
-        <InputField
-          placeholder="Whiteboard ID"
-          value={boardId}
-          onChangeText={setBoardId}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-      </Input>
-
-      <Box
-        style={{
-          width: '100%',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-        }}>
-        <Button
-          onPress={() => {
-            joinWhiteboard(boardId);
-          }}>
-          <Text>Join Whiteboard</Text>
-        </Button>
-
-        {!user.whiteboardId && (
-          <Button onPress={handleCreateWhiteboard}>
-            <Text>Create Whiteboard</Text>
-          </Button>
-        )}
-      </Box>
-
       <StatusBar backgroundColor={colorMode === 'dark' ? '#000000' : '#F5F5F5'} />
-    </View>
+    </ScrollView>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Animated } from 'react-native';
 import { Svg, Path } from 'react-native-svg';
 import { GestureResponderEvent } from 'react-native';
 import {
@@ -56,8 +56,34 @@ export const Whiteboard = ({
   const [canvasColor, setCanvasColor] = useState<string>('white');
   const [brushWidthOpen, setBrushWidthOpen] = useState(false);
 
+  const [toolsVisible, setToolsVisible] = useState(true); // State to control visibility
+  const fadeAnim = useRef(new Animated.Value(1)).current; // Animated value for opacity
+
+  const fadeOut = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+    setToolsVisible(false);
+  };
+
+  const fadeIn = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+    setToolsVisible(true);
+  };
+
+  const onTouchStart = () => {
+    fadeOut();
+  };
+
   const onTouchEnd = (event: GestureResponderEvent) => {
     setBrushWidthOpen(false);
+    fadeIn();
 
     if (currentPath.length === 0) {
       return;
@@ -134,9 +160,11 @@ export const Whiteboard = ({
         justifyContent: 'flex-start',
         alignItems: 'center',
         gap: 10,
+        flex: 1,
       }}>
-      <Box
+      <Animated.View
         style={{
+          opacity: fadeAnim,
           position: 'absolute',
           top: 0,
           right: 0,
@@ -161,8 +189,7 @@ export const Whiteboard = ({
         <IconButton icon={PaintBucket} onPress={() => setInternalCanvasColor(currentColor)} />
 
         <IconButton icon={Brush} onPress={handleOpenBrushWidth} />
-      </Box>
-
+      </Animated.View>
       {brushWidthOpen && (
         <Box
           style={{
@@ -198,8 +225,10 @@ export const Whiteboard = ({
       <Box
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
+        onTouchStart={onTouchStart}
         style={{
-          height: 400,
+          height: '100%',
+          maxHeight: 700,
           width: '100%',
           justifyContent: 'center',
           alignItems: 'center',

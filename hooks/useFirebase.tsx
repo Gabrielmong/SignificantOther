@@ -85,7 +85,8 @@ export const useFirebase = () => {
   };
 
   const createWhiteboard = async () => {
-    const whiteboardId = uuid.v4().toString();
+    // get the first 15 characters of the uuid
+    const whiteboardId = uuid.v4().toString().substring(0, 15);
 
     const whiteboardRef = databaseRef(db, `whiteboard/${whiteboardId}`);
 
@@ -114,9 +115,11 @@ export const useFirebase = () => {
     whiteBoardCallback: ({
       paths,
       canvasColor,
+      name,
     }: {
       paths: PathData[];
       canvasColor: string;
+      name: string;
     }) => void,
     whiteboardId: string,
   ) => {
@@ -129,45 +132,16 @@ export const useFirebase = () => {
         whiteBoardCallback({
           paths: data.paths,
           canvasColor: data.canvasColor,
+          name: data.name,
         });
       }
     });
   };
 
-  const getWhiteboard = async (
-    whiteboardId: string,
-  ): Promise<{
-    id: string;
-    name: string;
-    canvasColor: string;
-    paths: PathData[];
-  }> => {
-    new Promise((resolve, reject) => {
-      const whiteboardRef = databaseRef(db, `whiteboard/${whiteboardId}`);
+  const getWhiteboard = async (whiteboardId: string) => {
+    const whiteboardRef = databaseRef(db, `whiteboard/${whiteboardId}`);
 
-      get(whiteboardRef)
-        .then((snapshot) => {
-          if (snapshot.exists()) {
-            const data = snapshot.val();
-
-            if (data) {
-              resolve(data);
-            }
-          } else {
-            console.log('No data available');
-          }
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-    });
-
-    return {
-      id: '',
-      name: '',
-      canvasColor: '',
-      paths: [],
-    };
+    return get(whiteboardRef);
   };
 
   const joinWhiteboard = async (whiteboardId: string) => {
@@ -177,8 +151,6 @@ export const useFirebase = () => {
       const data = snapshot.val();
 
       if (data) {
-        console.log(data);
-
         return data;
       }
     });
