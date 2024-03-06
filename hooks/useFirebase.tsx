@@ -84,30 +84,39 @@ export const useFirebase = () => {
     });
   };
 
-  const createWhiteboard = async () => {
-    // get the first 15 characters of the uuid
-    const whiteboardId = uuid.v4().toString().substring(0, 15);
+  const createRoom = async ({ uid }: { uid: string }) => {
+    const roomId = uuid.v4().toString().substring(0, 15);
 
-    const whiteboardRef = databaseRef(db, `whiteboard/${whiteboardId}`);
+    const roomRef = databaseRef(db, `rooms/${roomId}`);
 
-    const newWhiteboard = {
-      id: whiteboardId,
-      name: `Whiteboard ${whiteboardId}`,
-      canvasColor: '#ffffff',
-      paths: [],
-    };
+    await update(roomRef, {
+      id: roomId,
+      messages: [],
+      users: [uid],
+      whiteboard: {
+        name: `Shared Board`,
+        canvasColor: '#ffffff',
+        paths: [],
+      },
+    });
 
-    await update(whiteboardRef, newWhiteboard);
-
-    return whiteboardId;
+    return roomId;
   };
 
-  const updateWhiteboard = async (paths: PathData[], whiteboardId: string, canvasColor: string) => {
-    const whiteboardRef = databaseRef(db, `whiteboard/${whiteboardId}`);
+  const updateWhiteboard = async (paths: PathData[], roomId: string, canvasColor: string) => {
+    const whiteboardRef = databaseRef(db, `rooms/${roomId}/whiteboard`);
 
     await update(whiteboardRef, {
       paths,
       canvasColor,
+    });
+  };
+
+  const updateWhiteBoardName = async (name: string, roomId: string) => {
+    const whiteboardRef = databaseRef(db, `rooms/${roomId}/whiteboard`);
+
+    await update(whiteboardRef, {
+      name,
     });
   };
 
@@ -121,9 +130,9 @@ export const useFirebase = () => {
       canvasColor: string;
       name: string;
     }) => void,
-    whiteboardId: string,
+    roomId: string,
   ) => {
-    const whiteboardRef = databaseRef(db, `whiteboard/${whiteboardId}`);
+    const whiteboardRef = databaseRef(db, `rooms/${roomId}/whiteboard`);
 
     onValue(whiteboardRef, (snapshot) => {
       const data = snapshot.val();
@@ -138,14 +147,14 @@ export const useFirebase = () => {
     });
   };
 
-  const getWhiteboard = async (whiteboardId: string) => {
-    const whiteboardRef = databaseRef(db, `whiteboard/${whiteboardId}`);
+  const getWhiteboard = async (roomId: string) => {
+    const whiteboardRef = databaseRef(db, `rooms/${roomId}/whiteboard`);
 
     return get(whiteboardRef);
   };
 
-  const joinWhiteboard = async (whiteboardId: string) => {
-    const whiteboardRef = databaseRef(db, `whiteboard/${whiteboardId}`);
+  const joinWhiteboard = async (roomId: string) => {
+    const whiteboardRef = databaseRef(db, `rooms/${roomId}/whiteboard`);
 
     get(whiteboardRef).then((snapshot) => {
       const data = snapshot.val();
@@ -156,14 +165,68 @@ export const useFirebase = () => {
     });
   };
 
+  const sendMessage = async ({
+    roomId,
+    uid,
+    message,
+  }: {
+    roomId: string;
+    uid: string;
+    message: string;
+  }) => {
+    const roomRef = databaseRef(db, `rooms/${roomId}/messages`);
+    const id = Date.now().toString();
+
+    await update(roomRef, {
+      [id]: {
+        message,
+        uid,
+        timestamp: Date.now(),
+      },
+    });
+  };
+
+  const listenToMessages = (
+    messageCallback: (
+      messages: {
+        message: string;
+        uid: string;
+        timestamp: number;
+      }[],
+    ) => void,
+    roomId: string,
+  ) => {
+    const roomRef = databaseRef(db, `rooms/${roomId}`);
+
+    onValue(child(roomRef, 'messages'), (snapshot) => {
+      const data = snapshot.val();
+
+      if (data) {
+        const messages = Object.keys(data).map((key) => data[key]);
+
+        messageCallback(messages);
+      }
+    });
+  };
+
+  const getMessages = async (roomId: string) => {
+    const roomRef = databaseRef(db, `rooms/${roomId}`);
+
+    return get(child(roomRef, 'messages'));
+  };
+
   return {
     app,
     auth,
     uploadToFirebaseStorage,
-    createWhiteboard,
     listenToWhiteboardEvents,
     joinWhiteboard,
     updateWhiteboard,
     getWhiteboard,
+    createRoom,
+    updateWhiteBoardName,
+    sendMessage,
+    listenToMessages,
+    getMessages,
   };
 };

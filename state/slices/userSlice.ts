@@ -10,7 +10,9 @@ interface UserState {
   loggedIn: boolean | undefined;
   uid?: string;
   photoURL?: string | null;
-  whiteboardId?: string;
+  roomId?: string;
+  fcmtokens?: string[];
+  thisDeviceToken?: string;
 }
 
 // Define the initial state using that type
@@ -20,12 +22,14 @@ const initialState: UserState = {
   loggedIn: undefined,
   uid: '',
   photoURL: '',
-  whiteboardId: '',
+  roomId: '',
+  fcmtokens: [],
+  thisDeviceToken: '',
 };
 
 export type UserPayload = Pick<
   UserState,
-  'displayName' | 'email' | 'uid' | 'photoURL' | 'whiteboardId'
+  'displayName' | 'email' | 'uid' | 'photoURL' | 'roomId' | 'fcmtokens' | 'thisDeviceToken'
 >;
 export type PartialUserPayload = Partial<UserState>;
 
@@ -40,7 +44,9 @@ export const UserSlice = createSlice({
       state.uid = action.payload.uid;
       state.photoURL = action.payload.photoURL;
       state.loggedIn = true;
-      state.whiteboardId = action.payload.whiteboardId || state.whiteboardId;
+      state.roomId = action.payload.roomId || state.roomId;
+      state.fcmtokens = action.payload.fcmtokens || state.fcmtokens;
+      state.thisDeviceToken = action.payload.thisDeviceToken || state.thisDeviceToken;
     },
     stateLogout: (state) => {
       state.displayName = '';
@@ -48,13 +54,16 @@ export const UserSlice = createSlice({
       state.uid = '';
       state.photoURL = '';
       state.loggedIn = false;
-      state.whiteboardId = '';
+      state.roomId = '';
+      state.fcmtokens = [];
     },
     updateUser: (state, action: PayloadAction<PartialUserPayload>) => {
       state.displayName = action.payload?.displayName || state.displayName;
       state.email = action.payload?.email || state.email;
       state.photoURL = action.payload?.photoURL || state.photoURL;
-      state.whiteboardId = action.payload?.whiteboardId || state.whiteboardId;
+      state.roomId = action.payload?.roomId || state.roomId;
+      state.fcmtokens = action.payload?.fcmtokens || state.fcmtokens;
+      state.thisDeviceToken = action.payload?.thisDeviceToken || state.thisDeviceToken;
     },
   },
 });

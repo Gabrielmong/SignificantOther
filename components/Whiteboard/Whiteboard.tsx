@@ -162,34 +162,36 @@ export const Whiteboard = ({
         gap: 10,
         flex: 1,
       }}>
-      <Animated.View
-        style={{
-          opacity: fadeAnim,
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          width: 'auto',
-          gap: 10,
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          zIndex: 10,
-          backgroundColor: 'rgba(0, 0, 0, 0.3)',
-          borderRadius: 50,
-        }}>
-        <IconButton icon={Eraser} onPress={handleClearButtonClick} />
+      {toolsVisible && (
+        <Animated.View
+          style={{
+            opacity: fadeAnim,
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            width: 'auto',
+            gap: 10,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            zIndex: 10,
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+            borderRadius: 50,
+          }}>
+          <IconButton icon={Eraser} onPress={handleClearButtonClick} />
 
-        <IconButton
-          icon={UndoDot}
-          onPress={handleUndoButtonClick}
-          disabled={previousPaths.length === 0}
-        />
+          <IconButton
+            icon={UndoDot}
+            onPress={handleUndoButtonClick}
+            disabled={previousPaths.length === 0}
+          />
 
-        <IconButton icon={Palette} onPress={() => setShowModal(true)} />
+          <IconButton icon={Palette} onPress={() => setShowModal(true)} />
 
-        <IconButton icon={PaintBucket} onPress={() => setInternalCanvasColor(currentColor)} />
+          <IconButton icon={PaintBucket} onPress={() => setInternalCanvasColor(currentColor)} />
 
-        <IconButton icon={Brush} onPress={handleOpenBrushWidth} />
-      </Animated.View>
+          <IconButton icon={Brush} onPress={handleOpenBrushWidth} />
+        </Animated.View>
+      )}
       {brushWidthOpen && (
         <Box
           style={{

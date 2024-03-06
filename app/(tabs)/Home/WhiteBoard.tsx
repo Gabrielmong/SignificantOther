@@ -17,7 +17,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useAppTheme, useAppToast, useAuth, useFirebase } from '../../../hooks';
 import { IconButton, PathData, Whiteboard } from '../../../components';
 import { router } from 'expo-router';
-import { ArrowLeft, Copy, Save } from 'lucide-react-native';
+import { ArrowLeft, Copy, Edit, Save } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 
 export default function WhiteBoard() {
@@ -26,30 +26,32 @@ export default function WhiteBoard() {
   const [storedCanvasColor, setStoredCanvasColor] = useState<string>('white');
   const [boardName, setBoardName] = useState<string>('');
   const { user, editExtraProfile } = useAuth();
-  const [boardId, setBoardId] = useState<string>(user.whiteboardId || '');
+  const [roomId, setRoomId] = useState<string>(user.roomId || '');
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [editNameModal, setEditNameModal] = useState(false);
+  const [newBoardName, setNewBoardName] = useState('');
 
   const {
     joinWhiteboard,
-    createWhiteboard,
     listenToWhiteboardEvents,
     updateWhiteboard,
     getWhiteboard,
+    updateWhiteBoardName,
   } = useFirebase();
 
   const { showToast } = useAppToast();
 
   useEffect(() => {
-    if (user.whiteboardId) {
-      setBoardId(user.whiteboardId);
+    if (user.roomId) {
+      setRoomId(user.roomId);
     }
-  }, [user.whiteboardId]);
+  }, [user.roomId]);
 
   useEffect(() => {
     const loadData = async () => {
-      if (boardId) {
-        getWhiteboard(boardId).then((snapshot) => {
+      if (roomId) {
+        getWhiteboard(roomId).then((snapshot) => {
           const data = snapshot.val();
           setStoredPaths(data.paths);
           setStoredCanvasColor(data.canvasColor || 'white');
@@ -67,39 +69,37 @@ export default function WhiteBoard() {
       setStoredPaths(data.paths);
       setStoredCanvasColor(data.canvasColor || 'white');
       setBoardName(data.name || '');
-    }, boardId);
-  }, [boardId]);
+    }, roomId);
+  }, [roomId]);
 
   const pathsCallback = (paths: PathData[]) => {
     setStoredPaths(paths);
 
-    if (boardId) {
-      updateWhiteboard(paths, boardId, storedCanvasColor);
+    if (roomId) {
+      updateWhiteboard(paths, roomId, storedCanvasColor);
     }
   };
 
   const canvasCallback = (color: string) => {
     setStoredCanvasColor(color);
 
-    if (boardId) {
-      updateWhiteboard(storedPaths, boardId, color);
+    if (roomId) {
+      updateWhiteboard(storedPaths, roomId, color);
     }
   };
 
-  const handleCreateWhiteboard = async () => {
-    const id = await createWhiteboard();
-    setBoardId(id);
-
-    editExtraProfile({ whiteboardId: id });
+  const handleEditWhiteboardName = () => {
+    setNewBoardName(boardName);
+    setEditNameModal(true);
   };
 
   const handleJoinWhiteboard = () => {
-    joinWhiteboard(boardId);
-    editExtraProfile({ whiteboardId: boardId });
+    joinWhiteboard(roomId);
+    editExtraProfile({ roomId });
   };
 
   const handleCopyWhiteboardId = () => {
-    Clipboard.setStringAsync(boardId).then(() => {
+    Clipboard.setStringAsync(roomId).then(() => {
       showToast({
         title: 'Whiteboard ID copied',
         status: 'success',
@@ -156,33 +156,24 @@ export default function WhiteBoard() {
                 {boardName || 'Whiteboard'}
               </Text>
 
+              <IconButton
+                icon={Edit}
+                onPress={handleEditWhiteboardName}
+                variant="ghost"
+                size={15}
+              />
+
               <IconButton icon={Copy} onPress={handleCopyWhiteboardId} variant="ghost" size={15} />
             </Box>
           </Box>
 
-          {!boardId ? (
+          {!roomId ? (
             <Box
               style={{
                 width: '100%',
                 alignItems: 'center',
                 gap: 20,
               }}>
-              <Button
-                onPress={handleCreateWhiteboard}
-                style={{
-                  width: '100%',
-                }}>
-                <Text>Create Whiteboard</Text>
-              </Button>
-
-              <Button
-                onPress={() => setShowModal(true)}
-                style={{
-                  width: '100%',
-                }}>
-                <Text>Join Whiteboard</Text>
-              </Button>
-
               <Modal isOpen={showModal}>
                 <ModalBackdrop onPress={() => setShowModal(false)} />
 
@@ -200,8 +191,8 @@ export default function WhiteBoard() {
                     }}>
                     <Input>
                       <InputField
-                        value={boardId}
-                        onChangeText={(text) => setBoardId(text)}
+                        value={roomId}
+                        onChangeText={(text) => setRoomId(text)}
                         placeholder="Whiteboard ID"
                       />
                     </Input>
@@ -230,6 +221,43 @@ export default function WhiteBoard() {
           )}
         </>
       )}
+
+      <Modal isOpen={editNameModal}>
+        <ModalBackdrop onPress={() => setEditNameModal(false)} />
+
+        <ModalContent>
+          <ModalCloseButton onPress={() => setEditNameModal(false)} />
+
+          <ModalHeader>
+            <Text>Edit Whiteboard Name</Text>
+          </ModalHeader>
+
+          <Box
+            style={{
+              padding: 20,
+              gap: 20,
+            }}>
+            <Input>
+              <InputField
+                value={newBoardName}
+                onChangeText={(text) => setNewBoardName(text)}
+                placeholder="Whiteboard Name"
+              />
+            </Input>
+
+            <Button
+              onPress={() => {
+                updateWhiteBoardName(newBoardName, roomId);
+                setEditNameModal(false);
+              }}
+              style={{
+                width: '100%',
+              }}>
+              <Text>Save</Text>
+            </Button>
+          </Box>
+        </ModalContent>
+      </Modal>
 
       <StatusBar backgroundColor={colorMode === 'dark' ? '#000000' : '#F5F5F5'} />
     </View>

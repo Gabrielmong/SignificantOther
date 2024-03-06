@@ -5,9 +5,11 @@ import { store } from '../state';
 import { Provider } from 'react-redux';
 import { Slot } from 'expo-router';
 import { EntryCheckerWrapper } from '../components';
-import { useMemo } from 'react';
-import { useAppTheme } from '../hooks/';
+import { useAppTheme, useAuth } from '../hooks/';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Alert, PermissionsAndroid, AppRegistry } from 'react-native';
+import { useEffect } from 'react';
+import messaging from '@react-native-firebase/messaging';
 
 export default function AppLayout() {
   const { colorMode } = useAppTheme();
@@ -33,3 +35,9 @@ export default function AppLayout() {
     </Provider>
   );
 }
+
+messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+  console.log('Message handled in the background!', remoteMessage);
+});
+
+AppRegistry.registerComponent('AppLayout', () => AppLayout);

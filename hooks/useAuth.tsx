@@ -17,6 +17,9 @@ import { useFirebase } from './useFirebase';
 import { useAppToast } from './useAppToast';
 import { FirebaseError } from '@firebase/util';
 import { get, getDatabase, onValue, ref, update } from 'firebase/database';
+import messaging from '@react-native-firebase/messaging';
+import { useEffect } from 'react';
+import { PermissionsAndroid } from 'react-native';
 
 export const useAuth = () => {
   const { auth } = useFirebase();
@@ -24,6 +27,17 @@ export const useAuth = () => {
   const { showToast } = useAppToast();
   const user = useAppSelector((state) => state.user);
   const db = getDatabase();
+
+  const checkToken = async () => {
+    const fcmToken = await messaging().getToken();
+    if (fcmToken) {
+      dispatch(
+        updateUser({
+          thisDeviceToken: fcmToken,
+        }),
+      );
+    }
+  };
 
   const logout = (): Promise<void> => {
     if (!auth) return Promise.resolve();
@@ -119,12 +133,15 @@ export const useAuth = () => {
 
         await getExtraProfile();
 
+        await checkToken();
+
         const userPayload: UserPayload = {
           displayName: user.displayName,
           email: user.email,
           uid: user.uid,
           photoURL: user.photoURL,
         };
+
         dispatch(setUser(userPayload));
       } else {
         dispatch(stateLogout());
@@ -186,24 +203,20 @@ export const useAuth = () => {
       });
   };
 
-  const editExtraProfile = ({ whiteboardId }: { whiteboardId?: string }) => {
+  const editExtraProfile = ({ roomId, fcmToken }: { roomId?: string; fcmToken?: string }) => {
     if (!auth?.currentUser) return;
 
     const updatedFields: PartialUserPayload = {};
-    if (whiteboardId && whiteboardId !== user?.whiteboardId)
-      updatedFields.whiteboardId = whiteboardId;
+    if (roomId && roomId !== user?.roomId) updatedFields.roomId = roomId;
+    if (fcmToken && !user?.fcmtokens?.includes(fcmToken)) {
+      updatedFields.fcmtokens = user?.fcmtokens ? [...user.fcmtokens, fcmToken] : [fcmToken];
+    }
 
     const userDocRef = ref(db, `users/${user?.uid}`);
 
     update(userDocRef, updatedFields);
 
     dispatch(updateUser(updatedFields));
-
-    showToast({
-      title: 'Profile updated',
-      description: 'Profile has been updated',
-      status: 'success',
-    });
   };
 
   const getExtraProfile = () => {
@@ -216,12 +229,37 @@ export const useAuth = () => {
 
       if (data) {
         const updatedFields: PartialUserPayload = {
-          whiteboardId: data.whiteboardId,
+          roomId: data.roomId,
+          fcmtokens: data.fcmtokens,
         };
 
         dispatch(updateUser(updatedFields));
       }
     });
+  };
+
+  const requestUserPermission = async () => {
+    PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+  };
+
+  const checkPermission = async () => {
+    const authStatus = await messaging().requestPermission();
+    const enabled =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+    if (enabled) {
+      console.log('Authorization status:', authStatus);
+      const fcmToken = await messaging().getToken();
+
+      console.log('fcmToken:', fcmToken);
+
+      if (fcmToken) {
+        if (!user?.fcmtokens?.includes(fcmToken)) {
+          editExtraProfile({ fcmToken });
+        }
+      }
+    }
   };
 
   return {
@@ -234,5 +272,8 @@ export const useAuth = () => {
     user,
     editExtraProfile,
     getExtraProfile,
+    checkToken,
+    requestUserPermission,
+    checkPermission,
   };
 };

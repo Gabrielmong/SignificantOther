@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { useAppSelector } from '../../state';
 import { router } from 'expo-router';
 import { useAuth } from '../../hooks';
+import { PermissionsAndroid, Alert } from 'react-native';
+import messaging from '@react-native-firebase/messaging';
 
 export const EntryCheckerWrapper = ({ children }: { children: React.ReactNode }) => {
   const isLogged = useAppSelector((state) => state.user.loggedIn);
@@ -33,6 +35,14 @@ export const EntryCheckerWrapper = ({ children }: { children: React.ReactNode })
       router.replace('/Auth/Signin');
     }
   }, [isLogged]);
+
+  useEffect(() => {
+    const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+      Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
+    });
+
+    return unsubscribe;
+  }, []);
 
   return <>{children}</>;
 };

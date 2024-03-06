@@ -2,7 +2,7 @@ import { Tabs } from 'expo-router';
 import { GluestackUIProvider } from '@gluestack-ui/themed';
 import { config } from '@gluestack-ui/config';
 import { Icon } from '@gluestack-ui/themed';
-import { CircleUserRound, Home } from 'lucide-react-native';
+import { CircleUserRound, Home, MessageCircle } from 'lucide-react-native';
 import { usePathname } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { TAB_HIDDEN_ROUTES } from '../../constants';
@@ -41,6 +41,14 @@ export default function HomeLayout() {
           options={{
             tabBarIcon: ({ color, size }) => <Icon as={Home} color={color} />,
             headerShown: false,
+          }}
+        />
+        <Tabs.Screen
+          name="Chat"
+          options={{
+            tabBarIcon: ({ color, size }) => <Icon as={MessageCircle} color={color} />,
+            headerShown: false,
+            tabBarHideOnKeyboard: true,
           }}
         />
         <Tabs.Screen
