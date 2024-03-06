@@ -12,7 +12,10 @@ export const EntryCheckerWrapper = ({ children }: { children: React.ReactNode })
   const segments = useSegments();
   const [currentRoute, setCurrentRoute] = useState<AllRoutes | null>(null);
 
-  initialize();
+  useEffect(() => {
+    console.log('EntryCheckerWrapper', isLogged);
+    initialize();
+  }, [currentRoute]);
 
   useEffect(() => {
     if (segments) {
@@ -38,7 +41,7 @@ export const EntryCheckerWrapper = ({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async (remoteMessage) => {
-      Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
+      console.log(remoteMessage);
     });
 
     return unsubscribe;

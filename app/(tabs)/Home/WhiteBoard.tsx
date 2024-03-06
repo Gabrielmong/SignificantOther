@@ -93,11 +93,6 @@ export default function WhiteBoard() {
     setEditNameModal(true);
   };
 
-  const handleJoinWhiteboard = () => {
-    joinWhiteboard(roomId);
-    editExtraProfile({ roomId });
-  };
-
   const handleCopyWhiteboardId = () => {
     Clipboard.setStringAsync(roomId).then(() => {
       showToast({
@@ -167,51 +162,7 @@ export default function WhiteBoard() {
             </Box>
           </Box>
 
-          {!roomId ? (
-            <Box
-              style={{
-                width: '100%',
-                alignItems: 'center',
-                gap: 20,
-              }}>
-              <Modal isOpen={showModal}>
-                <ModalBackdrop onPress={() => setShowModal(false)} />
-
-                <ModalContent>
-                  <ModalCloseButton onPress={() => setShowModal(false)} />
-
-                  <ModalHeader>
-                    <Text>Whiteboard ID</Text>
-                  </ModalHeader>
-
-                  <Box
-                    style={{
-                      padding: 20,
-                      gap: 20,
-                    }}>
-                    <Input>
-                      <InputField
-                        value={roomId}
-                        onChangeText={(text) => setRoomId(text)}
-                        placeholder="Whiteboard ID"
-                      />
-                    </Input>
-
-                    <Button
-                      onPress={() => {
-                        handleJoinWhiteboard();
-                        setShowModal(false);
-                      }}
-                      style={{
-                        width: '100%',
-                      }}>
-                      <Text>Join</Text>
-                    </Button>
-                  </Box>
-                </ModalContent>
-              </Modal>
-            </Box>
-          ) : (
+          {roomId && (
             <Whiteboard
               pathCallback={pathsCallback}
               canvasColorCallback={canvasCallback}

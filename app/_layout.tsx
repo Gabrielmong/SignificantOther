@@ -5,10 +5,9 @@ import { store } from '../state';
 import { Provider } from 'react-redux';
 import { Slot } from 'expo-router';
 import { EntryCheckerWrapper } from '../components';
-import { useAppTheme, useAuth } from '../hooks/';
+import { useAppTheme } from '../hooks/';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Alert, PermissionsAndroid, AppRegistry } from 'react-native';
-import { useEffect } from 'react';
+import { AppRegistry } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 
 export default function AppLayout() {

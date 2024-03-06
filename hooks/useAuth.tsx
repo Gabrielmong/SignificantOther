@@ -133,6 +133,8 @@ export const useAuth = () => {
 
         await getExtraProfile();
 
+        await requestUserPermission();
+
         await checkToken();
 
         const userPayload: UserPayload = {

@@ -10,7 +10,7 @@ import { Edit } from 'lucide-react-native';
 export default function Profile() {
   const user = useAppSelector((state) => state.user);
   const { colorMode } = useAppTheme();
-  const { logout, checkPermission } = useAuth();
+  const { logout, requestUserPermission } = useAuth();
 
   async function handleLogout() {
     await logout();
@@ -19,10 +19,6 @@ export default function Profile() {
   function handleEdit() {
     router.push('/(tabs)/Profile/EditProfile');
   }
-
-  const handleRequestUserPermission = () => {
-    checkPermission();
-  };
 
   return (
     <View
@@ -71,20 +67,6 @@ export default function Profile() {
         <Text>{user?.displayName || 'Name not set'}</Text>
         <Text>{user?.email}</Text>
         <Text>{user?.roomId}</Text>
-      </Box>
-
-      <Box
-        style={{
-          width: '100%',
-          gap: 10,
-        }}>
-        <Button
-          onPress={handleRequestUserPermission}
-          style={{
-            backgroundColor: 'green',
-          }}>
-          <Text>Request Permission</Text>
-        </Button>
       </Box>
 
       <Box
