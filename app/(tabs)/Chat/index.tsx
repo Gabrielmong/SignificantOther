@@ -1,40 +1,30 @@
 import { StatusBar } from 'expo-status-bar';
-import {
-  Text,
-  View,
-  Button,
-  Image,
-  Box,
-  Card,
-  InputField,
-  Input,
-  Spinner,
-} from '@gluestack-ui/themed';
+import { Text, View, Button, Image, Box, InputField, Input, Spinner } from '@gluestack-ui/themed';
 import { useAuth } from '../../../hooks/useAuth';
 import { useAppSelector } from '../../../state';
-import { useAppTheme, useFirebase } from '../../../hooks';
+import { useAppTheme, useAppToast, useFirebase } from '../../../hooks';
 import { router } from 'expo-router';
-import { IconButton } from '../../../components';
+import { IconButton, Message, MessageOptionsModal } from '../../../components';
 import { Send } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { FlashList } from '@shopify/flash-list';
+import { TextInput } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
+import { MessageType } from '../../../types';
 
-interface Message {
-  uid: string;
-  message: string;
-  timestamp: number;
-}
-
-export default function Profile() {
+export default function Chat() {
   const user = useAppSelector((state) => state.user);
+  const { showToast } = useAppToast();
   const { colorMode } = useAppTheme();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<MessageType[]>([]);
   const [roomId, setRoomId] = useState<string>(user.roomId || '');
   const [message, setMessage] = useState<string>('');
-  const flashListRef = useRef<FlashList<Message>>(null);
+  const flashListRef = useRef<FlashList<MessageType>>(null);
+  const inputRef = useRef<TextInput>(null);
   const [loading, setLoading] = useState<boolean>(false);
-
-  const { listenToMessages, sendMessage, getMessages } = useFirebase();
+  const [messageOptionsOpen, setMessageOptionsOpen] = useState<boolean>(false);
+  const [currentMessage, setCurrentMessage] = useState<MessageType | null>(null);
+  const { listenToMessages, sendMessage, getMessages, deleteMessage } = useFirebase();
 
   useEffect(() => {
     if (user.roomId) {
@@ -90,6 +80,58 @@ export default function Profile() {
     }
   };
 
+  const handleOpenMessageOptions = ({
+    message,
+    timestamp,
+    uid,
+  }: {
+    message: string;
+    timestamp: number;
+    uid: string;
+  }) => {
+    setCurrentMessage({ message, timestamp, uid });
+    setMessageOptionsOpen(true);
+  };
+
+  const handleCopyMessage = async () => {
+    if (!currentMessage) return;
+
+    await Clipboard.setStringAsync(currentMessage.message);
+
+    showToast({
+      title: 'Message copied',
+      status: 'success',
+      description: 'You can now paste the message',
+    });
+
+    setMessageOptionsOpen(false);
+  };
+
+  const handleDeleteMessage = async () => {
+    if (!user.roomId) return;
+
+    if (!currentMessage) return;
+
+    await deleteMessage(user.roomId, currentMessage.timestamp);
+
+    showToast({
+      title: 'Message deleted',
+      status: 'success',
+      description: 'The message has been deleted',
+    });
+
+    setMessageOptionsOpen(false);
+  };
+
+  const handleReplyMessage = () => {
+    showToast({
+      title: 'Reply',
+      status: 'info',
+      description: 'This feature is not available yet',
+    });
+    setMessageOptionsOpen(false);
+  };
+
   return (
     <View
       $dark-backgroundColor="#121212"
@@ -136,51 +178,30 @@ export default function Profile() {
             estimatedItemSize={200}
             keyExtractor={(item) => item.timestamp.toString()}
             renderItem={({ item, index }) => (
-              <>
-                {item?.timestamp - messages[index - 1]?.timestamp > 600000 ||
-                  (index === 0 && (
-                    <Box
-                      style={{
-                        width: '100%',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        padding: 2,
-                      }}>
-                      <Text
-                        style={{
-                          fontSize: 12,
-                          color: colorMode === 'dark' ? '#ffffff' : '#000000',
-                        }}>
-                        {new Date(item?.timestamp).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </Text>
-                    </Box>
-                  ))}
-                <Box
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: item?.uid === user?.uid ? 'flex-end' : 'flex-start',
-                    width: '100%',
-                    padding: 5,
-                  }}>
-                  <Box
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      backgroundColor: item?.uid === user.uid ? '#8859ff' : '#323aba',
-                      padding: 10,
-                      borderRadius: 10,
-                      borderBottomLeftRadius: item?.uid === user.uid ? 10 : 0,
-                      borderBottomRightRadius: item?.uid === user.uid ? 0 : 10,
-                    }}>
-                    <Text>{item?.message}</Text>
-                  </Box>
-                </Box>
-              </>
+              <Message
+                index={index}
+                message={item.message}
+                timestamp={item.timestamp}
+                lastMessageTimestamp={index > 0 ? messages[index - 1].timestamp : undefined}
+                uid={item.uid}
+                onLongPress={() => {
+                  handleOpenMessageOptions({
+                    message: item.message,
+                    timestamp: item.timestamp,
+                    uid: item.uid,
+                  });
+                }}
+              />
             )}
+          />
+
+          <MessageOptionsModal
+            isOpen={messageOptionsOpen}
+            onClose={() => setMessageOptionsOpen(false)}
+            currentMessage={currentMessage}
+            onCopyMessage={handleCopyMessage}
+            onDeleteMessage={handleDeleteMessage}
+            onReplyMessage={handleReplyMessage}
           />
         </Box>
       )}
@@ -201,6 +222,8 @@ export default function Profile() {
             flex: 1,
           }}>
           <InputField
+            // @ts-ignore
+            ref={inputRef}
             placeholder="Type a message"
             value={message}
             onChangeText={(text) => setMessage(text)}

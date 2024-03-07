@@ -9,7 +9,15 @@ import {
   ref as storageRef,
 } from 'firebase/storage';
 import { useAppToast } from './useAppToast';
-import { getDatabase, ref as databaseRef, onValue, update, get, child } from 'firebase/database';
+import {
+  getDatabase,
+  ref as databaseRef,
+  onValue,
+  update,
+  get,
+  child,
+  remove,
+} from 'firebase/database';
 import { PathData } from '../components';
 import { useAuth } from './useAuth';
 import uuid from 'react-native-uuid';
@@ -215,6 +223,12 @@ export const useFirebase = () => {
     return get(child(roomRef, 'messages'));
   };
 
+  const deleteMessage = async (roomId: string, messageId: number): Promise<void> => {
+    const roomRef = databaseRef(db, `rooms/${roomId}/messages/${messageId}`);
+
+    return remove(roomRef);
+  };
+
   return {
     app,
     auth,
@@ -228,5 +242,6 @@ export const useFirebase = () => {
     sendMessage,
     listenToMessages,
     getMessages,
+    deleteMessage,
   };
 };
