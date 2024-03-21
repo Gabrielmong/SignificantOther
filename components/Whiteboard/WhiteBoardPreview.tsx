@@ -40,11 +40,9 @@ export const WhiteBoardPreview = ({
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: 'flex-end',
           width: '100%',
         }}>
-        <Text>{loading ? 'Loading...' : boardName}</Text>
-
         <Text
           style={{
             color: 'rgba(255, 255, 255, 0.5)',

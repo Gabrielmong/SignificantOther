@@ -100,7 +100,12 @@ export const useFirebase = () => {
     await update(roomRef, {
       id: roomId,
       messages: [],
-      users: [uid],
+      users: {
+        [uid]: {
+          selectedFlower: 'rose',
+          message: '',
+        },
+      },
       whiteboard: {
         name: `Shared Board`,
         canvasColor: '#ffffff',
@@ -161,8 +166,14 @@ export const useFirebase = () => {
     return get(whiteboardRef);
   };
 
-  const joinWhiteboard = async (roomId: string) => {
+  const joinRoom = async (roomId: string, userId: string) => {
     const whiteboardRef = databaseRef(db, `rooms/${roomId}/whiteboard`);
+    const userRef = databaseRef(db, `rooms/${roomId}/users/${userId}`);
+
+    await update(userRef, {
+      selectedFlower: 'rose',
+      message: '',
+    });
 
     get(whiteboardRef).then((snapshot) => {
       const data = snapshot.val();
@@ -229,12 +240,46 @@ export const useFirebase = () => {
     return remove(roomRef);
   };
 
+  const getFlower = async (roomId: string, uid: string) => {
+    const roomRef = databaseRef(db, `rooms/${roomId}/users/${uid}`);
+
+    return get(roomRef);
+  };
+
+  const updateFlower = async (roomId: string, uid: string, flower: string, message: string) => {
+    const roomRef = databaseRef(db, `rooms/${roomId}/users/${uid}`);
+
+    await update(roomRef, {
+      selectedFlower: flower,
+      message,
+    });
+  };
+
+  const listenToFlowerChanges = (
+    flowerCallback: ({ flower, message }: { flower: string; message: string }) => void,
+    roomId: string,
+    uid: string,
+  ) => {
+    const roomRef = databaseRef(db, `rooms/${roomId}/users/${uid}`);
+
+    onValue(roomRef, (snapshot) => {
+      const data = snapshot.val();
+
+      if (data) {
+        flowerCallback({
+          flower: data.selectedFlower,
+          message: data.message,
+        });
+      }
+    });
+  };
+
   return {
     app,
     auth,
     uploadToFirebaseStorage,
     listenToWhiteboardEvents,
-    joinWhiteboard,
+    joinRoom,
     updateWhiteboard,
     getWhiteboard,
     createRoom,
@@ -243,5 +288,8 @@ export const useFirebase = () => {
     listenToMessages,
     getMessages,
     deleteMessage,
+    getFlower,
+    updateFlower,
+    listenToFlowerChanges,
   };
 };

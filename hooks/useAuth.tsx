@@ -12,6 +12,9 @@ import {
   useAppSelector,
   updateUser,
   PartialUserPayload,
+  RoomPayload,
+  setRoom,
+  updateRoom,
 } from '../state';
 import { useFirebase } from './useFirebase';
 import { useAppToast } from './useAppToast';
@@ -214,6 +217,8 @@ export const useAuth = () => {
       updatedFields.fcmtokens = user?.fcmtokens ? [...user.fcmtokens, fcmToken] : [fcmToken];
     }
 
+    if (roomId) dispatch(updateRoom({ roomId }));
+
     const userDocRef = ref(db, `users/${user?.uid}`);
 
     update(userDocRef, updatedFields);
@@ -235,7 +240,22 @@ export const useAuth = () => {
           fcmtokens: data.fcmtokens,
         };
 
-        dispatch(updateUser(updatedFields));
+        const roomDocRef = ref(db, `rooms/${data.roomId}`);
+
+        get(roomDocRef).then((snapshot) => {
+          const roomData = snapshot.val();
+
+          if (roomData) {
+            const roomFields: RoomPayload = {
+              partnerId: Object.keys(roomData.users).find((id) => id !== user?.uid) || '',
+              roomId: data.roomId,
+            };
+
+            dispatch(setRoom(roomFields));
+
+            dispatch(updateUser(updatedFields));
+          }
+        });
       }
     });
   };

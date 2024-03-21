@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useAppTheme, useAuth, useFirebase } from '../../../hooks';
-import { PathData, WhiteBoardPreview } from '../../../components';
+import { FlowerModal, PathData, WhiteBoardPreview } from '../../../components';
 import { router } from 'expo-router';
 import {
   Box,
   Button,
+  Image,
   Input,
   InputField,
   Modal,
@@ -17,9 +18,13 @@ import {
   Text,
 } from '@gluestack-ui/themed';
 import { ScrollView } from '@gluestack-ui/themed';
+import { Pressable, TouchableOpacity } from 'react-native';
+import { useAppSelector } from '../../../state';
+import { FLOWER_MAP } from '../../../constants';
 
 export default function Home() {
   const { colorMode } = useAppTheme();
+  const { partnerId } = useAppSelector((state) => state.room);
   const [storedPaths, setStoredPaths] = useState<PathData[]>([]);
   const [storedCanvasColor, setStoredCanvasColor] = useState<string>('white');
   const [boardName, setBoardName] = useState<string>('');
@@ -28,11 +33,24 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [roomId, setRoomId] = useState<string>(user.roomId || '');
   const [showModal, setShowModal] = useState(false);
+  const [flowerMessage, setFlowerMessage] = useState<string>('');
+  const [flower, setFlower] = useState<string>('daisy');
+  const [showFlowerModal, setShowFlowerModal] = useState(false);
+  const [ownFlower, setOwnFlower] = useState<string>('daisy');
+  const [ownFlowerMessage, setOwnFlowerMessage] = useState<string>('');
 
-  const { listenToWhiteboardEvents, getWhiteboard, createRoom, joinWhiteboard } = useFirebase();
+  const {
+    listenToWhiteboardEvents,
+    getWhiteboard,
+    createRoom,
+    joinRoom,
+    getFlower,
+    updateFlower,
+    listenToFlowerChanges,
+  } = useFirebase();
 
   const loadData = async () => {
-    if (user.roomId) {
+    if (user.roomId && user.uid) {
       getWhiteboard(user.roomId).then((snapshot) => {
         const data = snapshot.val();
         setStoredPaths(data.paths);
@@ -42,15 +60,38 @@ export default function Home() {
         setRefreshing(false);
         setLoading(false);
       });
+
+      getFlower(user.roomId, partnerId).then((snapshot) => {
+        const data = snapshot.val();
+        setFlower(data.selectedFlower);
+        setFlowerMessage(data.message);
+      });
+
+      getFlower(user.roomId, user.uid).then((snapshot) => {
+        const data = snapshot.val();
+        setOwnFlower(data.selectedFlower);
+        setOwnFlowerMessage(data.message);
+      });
     }
   };
 
   useEffect(() => {
-    listenToWhiteboardEvents((data) => {
-      setStoredPaths(data.paths);
-      setStoredCanvasColor(data.canvasColor || 'white');
-      setBoardName(data.name || '');
-    }, user.roomId || '');
+    if (user.roomId) {
+      listenToWhiteboardEvents((data) => {
+        setStoredPaths(data.paths);
+        setStoredCanvasColor(data.canvasColor || 'white');
+        setBoardName(data.name || '');
+      }, user.roomId || '');
+
+      listenToFlowerChanges(
+        (data) => {
+          setFlower(data.flower);
+          setFlowerMessage(data.message);
+        },
+        user.roomId,
+        partnerId,
+      );
+    }
   }, []);
 
   useEffect(() => {
@@ -71,14 +112,23 @@ export default function Home() {
     });
 
     if (id) {
-      console.log('id', id);
       await editExtraProfile({ roomId: id });
     }
   };
 
   const handleJoinWhiteboard = () => {
-    joinWhiteboard(roomId);
+    if (!user.uid) return;
+
+    joinRoom(roomId, user.uid);
     editExtraProfile({ roomId });
+  };
+
+  const handleFlowerSend = async () => {
+    if (user.roomId && user.uid) {
+      await updateFlower(user.roomId, user.uid, ownFlower, ownFlowerMessage);
+
+      setShowFlowerModal(false);
+    }
   };
 
   return (
@@ -89,17 +139,81 @@ export default function Home() {
         justifyContent: 'flex-start',
         alignItems: 'center',
         padding: 20,
+        gap: 10,
       }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} />}>
       {user.roomId && (
-        <WhiteBoardPreview
-          boardName={boardName}
-          paths={storedPaths}
-          canvasColor={storedCanvasColor}
-          height={100}
-          onPress={handleOpenWhiteboard}
-          loading={loading}
-        />
+        <>
+          <Box
+            style={{
+              width: '100%',
+              alignItems: 'flex-start',
+              justifyContent: 'flex-start',
+              gap: 20,
+            }}>
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: 'bold',
+                color: colorMode === 'dark' ? '#FFFFFF' : '#000000',
+              }}>
+              {boardName}
+            </Text>
+          </Box>
+
+          <WhiteBoardPreview
+            boardName={boardName}
+            paths={storedPaths}
+            canvasColor={storedCanvasColor}
+            height={100}
+            onPress={handleOpenWhiteboard}
+            loading={loading}
+          />
+
+          <TouchableOpacity
+            onPress={() => setShowFlowerModal(true)}
+            style={{
+              padding: 10,
+              backgroundColor: colorMode === 'dark' ? '#000000' : '#F5F5F5',
+              borderRadius: 10,
+              width: '100%',
+              alignItems: 'flex-start',
+              justifyContent: 'space-between',
+              flexDirection: 'row',
+              gap: 10,
+            }}>
+            <Box
+              style={{
+                alignItems: 'flex-start',
+                flex: 1,
+              }}>
+              <Text
+                style={{
+                  color: 'rgba(255, 255, 255, 0.5)',
+                }}>
+                Flowers I wish I could give you
+              </Text>
+
+              {/* 100 chars */}
+              <Text>{flowerMessage}</Text>
+            </Box>
+            <Box
+              style={{
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+              <Image
+                source={FLOWER_MAP[flower] || FLOWER_MAP['daisy']}
+                alt="daisy"
+                style={{
+                  width: 100,
+                  height: 100,
+                  borderRadius: 20,
+                }}
+              />
+            </Box>
+          </TouchableOpacity>
+        </>
       )}
 
       {!user.roomId && (
@@ -156,6 +270,16 @@ export default function Home() {
           </Box>
         </ModalContent>
       </Modal>
+
+      <FlowerModal
+        showFlowerModal={showFlowerModal}
+        setShowFlowerModal={setShowFlowerModal}
+        ownFlower={ownFlower}
+        setOwnFlower={setOwnFlower}
+        ownFlowerMessage={ownFlowerMessage}
+        setOwnFlowerMessage={setOwnFlowerMessage}
+        handleFlowerSend={handleFlowerSend}
+      />
 
       <StatusBar backgroundColor={colorMode === 'dark' ? '#000000' : '#F5F5F5'} />
     </ScrollView>
