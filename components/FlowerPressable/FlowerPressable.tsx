@@ -6,18 +6,18 @@ import { useAppTheme } from '../../hooks';
 export const FlowerPressable = ({
   flower,
   flowerMessage,
-  setShowFlowerModal,
+  onPress,
   loading,
 }: {
   flower: string;
   flowerMessage: string;
-  setShowFlowerModal: (show: boolean) => void;
+  onPress: () => void;
   loading: boolean;
 }) => {
   const { colorMode } = useAppTheme();
   return (
     <TouchableOpacity
-      onPress={() => setShowFlowerModal(true)}
+      onPress={onPress}
       style={{
         padding: 10,
         backgroundColor: colorMode === 'dark' ? '#000000' : '#F5F5F5',

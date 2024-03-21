@@ -16,27 +16,27 @@ import { FLOWER_MAP } from '../../constants';
 
 export const FlowerModal = ({
   showFlowerModal,
-  setShowFlowerModal,
   ownFlower,
   setOwnFlower,
   ownFlowerMessage,
   setOwnFlowerMessage,
   handleFlowerSend,
+  onClose,
 }: {
   showFlowerModal: boolean;
-  setShowFlowerModal: (show: boolean) => void;
   ownFlower: string;
   setOwnFlower: (flower: string) => void;
   ownFlowerMessage: string;
   setOwnFlowerMessage: (message: string) => void;
   handleFlowerSend: () => void;
+  onClose: () => void;
 }) => {
   return (
     <Modal isOpen={showFlowerModal}>
-      <ModalBackdrop onPress={() => setShowFlowerModal(false)} />
+      <ModalBackdrop onPress={onClose} />
 
       <ModalContent>
-        <ModalCloseButton onPress={() => setShowFlowerModal(false)} />
+        <ModalCloseButton onPress={onClose} />
 
         <ModalHeader>
           <Box>

@@ -6,7 +6,6 @@ import { router } from 'expo-router';
 import {
   Box,
   Button,
-  Image,
   Input,
   InputField,
   Modal,
@@ -18,9 +17,7 @@ import {
   Text,
 } from '@gluestack-ui/themed';
 import { ScrollView } from '@gluestack-ui/themed';
-import { Pressable, TouchableOpacity } from 'react-native';
 import { useAppSelector } from '../../../state';
-import { FLOWER_MAP } from '../../../constants';
 
 export default function Home() {
   const { colorMode } = useAppTheme();
@@ -38,6 +35,10 @@ export default function Home() {
   const [showFlowerModal, setShowFlowerModal] = useState(false);
   const [ownFlower, setOwnFlower] = useState<string>('daisy');
   const [ownFlowerMessage, setOwnFlowerMessage] = useState<string>('');
+  const [oldFlowerValues, setOldFlowerValues] = useState({
+    selectedFlower: 'daisy',
+    message: '',
+  });
 
   const {
     listenToWhiteboardEvents,
@@ -63,7 +64,6 @@ export default function Home() {
 
       getFlower(user.roomId, partnerId).then((snapshot) => {
         const data = snapshot.val();
-        console.log(data);
         setFlower(data.selectedFlower);
         setFlowerMessage(data.message);
       });
@@ -132,6 +132,21 @@ export default function Home() {
     }
   };
 
+  const handleFlowerOpenPress = () => {
+    setOldFlowerValues({
+      selectedFlower: ownFlower,
+      message: ownFlowerMessage,
+    });
+
+    setShowFlowerModal(true);
+  };
+
+  const handleFlowerClosePress = () => {
+    setOwnFlower(oldFlowerValues.selectedFlower);
+    setOwnFlowerMessage(oldFlowerValues.message);
+    setShowFlowerModal(false);
+  };
+
   return (
     <ScrollView
       $dark-backgroundColor="#121212"
@@ -174,7 +189,7 @@ export default function Home() {
           <FlowerPressable
             flower={flower}
             flowerMessage={flowerMessage}
-            setShowFlowerModal={setShowFlowerModal}
+            onPress={handleFlowerOpenPress}
             loading={loading}
           />
         </>
@@ -237,7 +252,7 @@ export default function Home() {
 
       <FlowerModal
         showFlowerModal={showFlowerModal}
-        setShowFlowerModal={setShowFlowerModal}
+        onClose={handleFlowerClosePress}
         ownFlower={ownFlower}
         setOwnFlower={setOwnFlower}
         ownFlowerMessage={ownFlowerMessage}

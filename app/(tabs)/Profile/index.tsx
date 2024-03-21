@@ -27,7 +27,7 @@ export default function Profile() {
 
     Clipboard.setStringAsync(user.roomId).then(() => {
       showToast({
-        title: 'Whiteboard ID copied',
+        title: 'Board ID copied',
         status: 'success',
         description: 'You can now share the ID with your significant other',
       });
