@@ -14,33 +14,24 @@ import {
   ModalContent,
 } from '@gluestack-ui/themed';
 import { StatusBar } from 'expo-status-bar';
-import { useAppTheme, useAppToast, useAuth, useFirebase } from '../../../hooks';
+import { useAppTheme, useAuth, useFirebase } from '../../../hooks';
 import { IconButton, PathData, Whiteboard } from '../../../components';
 import { router } from 'expo-router';
-import { ArrowLeft, Copy, Edit, Save } from 'lucide-react-native';
-import * as Clipboard from 'expo-clipboard';
+import { ArrowLeft, Copy, Edit } from 'lucide-react-native';
 
 export default function WhiteBoard() {
   const { colorMode } = useAppTheme();
   const [storedPaths, setStoredPaths] = useState<PathData[]>([]);
   const [storedCanvasColor, setStoredCanvasColor] = useState<string>('white');
   const [boardName, setBoardName] = useState<string>('');
-  const { user, editExtraProfile } = useAuth();
+  const { user } = useAuth();
   const [roomId, setRoomId] = useState<string>(user.roomId || '');
-  const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editNameModal, setEditNameModal] = useState(false);
   const [newBoardName, setNewBoardName] = useState('');
 
-  const {
-    joinWhiteboard,
-    listenToWhiteboardEvents,
-    updateWhiteboard,
-    getWhiteboard,
-    updateWhiteBoardName,
-  } = useFirebase();
-
-  const { showToast } = useAppToast();
+  const { listenToWhiteboardEvents, updateWhiteboard, getWhiteboard, updateWhiteBoardName } =
+    useFirebase();
 
   useEffect(() => {
     if (user.roomId) {
@@ -91,16 +82,6 @@ export default function WhiteBoard() {
   const handleEditWhiteboardName = () => {
     setNewBoardName(boardName);
     setEditNameModal(true);
-  };
-
-  const handleCopyWhiteboardId = () => {
-    Clipboard.setStringAsync(roomId).then(() => {
-      showToast({
-        title: 'Whiteboard ID copied',
-        status: 'success',
-        description: 'You can now share the ID with your significant other',
-      });
-    });
   };
 
   return (
@@ -157,8 +138,6 @@ export default function WhiteBoard() {
                 variant="ghost"
                 size={15}
               />
-
-              <IconButton icon={Copy} onPress={handleCopyWhiteboardId} variant="ghost" size={15} />
             </Box>
           </Box>
 

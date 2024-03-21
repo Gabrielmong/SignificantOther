@@ -2,15 +2,17 @@ import { StatusBar } from 'expo-status-bar';
 import { Text, View, Button, Image, Box } from '@gluestack-ui/themed';
 import { useAuth } from '../../../hooks/useAuth';
 import { useAppSelector } from '../../../state';
-import { useAppTheme } from '../../../hooks';
+import { useAppTheme, useAppToast } from '../../../hooks';
 import { router } from 'expo-router';
 import { IconButton } from '../../../components';
-import { Edit } from 'lucide-react-native';
+import { Edit, Copy } from 'lucide-react-native';
+import * as Clipboard from 'expo-clipboard';
 
 export default function Profile() {
   const user = useAppSelector((state) => state.user);
   const { colorMode } = useAppTheme();
-  const { logout, requestUserPermission } = useAuth();
+  const { logout } = useAuth();
+  const { showToast } = useAppToast();
 
   async function handleLogout() {
     await logout();
@@ -19,6 +21,18 @@ export default function Profile() {
   function handleEdit() {
     router.push('/(tabs)/Profile/EditProfile');
   }
+
+  const handleCopyWhiteboardId = () => {
+    if (!user.roomId) return;
+
+    Clipboard.setStringAsync(user.roomId).then(() => {
+      showToast({
+        title: 'Whiteboard ID copied',
+        status: 'success',
+        description: 'You can now share the ID with your significant other',
+      });
+    });
+  };
 
   return (
     <View
@@ -66,7 +80,17 @@ export default function Profile() {
 
         <Text>{user?.displayName || 'Name not set'}</Text>
         <Text>{user?.email}</Text>
-        <Text>{user?.roomId}</Text>
+
+        <Box
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 10,
+          }}>
+          <Text>{user?.roomId}</Text>
+          <IconButton icon={Copy} onPress={handleCopyWhiteboardId} variant="ghost" size={15} />
+        </Box>
       </Box>
 
       <Box

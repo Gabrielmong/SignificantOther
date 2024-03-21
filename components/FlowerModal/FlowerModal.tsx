@@ -65,6 +65,7 @@ export const FlowerModal = ({
             }}>
             {Object.keys(FLOWER_MAP).map((flower) => (
               <Pressable
+                key={flower}
                 onPress={() => {
                   setOwnFlower(flower);
                 }}>

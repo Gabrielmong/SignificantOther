@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useAppTheme, useAuth, useFirebase } from '../../../hooks';
-import { FlowerModal, PathData, WhiteBoardPreview } from '../../../components';
+import { FlowerModal, FlowerPressable, PathData, WhiteBoardPreview } from '../../../components';
 import { router } from 'expo-router';
 import {
   Box,
@@ -63,6 +63,7 @@ export default function Home() {
 
       getFlower(user.roomId, partnerId).then((snapshot) => {
         const data = snapshot.val();
+        console.log(data);
         setFlower(data.selectedFlower);
         setFlowerMessage(data.message);
       });
@@ -170,49 +171,12 @@ export default function Home() {
             loading={loading}
           />
 
-          <TouchableOpacity
-            onPress={() => setShowFlowerModal(true)}
-            style={{
-              padding: 10,
-              backgroundColor: colorMode === 'dark' ? '#000000' : '#F5F5F5',
-              borderRadius: 10,
-              width: '100%',
-              alignItems: 'flex-start',
-              justifyContent: 'space-between',
-              flexDirection: 'row',
-              gap: 10,
-            }}>
-            <Box
-              style={{
-                alignItems: 'flex-start',
-                flex: 1,
-              }}>
-              <Text
-                style={{
-                  color: 'rgba(255, 255, 255, 0.5)',
-                }}>
-                Flowers I wish I could give you
-              </Text>
-
-              {/* 100 chars */}
-              <Text>{flowerMessage}</Text>
-            </Box>
-            <Box
-              style={{
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-              <Image
-                source={FLOWER_MAP[flower] || FLOWER_MAP['daisy']}
-                alt="daisy"
-                style={{
-                  width: 100,
-                  height: 100,
-                  borderRadius: 20,
-                }}
-              />
-            </Box>
-          </TouchableOpacity>
+          <FlowerPressable
+            flower={flower}
+            flowerMessage={flowerMessage}
+            setShowFlowerModal={setShowFlowerModal}
+            loading={loading}
+          />
         </>
       )}
 

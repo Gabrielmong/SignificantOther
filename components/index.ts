@@ -6,3 +6,4 @@ export * from './Whiteboard';
 export * from './Message';
 export * from './MessageOptionsModal';
 export * from './FlowerModal';
+export * from './FlowerPressable';
