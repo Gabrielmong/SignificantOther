@@ -104,6 +104,7 @@ export const useFirebase = () => {
         [uid]: {
           selectedFlower: 'rose',
           message: '',
+          selectedFeeling: 'neutral',
         },
       },
       whiteboard: {
@@ -172,6 +173,7 @@ export const useFirebase = () => {
 
     await update(userRef, {
       selectedFlower: 'rose',
+      selectedFeeling: 'neutral',
       message: '',
     });
 
@@ -274,6 +276,38 @@ export const useFirebase = () => {
     });
   };
 
+  const getFeeling = async (roomId: string, uid: string) => {
+    const roomRef = databaseRef(db, `rooms/${roomId}/users/${uid}`);
+
+    return get(roomRef);
+  };
+
+  const updateFeeling = async (roomId: string, uid: string, feeling: string) => {
+    const roomRef = databaseRef(db, `rooms/${roomId}/users/${uid}`);
+
+    await update(roomRef, {
+      selectedFeeling: feeling,
+    });
+  };
+
+  const listenToFeelingChanges = (
+    feelingCallback: ({ feeling }: { feeling: string }) => void,
+    roomId: string,
+    uid: string,
+  ) => {
+    const roomRef = databaseRef(db, `rooms/${roomId}/users/${uid}`);
+
+    onValue(roomRef, (snapshot) => {
+      const data = snapshot.val();
+
+      if (data) {
+        feelingCallback({
+          feeling: data.selectedFeeling,
+        });
+      }
+    });
+  };
+
   return {
     app,
     auth,
@@ -291,5 +325,8 @@ export const useFirebase = () => {
     getFlower,
     updateFlower,
     listenToFlowerChanges,
+    getFeeling,
+    updateFeeling,
+    listenToFeelingChanges,
   };
 };

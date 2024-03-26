@@ -249,6 +249,9 @@ export const useAuth = () => {
             const roomFields: RoomPayload = {
               partnerId: Object.keys(roomData.users).find((id) => id !== user?.uid) || '',
               roomId: data.roomId,
+              partnerName:
+                roomData.users[Object.keys(roomData.users).find((id) => id !== user?.uid) || '']
+                  .name,
             };
 
             dispatch(setRoom(roomFields));

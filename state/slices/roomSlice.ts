@@ -5,14 +5,16 @@ import type { RootState } from '../store';
 interface RoomState {
   roomId: string;
   partnerId: string;
+  partnerName: string;
 }
 
 const initialState: RoomState = {
   roomId: '',
   partnerId: '',
+  partnerName: '',
 };
 
-export type RoomPayload = Pick<RoomState, 'roomId' | 'partnerId'>;
+export type RoomPayload = Pick<RoomState, 'roomId' | 'partnerId' | 'partnerName'>;
 
 export type PartialRoomPayload = Partial<RoomState>;
 
@@ -23,14 +25,17 @@ export const roomSlice = createSlice({
     setRoom: (state, action: PayloadAction<RoomState>) => {
       state.roomId = action.payload.roomId;
       state.partnerId = action.payload.partnerId;
+      state.partnerName = action.payload.partnerName;
     },
     updateRoom: (state, action: PayloadAction<PartialRoomPayload>) => {
       state.roomId = action.payload.roomId || state.roomId;
       state.partnerId = action.payload.partnerId || state.partnerId;
+      state.partnerName = action.payload.partnerName || state.partnerName;
     },
     resetRoom: (state) => {
       state.roomId = '';
       state.partnerId = '';
+      state.partnerName = '';
     },
   },
 });

@@ -34,8 +34,6 @@ export const Message = ({
     return date.getMinutes() - lastDate.getMinutes() < 0;
   }, [timestamp]);
 
-  console.log(showTimeIndicator);
-
   return (
     <>
       {showTimeIndicator && (

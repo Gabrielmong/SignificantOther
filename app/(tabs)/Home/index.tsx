@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { useAppTheme, useAuth, useFirebase } from '../../../hooks';
-import { FlowerModal, FlowerPressable, PathData, WhiteBoardPreview } from '../../../components';
+import { useAppTheme, useAppToast, useAuth, useFirebase } from '../../../hooks';
+import {
+  FeelingModal,
+  FeelingPressable,
+  FlowerModal,
+  FlowerPressable,
+  PathData,
+  WhiteBoardPreview,
+} from '../../../components';
 import { router } from 'expo-router';
 import {
   Box,
@@ -21,7 +28,8 @@ import { useAppSelector } from '../../../state';
 
 export default function Home() {
   const { colorMode } = useAppTheme();
-  const { partnerId } = useAppSelector((state) => state.room);
+  const { partnerId, partnerName } = useAppSelector((state) => state.room);
+  const { showToast } = useAppToast();
   const [storedPaths, setStoredPaths] = useState<PathData[]>([]);
   const [storedCanvasColor, setStoredCanvasColor] = useState<string>('white');
   const [boardName, setBoardName] = useState<string>('');
@@ -39,6 +47,10 @@ export default function Home() {
     selectedFlower: 'daisy',
     message: '',
   });
+  const [showFeelingModal, setShowFeelingModal] = useState(false);
+  const [ownFeeling, setOwnFeeling] = useState<string>('neutral');
+  const [oldFeeling, setOldFeeling] = useState<string>('neutral');
+  const [feeling, setFeeling] = useState<string>('neutral');
 
   const {
     listenToWhiteboardEvents,
@@ -48,6 +60,9 @@ export default function Home() {
     getFlower,
     updateFlower,
     listenToFlowerChanges,
+    getFeeling,
+    updateFeeling,
+    listenToFeelingChanges,
   } = useFirebase();
 
   const loadData = async () => {
@@ -73,6 +88,16 @@ export default function Home() {
         setOwnFlower(data.selectedFlower);
         setOwnFlowerMessage(data.message);
       });
+
+      getFeeling(user.roomId, user.uid).then((snapshot) => {
+        const data = snapshot.val();
+        setOwnFeeling(data.selectedFeeling);
+      });
+
+      getFeeling(user.roomId, partnerId).then((snapshot) => {
+        const data = snapshot.val();
+        setFeeling(data.selectedFeeling);
+      });
     }
   };
 
@@ -88,6 +113,14 @@ export default function Home() {
         (data) => {
           setFlower(data.flower);
           setFlowerMessage(data.message);
+        },
+        user.roomId,
+        partnerId,
+      );
+
+      listenToFeelingChanges(
+        (data) => {
+          setFeeling(data.feeling);
         },
         user.roomId,
         partnerId,
@@ -129,6 +162,12 @@ export default function Home() {
       await updateFlower(user.roomId, user.uid, ownFlower, ownFlowerMessage);
 
       setShowFlowerModal(false);
+
+      showToast({
+        title: 'Flower updated',
+        description: 'Your flower has been updated',
+        status: 'success',
+      });
     }
   };
 
@@ -141,10 +180,34 @@ export default function Home() {
     setShowFlowerModal(true);
   };
 
+  const handleFeelingPress = () => {
+    setOldFeeling(ownFeeling);
+    setShowFeelingModal(true);
+  };
+
   const handleFlowerClosePress = () => {
     setOwnFlower(oldFlowerValues.selectedFlower);
     setOwnFlowerMessage(oldFlowerValues.message);
     setShowFlowerModal(false);
+  };
+
+  const handleFeelingClosePress = () => {
+    setOwnFeeling(oldFeeling);
+    setShowFeelingModal(false);
+  };
+
+  const handleFeelingSend = async () => {
+    if (user.roomId && user.uid) {
+      await updateFeeling(user.roomId, user.uid, ownFeeling);
+
+      setShowFeelingModal(false);
+
+      showToast({
+        title: 'Feeling updated',
+        description: 'Your feeling has been updated',
+        status: 'success',
+      });
+    }
   };
 
   return (
@@ -190,6 +253,13 @@ export default function Home() {
             flower={flower}
             flowerMessage={flowerMessage}
             onPress={handleFlowerOpenPress}
+            loading={loading}
+          />
+
+          <FeelingPressable
+            partnerName={partnerName}
+            feeling={feeling}
+            onPress={handleFeelingPress}
             loading={loading}
           />
         </>
@@ -258,6 +328,14 @@ export default function Home() {
         ownFlowerMessage={ownFlowerMessage}
         setOwnFlowerMessage={setOwnFlowerMessage}
         handleFlowerSend={handleFlowerSend}
+      />
+
+      <FeelingModal
+        isOpen={showFeelingModal}
+        onClose={handleFeelingClosePress}
+        ownFeeling={ownFeeling}
+        setOwnFeeling={setOwnFeeling}
+        handleFeelingSend={handleFeelingSend}
       />
 
       <StatusBar backgroundColor={colorMode === 'dark' ? '#000000' : '#F5F5F5'} />

@@ -108,15 +108,14 @@ export const FlowerModal = ({
               {ownFlowerMessage.length}/100
             </Text>
           </Box>
-
-          <Button
-            onPress={handleFlowerSend}
-            style={{
-              width: '100%',
-            }}>
-            <Text>Save</Text>
-          </Button>
         </Box>
+        <Button
+          onPress={handleFlowerSend}
+          style={{
+            width: '100%',
+          }}>
+          <Text>Save</Text>
+        </Button>
       </ModalContent>
     </Modal>
   );

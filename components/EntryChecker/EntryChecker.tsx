@@ -13,7 +13,6 @@ export const EntryCheckerWrapper = ({ children }: { children: React.ReactNode })
   const [currentRoute, setCurrentRoute] = useState<AllRoutes | null>(null);
 
   useEffect(() => {
-    console.log('EntryCheckerWrapper', isLogged);
     initialize();
   }, [currentRoute]);
 
