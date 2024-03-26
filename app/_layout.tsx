@@ -7,8 +7,9 @@ import { Slot } from 'expo-router';
 import { EntryCheckerWrapper } from '../components';
 import { useAppTheme } from '../hooks/';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { AppRegistry } from 'react-native';
+import { AppRegistry, Platform } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
+import * as Notifications from 'expo-notifications';
 
 export default function AppLayout() {
   const { colorMode } = useAppTheme();
@@ -34,6 +35,26 @@ export default function AppLayout() {
     </Provider>
   );
 }
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: true,
+  }),
+});
+
+Notifications.scheduleNotificationAsync({
+  content: {
+    title: 'Time to check in!',
+    body: 'Let your significant other know how you feel today.',
+  },
+  trigger: {
+    hour: 20,
+    minute: 30,
+    repeats: true,
+  },
+});
 
 messaging().setBackgroundMessageHandler(async (remoteMessage) => {
   console.log('Message handled in the background!', remoteMessage);
