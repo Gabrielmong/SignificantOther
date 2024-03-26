@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#350074"
+      "backgroundColor": "#DFB7FF"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
@@ -19,10 +19,15 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#412D59"
+        "backgroundColor": "#DFB7FF",
+        "monochromeImage": "./assets/adaptive-icon-monochrome.png"
       },
       "package": "com.gandalfio.significantotherapp",
       "googleServicesFile": "./google-services.json"
+    },
+    "androidStatusBar": {
+      "backgroundColor": "#000000",
+      "barStyle": "dark-content"
     },
     "web": {
       "favicon": "./assets/favicon.png"
