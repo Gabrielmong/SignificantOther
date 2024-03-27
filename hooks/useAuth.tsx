@@ -61,7 +61,9 @@ export const useAuth = () => {
       get(userDocRef).then((snapshot) => {
         const data = snapshot.val();
 
-        if (data) {
+        console.log('data:', data);
+
+        if (data.fcmtokens) {
           const exists = Object.values(data.fcmtokens).includes(fcmToken);
 
           let key = Number(Object.keys(data.fcmtokens).find((key) => data.fcmtokens[key]));
@@ -79,6 +81,16 @@ export const useAuth = () => {
               }),
             );
           }
+        } else {
+          update(userDocRef, {
+            fcmtokens: { 0: fcmToken },
+          });
+
+          dispatch(
+            updateUser({
+              fcmtokens: [fcmToken],
+            }),
+          );
         }
       });
     }
