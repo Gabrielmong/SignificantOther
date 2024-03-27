@@ -40,7 +40,8 @@
         {
           "photosPermission": "The app accesses your photos to upload images."
         }
-      ]
+      ],
+      "@react-native-firebase/messaging"
     ],
     "experiments": {
       "typedRoutes": true
