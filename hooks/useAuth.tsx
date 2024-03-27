@@ -32,7 +32,20 @@ export const useAuth = () => {
   const db = getDatabase();
 
   const checkToken = async () => {
+    const permission = await messaging().hasPermission();
+
+    const enabled =
+      permission === messaging.AuthorizationStatus.AUTHORIZED ||
+      permission === messaging.AuthorizationStatus.PROVISIONAL;
+
+    if (!enabled) {
+      await messaging().requestPermission();
+      requestUserPermission();
+    }
+
     const fcmToken = await messaging().getToken();
+
+    console.log('fcmToken:', fcmToken);
 
     messaging;
 
@@ -49,14 +62,22 @@ export const useAuth = () => {
         const data = snapshot.val();
 
         if (data) {
-          if (!data.fcmtokens.includes(fcmToken)) {
-            const updatedFields: PartialUserPayload = {
-              fcmtokens: [...data.fcmtokens, fcmToken],
-            };
+          const exists = Object.values(data.fcmtokens).includes(fcmToken);
 
-            update(userDocRef, updatedFields);
+          let key = Number(Object.keys(data.fcmtokens).find((key) => data.fcmtokens[key]));
 
-            dispatch(updateUser(updatedFields));
+          if (!key) key = 0;
+
+          if (!exists) {
+            update(userDocRef, {
+              fcmtokens: { ...data.fcmtokens, [key + 1]: fcmToken },
+            });
+
+            dispatch(
+              updateUser({
+                fcmtokens: { ...data.fcmtokens, fcmToken },
+              }),
+            );
           }
         }
       });
