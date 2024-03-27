@@ -60,4 +60,12 @@ messaging().setBackgroundMessageHandler(async (remoteMessage) => {
   console.log('Message handled in the background!', remoteMessage);
 });
 
+messaging().onMessage(async (remoteMessage) => {
+  console.log('Message handled in the foreground!', remoteMessage);
+});
+
+messaging().onNotificationOpenedApp(async (remoteMessage) => {
+  console.log('Notification opened in the foreground!', remoteMessage);
+});
+
 AppRegistry.registerComponent('AppLayout', () => AppLayout);

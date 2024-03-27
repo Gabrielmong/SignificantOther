@@ -33,12 +33,33 @@ export const useAuth = () => {
 
   const checkToken = async () => {
     const fcmToken = await messaging().getToken();
+
+    messaging;
+
     if (fcmToken) {
       dispatch(
         updateUser({
           thisDeviceToken: fcmToken,
         }),
       );
+
+      const userDocRef = ref(db, `users/${user?.uid}`);
+
+      get(userDocRef).then((snapshot) => {
+        const data = snapshot.val();
+
+        if (data) {
+          if (!data.fcmtokens.includes(fcmToken)) {
+            const updatedFields: PartialUserPayload = {
+              fcmtokens: [...data.fcmtokens, fcmToken],
+            };
+
+            update(userDocRef, updatedFields);
+
+            dispatch(updateUser(updatedFields));
+          }
+        }
+      });
     }
   };
 
