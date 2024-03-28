@@ -13,6 +13,9 @@ interface UserState {
   roomId?: string;
   fcmtokens?: string[];
   thisDeviceToken?: string;
+  notifications?: {
+    checkin?: [number, number];
+  };
 }
 
 // Define the initial state using that type
@@ -25,11 +28,21 @@ const initialState: UserState = {
   roomId: '',
   fcmtokens: [],
   thisDeviceToken: '',
+  notifications: {
+    checkin: [22, 0],
+  },
 };
 
 export type UserPayload = Pick<
   UserState,
-  'displayName' | 'email' | 'uid' | 'photoURL' | 'roomId' | 'fcmtokens' | 'thisDeviceToken'
+  | 'displayName'
+  | 'email'
+  | 'uid'
+  | 'photoURL'
+  | 'roomId'
+  | 'fcmtokens'
+  | 'thisDeviceToken'
+  | 'notifications'
 >;
 export type PartialUserPayload = Partial<UserState>;
 
@@ -47,6 +60,7 @@ export const UserSlice = createSlice({
       state.roomId = action.payload.roomId || state.roomId;
       state.fcmtokens = action.payload.fcmtokens || state.fcmtokens;
       state.thisDeviceToken = action.payload.thisDeviceToken || state.thisDeviceToken;
+      state.notifications = action.payload.notifications || state.notifications;
     },
     stateLogout: (state) => {
       state.displayName = '';
@@ -56,6 +70,8 @@ export const UserSlice = createSlice({
       state.loggedIn = false;
       state.roomId = '';
       state.fcmtokens = [];
+      state.thisDeviceToken = '';
+      state.notifications = { checkin: [22, 0] };
     },
     updateUser: (state, action: PayloadAction<PartialUserPayload>) => {
       state.displayName = action.payload?.displayName || state.displayName;
@@ -64,6 +80,7 @@ export const UserSlice = createSlice({
       state.roomId = action.payload?.roomId || state.roomId;
       state.fcmtokens = action.payload?.fcmtokens || state.fcmtokens;
       state.thisDeviceToken = action.payload?.thisDeviceToken || state.thisDeviceToken;
+      state.notifications = action.payload?.notifications || state.notifications;
     },
   },
 });

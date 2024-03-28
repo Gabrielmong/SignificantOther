@@ -9,3 +9,4 @@ export * from './FlowerModal';
 export * from './FlowerPressable';
 export * from './FeelingModal';
 export * from './FeelingPressable';
+export * from './NotificationsModal';

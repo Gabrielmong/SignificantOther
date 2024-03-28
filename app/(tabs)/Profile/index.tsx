@@ -4,15 +4,18 @@ import { useAuth } from '../../../hooks/useAuth';
 import { useAppSelector } from '../../../state';
 import { useAppTheme, useAppToast } from '../../../hooks';
 import { router } from 'expo-router';
-import { IconButton } from '../../../components';
+import { IconButton, NotificationsModal } from '../../../components';
 import { Edit, Copy } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
+import * as Notifications from 'expo-notifications';
+import { useState } from 'react';
 
 export default function Profile() {
   const user = useAppSelector((state) => state.user);
   const { colorMode } = useAppTheme();
   const { logout } = useAuth();
   const { showToast } = useAppToast();
+  const [notificationsModalVisible, setNotificationsModalVisible] = useState(false);
 
   async function handleLogout() {
     await logout();
@@ -32,6 +35,10 @@ export default function Profile() {
         description: 'You can now share the ID with your significant other',
       });
     });
+  };
+
+  const handleModalOpen = () => {
+    setNotificationsModalVisible(true);
   };
 
   return (
@@ -99,6 +106,14 @@ export default function Profile() {
           gap: 10,
         }}>
         <Button
+          onPress={handleModalOpen}
+          style={{
+            backgroundColor: '#2D3250',
+          }}>
+          <Text>Notification Settings</Text>
+        </Button>
+
+        <Button
           onPress={handleLogout}
           style={{
             backgroundColor: 'red',
@@ -106,6 +121,12 @@ export default function Profile() {
           <Text>Logout</Text>
         </Button>
       </Box>
+
+      <NotificationsModal
+        isOpen={notificationsModalVisible}
+        onClose={() => setNotificationsModalVisible(false)}
+        onSave={() => setNotificationsModalVisible(false)}
+      />
     </View>
   );
 }

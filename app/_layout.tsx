@@ -36,26 +36,6 @@ export default function AppLayout() {
   );
 }
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: true,
-  }),
-});
-
-Notifications.scheduleNotificationAsync({
-  content: {
-    title: 'Time to check in!',
-    body: 'Let your significant other know how you feel today.',
-  },
-  trigger: {
-    hour: 20,
-    minute: 30,
-    repeats: true,
-  },
-});
-
 messaging().setBackgroundMessageHandler(async (remoteMessage) => {
   console.log('Message handled in the background!', remoteMessage);
 });

@@ -23,6 +23,7 @@ import { get, getDatabase, onValue, ref, update } from 'firebase/database';
 import messaging from '@react-native-firebase/messaging';
 import { useEffect } from 'react';
 import { PermissionsAndroid } from 'react-native';
+import { Linking } from 'react-native';
 
 export const useAuth = () => {
   const { auth } = useFirebase();
@@ -45,10 +46,6 @@ export const useAuth = () => {
 
     const fcmToken = await messaging().getToken();
 
-    console.log('fcmToken:', fcmToken);
-
-    messaging;
-
     if (fcmToken) {
       dispatch(
         updateUser({
@@ -60,8 +57,6 @@ export const useAuth = () => {
 
       get(userDocRef).then((snapshot) => {
         const data = snapshot.val();
-
-        console.log('data:', data);
 
         if (data.fcmtokens) {
           const exists = Object.values(data.fcmtokens).includes(fcmToken);
@@ -190,8 +185,6 @@ export const useAuth = () => {
 
         await getExtraProfile();
 
-        await requestUserPermission();
-
         await checkToken();
 
         const userPayload: UserPayload = {
@@ -262,7 +255,15 @@ export const useAuth = () => {
       });
   };
 
-  const editExtraProfile = ({ roomId, fcmToken }: { roomId?: string; fcmToken?: string }) => {
+  const editExtraProfile = ({
+    roomId,
+    fcmToken,
+    notifications,
+  }: {
+    roomId?: string;
+    fcmToken?: string;
+    notifications?: { checkin: [number, number] };
+  }) => {
     if (!auth?.currentUser) return;
 
     const updatedFields: PartialUserPayload = {};
@@ -270,6 +271,7 @@ export const useAuth = () => {
     if (fcmToken && !user?.fcmtokens?.includes(fcmToken)) {
       updatedFields.fcmtokens = user?.fcmtokens ? [...user.fcmtokens, fcmToken] : [fcmToken];
     }
+    if (notifications) updatedFields.notifications = notifications;
 
     if (roomId) dispatch(updateRoom({ roomId }));
 
@@ -292,6 +294,7 @@ export const useAuth = () => {
         const updatedFields: PartialUserPayload = {
           roomId: data.roomId,
           fcmtokens: data.fcmtokens,
+          notifications: data.notifications,
         };
 
         const roomDocRef = ref(db, `rooms/${data.roomId}`);
@@ -321,6 +324,19 @@ export const useAuth = () => {
     PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
   };
 
+  const revokeUserPermission = async () => {
+    messaging().unregisterDeviceForRemoteMessages();
+  };
+
+  const getPermission = async () => {
+    const authStatus = await messaging().requestPermission();
+    const enabled =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+    return enabled;
+  };
+
   const checkPermission = async () => {
     const authStatus = await messaging().requestPermission();
     const enabled =
@@ -328,10 +344,7 @@ export const useAuth = () => {
       authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
     if (enabled) {
-      console.log('Authorization status:', authStatus);
       const fcmToken = await messaging().getToken();
-
-      console.log('fcmToken:', fcmToken);
 
       if (fcmToken) {
         if (!user?.fcmtokens?.includes(fcmToken)) {
@@ -354,5 +367,7 @@ export const useAuth = () => {
     checkToken,
     requestUserPermission,
     checkPermission,
+    revokeUserPermission,
+    getPermission,
   };
 };
