@@ -362,8 +362,6 @@ export const useFirebase = () => {
     onValue(roomRef, (snapshot) => {
       const data = snapshot.val();
 
-      console.log('change', data);
-
       if (data) {
         wishlistCallback({
           wishlist: data,

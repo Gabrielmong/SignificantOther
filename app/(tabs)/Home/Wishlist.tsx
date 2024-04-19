@@ -86,8 +86,6 @@ export default function Wishlist() {
       loadData();
       listenToWishlistChanges((data) => {
         setWishlist(data.wishlist);
-
-        console.log('Wishlist updated', data);
       }, user.roomId);
     }
   }, []);
