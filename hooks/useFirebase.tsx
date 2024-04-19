@@ -21,6 +21,7 @@ import {
 import { PathData } from '../components';
 import { useAuth } from './useAuth';
 import uuid from 'react-native-uuid';
+import { Activity, ActivityObject, Wishlist } from '../types';
 
 export const useFirebase = () => {
   let app, auth;
@@ -111,6 +112,14 @@ export const useFirebase = () => {
         name: `Shared Board`,
         canvasColor: '#ffffff',
         paths: [],
+      },
+      wishlist: {
+        activities: [],
+        movies: [],
+        music: [],
+        books: [],
+        food: [],
+        dates: [],
       },
     });
 
@@ -308,6 +317,114 @@ export const useFirebase = () => {
     });
   };
 
+  // Whishlist
+
+  const getWishlist = async (uid: string) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/wishlist`);
+
+    const snapshot = await get(roomRef);
+
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+
+      if (data) {
+        return data;
+      }
+    }
+  };
+
+  const createEntryInWishlist = async (uid: string, wishListEntry: Activity, under: string) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/wishlist/${under}`);
+    const id = uuid.v4().toString().substring(0, 12);
+
+    await update(roomRef, {
+      [id]: wishListEntry,
+    });
+  };
+
+  const updateEntryInWishlist = async (
+    uid: string,
+    entryId: string,
+    wishListEntry: Activity,
+    under: string,
+  ) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/wishlist/${under}/${entryId}`);
+
+    await update(roomRef, wishListEntry);
+  };
+
+  const listenToWishlistChanges = (
+    wishlistCallback: ({ wishlist }: { wishlist: Wishlist }) => void,
+    uid: string,
+  ) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/wishlist`);
+
+    onValue(roomRef, (snapshot) => {
+      const data = snapshot.val();
+
+      console.log('change', data);
+
+      if (data) {
+        wishlistCallback({
+          wishlist: data,
+        });
+      }
+    });
+  };
+
+  const deleteWishlistEntry = async (
+    uid: string,
+    entryId: string,
+    under: string,
+  ): Promise<void> => {
+    const roomRef = databaseRef(db, `rooms/${uid}/wishlist/${under}/${entryId}`);
+
+    return remove(roomRef);
+  };
+
+  const getNumberOfItemsInWishlist = async (uid: string) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/wishlist`);
+
+    const snapshot = await get(roomRef);
+
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+
+      if (data) {
+        let count = 0;
+
+        Object.keys(data).forEach((key) => {
+          count += Object.keys(data[key]).length;
+        });
+
+        return count;
+      }
+    }
+  };
+
+  const listentoNumberOfItemsInWishlist = (
+    countCallback: ({ count }: { count: number }) => void,
+    uid: string,
+  ) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/wishlist`);
+
+    onValue(roomRef, (snapshot) => {
+      const data = snapshot.val();
+
+      if (data) {
+        let count = 0;
+
+        Object.keys(data).forEach((key) => {
+          count += Object.keys(data[key]).length;
+        });
+
+        countCallback({
+          count,
+        });
+      }
+    });
+  };
+
   return {
     app,
     auth,
@@ -328,5 +445,12 @@ export const useFirebase = () => {
     getFeeling,
     updateFeeling,
     listenToFeelingChanges,
+    getWishlist,
+    updateEntryInWishlist,
+    listenToWishlistChanges,
+    deleteWishlistEntry,
+    getNumberOfItemsInWishlist,
+    createEntryInWishlist,
+    listentoNumberOfItemsInWishlist,
   };
 };

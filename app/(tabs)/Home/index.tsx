@@ -13,6 +13,7 @@ import { router } from 'expo-router';
 import {
   Box,
   Button,
+  HStack,
   Input,
   InputField,
   Modal,
@@ -25,6 +26,7 @@ import {
 } from '@gluestack-ui/themed';
 import { ScrollView } from '@gluestack-ui/themed';
 import { useAppSelector } from '../../../state';
+import { TouchableOpacity } from 'react-native';
 
 export default function Home() {
   const { colorMode } = useAppTheme();
@@ -51,6 +53,7 @@ export default function Home() {
   const [ownFeeling, setOwnFeeling] = useState<string>('neutral');
   const [oldFeeling, setOldFeeling] = useState<string>('neutral');
   const [feeling, setFeeling] = useState<string>('neutral');
+  const [numberOfItems, setNumberOfItems] = useState(0);
 
   const {
     listenToWhiteboardEvents,
@@ -63,6 +66,8 @@ export default function Home() {
     getFeeling,
     updateFeeling,
     listenToFeelingChanges,
+    getNumberOfItemsInWishlist,
+    listentoNumberOfItemsInWishlist,
   } = useFirebase();
 
   const loadData = async () => {
@@ -72,9 +77,6 @@ export default function Home() {
         setStoredPaths(data.paths);
         setStoredCanvasColor(data.canvasColor || 'white');
         setBoardName(data.name || '');
-
-        setRefreshing(false);
-        setLoading(false);
       });
 
       getFlower(user.roomId, partnerId).then((snapshot) => {
@@ -98,6 +100,13 @@ export default function Home() {
         const data = snapshot.val();
         setFeeling(data.selectedFeeling);
       });
+
+      const numberOfItems = await getNumberOfItemsInWishlist(user.roomId);
+
+      setNumberOfItems(numberOfItems || 0);
+
+      setRefreshing(false);
+      setLoading(false);
     }
   };
 
@@ -125,6 +134,10 @@ export default function Home() {
         user.roomId,
         partnerId,
       );
+
+      listentoNumberOfItemsInWishlist((data) => {
+        setNumberOfItems(data.count);
+      }, user.roomId);
     }
   }, []);
 
@@ -210,6 +223,10 @@ export default function Home() {
     }
   };
 
+  const handleWishlistPress = () => {
+    router.push('/(tabs)/Home/Wishlist');
+  };
+
   return (
     <ScrollView
       $dark-backgroundColor="#121212"
@@ -262,6 +279,65 @@ export default function Home() {
             onPress={handleFeelingPress}
             loading={loading}
           />
+
+          <HStack
+            gap={20}
+            padding={10}
+            paddingVertical={0}
+            display="flex"
+            flexDirection="row"
+            justifyContent="space-between"
+            alignItems="flex-start">
+            <TouchableOpacity
+              onPress={handleWishlistPress}
+              style={{
+                padding: 10,
+                backgroundColor: colorMode === 'dark' ? '#000000' : '#F5F5F5',
+                borderRadius: 10,
+                width: '50%',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                flexDirection: 'column',
+                gap: 10,
+                height: 100,
+              }}>
+              <Text
+                style={{
+                  color: 'rgba(255, 255, 255, 0.5)',
+                }}>
+                Wishlist
+              </Text>
+
+              <Text>
+                {numberOfItems === 0
+                  ? 'Nothing to do'
+                  : `${numberOfItems} things to do with ${partnerName}`}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {}}
+              style={{
+                padding: 10,
+                backgroundColor: colorMode === 'dark' ? '#000000' : '#F5F5F5',
+                borderRadius: 10,
+                width: '50%',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 10,
+                height: 100,
+              }}>
+              <Text
+                style={{
+                  color: 'rgba(255, 255, 255, 0.5)',
+                }}>
+                Journal
+              </Text>
+
+              <Text>In contruction</Text>
+            </TouchableOpacity>
+          </HStack>
         </>
       )}
 

@@ -17,7 +17,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useAppTheme, useAuth, useFirebase } from '../../../hooks';
 import { IconButton, PathData, Whiteboard } from '../../../components';
 import { router } from 'expo-router';
-import { ArrowLeft, Copy, Edit } from 'lucide-react-native';
+import { ArrowLeft, Copy, Edit, Eye } from 'lucide-react-native';
 
 export default function WhiteBoard() {
   const { colorMode } = useAppTheme();
@@ -29,6 +29,7 @@ export default function WhiteBoard() {
   const [loading, setLoading] = useState(true);
   const [editNameModal, setEditNameModal] = useState(false);
   const [newBoardName, setNewBoardName] = useState('');
+  const [toolsVisible, setToolsVisible] = useState(true);
 
   const { listenToWhiteboardEvents, updateWhiteboard, getWhiteboard, updateWhiteBoardName } =
     useFirebase();
@@ -82,6 +83,10 @@ export default function WhiteBoard() {
   const handleEditWhiteboardName = () => {
     setNewBoardName(boardName);
     setEditNameModal(true);
+  };
+
+  const toggleTools = () => {
+    setToolsVisible((prev) => !prev);
   };
 
   return (
@@ -138,6 +143,8 @@ export default function WhiteBoard() {
                 variant="ghost"
                 size={15}
               />
+
+              <IconButton icon={Eye} onPress={toggleTools} variant="ghost" size={15} />
             </Box>
           </Box>
 
@@ -147,6 +154,8 @@ export default function WhiteBoard() {
               canvasColorCallback={canvasCallback}
               incomingPaths={storedPaths}
               incomingCanvasColor={storedCanvasColor}
+              toolsVisible={toolsVisible}
+              setToolsVisible={setToolsVisible}
             />
           )}
         </>

@@ -40,12 +40,16 @@ interface WhiteboardProps {
   canvasColorCallback?: (color: string) => void;
   incomingPaths?: PathData[];
   incomingCanvasColor?: string;
+  toolsVisible: boolean;
+  setToolsVisible: (visible: boolean) => void;
 }
 export const Whiteboard = ({
   pathCallback,
   canvasColorCallback,
   incomingPaths,
   incomingCanvasColor,
+  toolsVisible,
+  setToolsVisible,
 }: WhiteboardProps) => {
   const [paths, setPaths] = useState<PathData[]>([]);
   const [currentPath, setCurrentPath] = useState<string[]>([]);
@@ -56,7 +60,6 @@ export const Whiteboard = ({
   const [canvasColor, setCanvasColor] = useState<string>('white');
   const [brushWidthOpen, setBrushWidthOpen] = useState(false);
 
-  const [toolsVisible, setToolsVisible] = useState(true); // State to control visibility
   const fadeAnim = useRef(new Animated.Value(1)).current; // Animated value for opacity
 
   const fadeOut = () => {
