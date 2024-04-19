@@ -9,6 +9,7 @@ import {
   Text,
   Button,
   ScrollView,
+  ModalBody,
 } from '@gluestack-ui/themed';
 import { Pressable } from 'react-native';
 import { FEELINGS_LABELS, FEELINGS_MAP } from '../../constants';
@@ -49,50 +50,50 @@ export const FeelingModal = ({
             </Text>
           </Box>
         </ModalHeader>
-
-        <ScrollView
-          style={{
-            padding: 20,
-            gap: 20,
-          }}>
-          <Box
+        <ModalBody>
+          <ScrollView
             style={{
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              gap: 10,
-              justifyContent: 'center',
+              gap: 20,
+              height: 350,
             }}>
-            {Object.keys(FEELINGS_MAP).map((feeling) => (
-              <Pressable
-                key={feeling}
-                onPress={() => {
-                  setOwnFeeling(feeling);
-                }}>
-                <Image
-                  source={FEELINGS_MAP[feeling]}
-                  alt={feeling}
-                  style={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: 10,
-                    borderWidth: feeling === ownFeeling ? 3 : 0,
-                    borderColor: feeling === ownFeeling ? '#8438ff' : 'transparent',
-                  }}
-                />
-
-                <Text
-                  style={{
-                    textAlign: 'center',
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    fontSize: 12,
+            <Box
+              style={{
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                gap: 10,
+                justifyContent: 'center',
+              }}>
+              {Object.keys(FEELINGS_MAP).map((feeling) => (
+                <Pressable
+                  key={feeling}
+                  onPress={() => {
+                    setOwnFeeling(feeling);
                   }}>
-                  {capitalize(FEELINGS_LABELS[feeling] || feeling)}
-                </Text>
-              </Pressable>
-            ))}
-          </Box>
-        </ScrollView>
+                  <Image
+                    source={FEELINGS_MAP[feeling]}
+                    alt={feeling}
+                    style={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: 10,
+                      borderWidth: feeling === ownFeeling ? 3 : 0,
+                      borderColor: feeling === ownFeeling ? '#8438ff' : 'transparent',
+                    }}
+                  />
 
+                  <Text
+                    style={{
+                      textAlign: 'center',
+                      color: 'rgba(255, 255, 255, 0.5)',
+                      fontSize: 12,
+                    }}>
+                    {capitalize(FEELINGS_LABELS[feeling] || feeling)}
+                  </Text>
+                </Pressable>
+              ))}
+            </Box>
+          </ScrollView>
+        </ModalBody>
         <Button
           onPress={handleFeelingSend}
           style={{
