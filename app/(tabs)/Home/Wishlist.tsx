@@ -43,8 +43,8 @@ const activitiesBackgroundColors = {
   movies: '#94250f',
   books: '#4682B4',
   food: '#610d82',
-  dates: '#FF69B4',
-  other: '#FFA07A',
+  dates: '#a30052',
+  other: '#006a75',
 };
 
 export default function Wishlist() {
@@ -186,13 +186,7 @@ export default function Wishlist() {
   };
 
   const handleLinkClick = (link: string) => {
-    Linking.canOpenURL(link).then((supported) => {
-      if (supported) {
-        Linking.openURL(link);
-      } else {
-        showToast({ title: 'Error', description: 'Cannot open link', status: 'error' });
-      }
-    });
+    Linking.openURL(link);
   };
 
   return (
