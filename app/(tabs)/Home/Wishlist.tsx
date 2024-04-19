@@ -44,7 +44,7 @@ const activitiesBackgroundColors = {
   books: '#4682B4',
   food: '#610d82',
   dates: '#a30052',
-  other: '#006a75',
+  other: '#503C3C',
 };
 
 export default function Wishlist() {

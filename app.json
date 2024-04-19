@@ -2,7 +2,7 @@
   "expo": {
     "name": "Significant Other",
     "slug": "SignificantOtherApp",
-    "version": "1.0.0",
+    "version": "1.6.4",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
