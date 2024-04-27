@@ -54,6 +54,7 @@ export default function Home() {
   const [oldFeeling, setOldFeeling] = useState<string>('neutral');
   const [feeling, setFeeling] = useState<string>('neutral');
   const [numberOfItems, setNumberOfItems] = useState(0);
+  const [numberOfItemsInJournal, setNumberOfItemsInJournal] = useState(0);
 
   const {
     listenToWhiteboardEvents,
@@ -68,6 +69,7 @@ export default function Home() {
     listenToFeelingChanges,
     getNumberOfItemsInWishlist,
     listentoNumberOfItemsInWishlist,
+    getNumberOfItemsInJournal,
   } = useFirebase();
 
   const loadData = async () => {
@@ -104,6 +106,10 @@ export default function Home() {
       const numberOfItems = await getNumberOfItemsInWishlist(user.roomId);
 
       setNumberOfItems(numberOfItems || 0);
+
+      const numberOfItemsInJournal = await getNumberOfItemsInJournal(user.roomId);
+
+      setNumberOfItemsInJournal(numberOfItemsInJournal || 0);
 
       setRefreshing(false);
       setLoading(false);
@@ -227,6 +233,10 @@ export default function Home() {
     router.push('/(tabs)/Home/Wishlist');
   };
 
+  const handleJournalPress = () => {
+    router.push('/(tabs)/Home/Journal/');
+  };
+
   return (
     <ScrollView
       $dark-backgroundColor="#121212"
@@ -238,110 +248,7 @@ export default function Home() {
         gap: 10,
       }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} />}>
-      {user.roomId && (
-        <>
-          <Box
-            style={{
-              width: '100%',
-              alignItems: 'flex-start',
-              justifyContent: 'flex-start',
-              gap: 20,
-            }}>
-            <Text
-              style={{
-                fontSize: 20,
-                fontWeight: 'bold',
-                color: colorMode === 'dark' ? '#FFFFFF' : '#000000',
-              }}>
-              {boardName}
-            </Text>
-          </Box>
-
-          <WhiteBoardPreview
-            boardName={boardName}
-            paths={storedPaths}
-            canvasColor={storedCanvasColor}
-            height={100}
-            onPress={handleOpenWhiteboard}
-            loading={loading}
-          />
-
-          <FlowerPressable
-            flower={flower}
-            flowerMessage={flowerMessage}
-            onPress={handleFlowerOpenPress}
-            loading={loading}
-          />
-
-          <FeelingPressable
-            partnerName={partnerName}
-            feeling={feeling}
-            onPress={handleFeelingPress}
-            loading={loading}
-          />
-
-          <HStack
-            gap={20}
-            padding={10}
-            paddingVertical={0}
-            display="flex"
-            flexDirection="row"
-            justifyContent="space-between"
-            alignItems="flex-start">
-            <TouchableOpacity
-              onPress={handleWishlistPress}
-              style={{
-                padding: 10,
-                backgroundColor: colorMode === 'dark' ? '#000000' : '#F5F5F5',
-                borderRadius: 10,
-                width: '50%',
-                alignItems: 'flex-start',
-                justifyContent: 'space-between',
-                flexDirection: 'column',
-                gap: 10,
-                height: 100,
-              }}>
-              <Text
-                style={{
-                  color: 'rgba(255, 255, 255, 0.5)',
-                }}>
-                Wishlist
-              </Text>
-
-              <Text>
-                {numberOfItems === 0
-                  ? 'Nothing to do'
-                  : `${numberOfItems} things to do with ${partnerName}`}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {}}
-              style={{
-                padding: 10,
-                backgroundColor: colorMode === 'dark' ? '#000000' : '#F5F5F5',
-                borderRadius: 10,
-                width: '50%',
-                alignItems: 'flex-start',
-                justifyContent: 'space-between',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 10,
-                height: 100,
-              }}>
-              <Text
-                style={{
-                  color: 'rgba(255, 255, 255, 0.5)',
-                }}>
-                Journal
-              </Text>
-
-              <Text>In contruction</Text>
-            </TouchableOpacity>
-          </HStack>
-        </>
-      )}
-
-      {!user.roomId && (
+      {loading ? (
         <Box
           style={{
             flex: 1,
@@ -349,14 +256,139 @@ export default function Home() {
             alignItems: 'center',
             gap: 20,
           }}>
-          <Button onPress={handleCreateRoom}>
-            <Text>Create Room</Text>
-          </Button>
-
-          <Button onPress={() => setShowModal(true)}>
-            <Text>Join Room</Text>
-          </Button>
+          <Text>Loading...</Text>
         </Box>
+      ) : (
+        <>
+          {user.roomId && (
+            <>
+              <Box
+                style={{
+                  width: '100%',
+                  alignItems: 'flex-start',
+                  justifyContent: 'flex-start',
+                  gap: 20,
+                }}>
+                <Text
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 'bold',
+                    color: colorMode === 'dark' ? '#FFFFFF' : '#000000',
+                  }}>
+                  {boardName}
+                </Text>
+              </Box>
+
+              <WhiteBoardPreview
+                boardName={boardName}
+                paths={storedPaths}
+                canvasColor={storedCanvasColor}
+                height={100}
+                onPress={handleOpenWhiteboard}
+                loading={loading}
+              />
+
+              <FlowerPressable
+                flower={flower}
+                flowerMessage={flowerMessage}
+                onPress={handleFlowerOpenPress}
+                loading={loading}
+              />
+
+              <FeelingPressable
+                partnerName={partnerName}
+                feeling={feeling}
+                onPress={handleFeelingPress}
+                loading={loading}
+              />
+
+              <HStack
+                gap={10}
+                paddingVertical={0}
+                paddingHorizontal={5}
+                display="flex"
+                flexDirection="row"
+                justifyContent="space-between"
+                alignItems="flex-start">
+                <TouchableOpacity
+                  onPress={handleWishlistPress}
+                  style={{
+                    padding: 10,
+                    backgroundColor: colorMode === 'dark' ? '#000000' : '#F5F5F5',
+                    borderRadius: 10,
+                    width: '50%',
+                    alignItems: 'flex-start',
+                    justifyContent: 'space-between',
+                    flexDirection: 'column',
+                    gap: 10,
+                    height: 100,
+                  }}>
+                  <Text
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.5)',
+                    }}>
+                    Wishlist
+                  </Text>
+
+                  <Text>
+                    {numberOfItems === 0
+                      ? 'Nothing to do'
+                      : `${numberOfItems} ${
+                          numberOfItems === 1 ? 'thing' : 'things'
+                        } to do with ${partnerName}`}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleJournalPress}
+                  style={{
+                    padding: 10,
+                    backgroundColor: colorMode === 'dark' ? '#000000' : '#F5F5F5',
+                    borderRadius: 10,
+                    width: '50%',
+                    alignItems: 'flex-start',
+                    justifyContent: 'space-between',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 10,
+                    height: 100,
+                  }}>
+                  <Text
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.5)',
+                    }}>
+                    Journal
+                  </Text>
+
+                  <Text>
+                    {numberOfItemsInJournal === 0
+                      ? 'No journal entries'
+                      : `${numberOfItemsInJournal} journal ${
+                          numberOfItemsInJournal === 1 ? 'entry' : 'entries'
+                        }`}
+                  </Text>
+                </TouchableOpacity>
+              </HStack>
+            </>
+          )}
+
+          {!user.roomId && (
+            <Box
+              style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: 20,
+              }}>
+              <Button onPress={handleCreateRoom}>
+                <Text>Create Room</Text>
+              </Button>
+
+              <Button onPress={() => setShowModal(true)}>
+                <Text>Join Room</Text>
+              </Button>
+            </Box>
+          )}
+        </>
       )}
 
       <Modal isOpen={showModal}>
@@ -395,7 +427,6 @@ export default function Home() {
           </Box>
         </ModalContent>
       </Modal>
-
       <FlowerModal
         showFlowerModal={showFlowerModal}
         onClose={handleFlowerClosePress}
@@ -405,7 +436,6 @@ export default function Home() {
         setOwnFlowerMessage={setOwnFlowerMessage}
         handleFlowerSend={handleFlowerSend}
       />
-
       <FeelingModal
         isOpen={showFeelingModal}
         onClose={handleFeelingClosePress}
@@ -413,7 +443,6 @@ export default function Home() {
         setOwnFeeling={setOwnFeeling}
         handleFeelingSend={handleFeelingSend}
       />
-
       <StatusBar backgroundColor={colorMode === 'dark' ? '#000000' : '#F5F5F5'} />
     </ScrollView>
   );

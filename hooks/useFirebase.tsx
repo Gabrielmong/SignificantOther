@@ -22,6 +22,7 @@ import { PathData } from '../components';
 import { useAuth } from './useAuth';
 import uuid from 'react-native-uuid';
 import { Activity, ActivityObject, Wishlist } from '../types';
+import { Journal, JournalObject } from '../types/Journal';
 
 export const useFirebase = () => {
   let app, auth;
@@ -423,6 +424,86 @@ export const useFirebase = () => {
     });
   };
 
+  const getJournal = async (uid: string) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/journal`);
+
+    const snapshot = await get(roomRef);
+
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+
+      if (data) {
+        return data;
+      }
+    }
+  };
+
+  const getEntryInJournal = async (uid: string, entryId: string) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/journal/${entryId}`);
+
+    const snapshot = await get(roomRef);
+
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+
+      if (data) {
+        return data;
+      }
+    }
+  };
+
+  const createEntryInJournal = async (uid: string, entry: Journal) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/journal`);
+    const id = uuid.v4().toString().substring(0, 12);
+
+    await update(roomRef, {
+      [id]: entry,
+    });
+  };
+
+  const updateEntryInJournal = async (uid: string, entryId: string, entry: Journal) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/journal/${entryId}`);
+
+    await update(roomRef, entry);
+  };
+
+  const deleteEntryInJournal = async (uid: string, entryId: string) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/journal/${entryId}`);
+
+    return remove(roomRef);
+  };
+
+  const listenToJournalChanges = (
+    journalCallback: ({ journal }: { journal: JournalObject }) => void,
+    uid: string,
+  ) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/journal`);
+
+    onValue(roomRef, (snapshot) => {
+      const data = snapshot.val();
+
+      if (data) {
+        journalCallback({
+          journal: data,
+        });
+      }
+    });
+  };
+
+  const getNumberOfItemsInJournal = async (uid: string) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/journal`);
+
+    const snapshot = await get(roomRef);
+
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+
+      if (data) {
+        return Object.keys(data).length;
+      }
+    }
+  };
+
   return {
     app,
     auth,
@@ -450,5 +531,12 @@ export const useFirebase = () => {
     getNumberOfItemsInWishlist,
     createEntryInWishlist,
     listentoNumberOfItemsInWishlist,
+    getJournal,
+    createEntryInJournal,
+    updateEntryInJournal,
+    deleteEntryInJournal,
+    listenToJournalChanges,
+    getEntryInJournal,
+    getNumberOfItemsInJournal,
   };
 };

@@ -18,4 +18,5 @@ export type Wishlist = {
   food: ActivityObject;
   dates: ActivityObject;
   other: ActivityObject;
+  gifts: ActivityObject;
 };
