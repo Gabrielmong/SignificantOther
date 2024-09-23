@@ -74,18 +74,19 @@ export default function Journal() {
   useEffect(() => {
     if (user.roomId) {
       loadData();
-      listenToJournalChanges((data) => {
-        const orderedData = Object.keys(data)
-          .map((key) => {
-            return {
-              id: key,
-              // @ts-ignore
-              ...data[key],
-            };
-          })
-          .sort((a, b) => {
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-          });
+      listenToJournalChanges(({ journal }) => {
+        const parsedJournal = Object.keys(journal).map((key) => {
+          return {
+            id: key,
+            ...journal[key],
+          };
+        });
+
+        const orderedData = parsedJournal.sort((a, b) => {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+
+        console.log(orderedData);
 
         setJournal(orderedData);
       }, user.roomId);
@@ -125,7 +126,11 @@ export default function Journal() {
   };
 
   const goToEntry = (entryId: string) => {
-    router.push(`/(tabs)/Home/Journal/${entryId}`);
+    try {
+      router.push(`/(tabs)/Home/Journal/${entryId}`);
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   return (
