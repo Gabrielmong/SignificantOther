@@ -27,11 +27,15 @@ const cardColors = {
   other: '#1e3375',
 };
 
+interface ParsedJournal extends JournalType {
+  id: string;
+}
+
 export default function Journal() {
   const { colorMode } = useAppTheme();
   const { showToast } = useAppToast();
   const { user } = useAuth();
-  const [journal, setJournal] = useState<JournalObject | null>(null);
+  const [journal, setJournal] = useState<ParsedJournal[] | null>(null);
   const { uploadImage, askPermission } = useImageUpload();
   const [isUploading, setIsUploading] = useState(false);
   const { getJournal, listenToJournalChanges, createEntryInJournal } = useFirebase();
@@ -49,8 +53,20 @@ export default function Journal() {
 
   const loadData = async () => {
     if (user.roomId) {
-      const data = await getJournal(user.roomId);
-      setJournal(data);
+      const data = (await getJournal(user.roomId)) as JournalObject;
+
+      const orderedData = Object.keys(data)
+        .map((key) => {
+          return {
+            id: key,
+            ...data[key],
+          };
+        })
+        .sort((a, b) => {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+
+      setJournal(orderedData);
 
       setLoading(false);
     }
@@ -59,7 +75,19 @@ export default function Journal() {
     if (user.roomId) {
       loadData();
       listenToJournalChanges((data) => {
-        setJournal(data.journal);
+        const orderedData = Object.keys(data)
+          .map((key) => {
+            return {
+              id: key,
+              // @ts-ignore
+              ...data[key],
+            };
+          })
+          .sort((a, b) => {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          });
+
+        setJournal(orderedData);
       }, user.roomId);
     }
   }, []);
@@ -88,6 +116,8 @@ export default function Journal() {
   };
 
   const getTextPreview = (text: string) => {
+    if (!text) return;
+
     if (text.length > 100) {
       return text.slice(0, 100) + '...';
     }
@@ -145,21 +175,20 @@ export default function Journal() {
         }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} />}>
         {journal &&
-          Object.keys(journal).map((key) => {
-            const entry = journal[key];
+          journal.map(({ id, authorId, title, description, author, createdAt }) => {
             return (
               <TouchableOpacity
-                key={key}
+                key={id}
                 style={{
                   minWidth: '100%',
-                  backgroundColor: user?.uid === entry.authorId ? cardColors.own : cardColors.other,
+                  backgroundColor: user?.uid === authorId ? cardColors.own : cardColors.other,
                   padding: 20,
                   borderRadius: 10,
                   flexDirection: 'column',
                   justifyContent: 'flex-start',
                   gap: 10,
                 }}
-                onPress={() => goToEntry(key)}>
+                onPress={() => goToEntry(id)}>
                 <Box
                   style={{
                     flexDirection: 'row',
@@ -172,14 +201,14 @@ export default function Journal() {
                       fontSize: 18,
                       fontWeight: 'bold',
                     }}>
-                    {entry.title}
+                    {title}
                   </Text>
                 </Box>
                 <Text
                   style={{
                     fontSize: 14,
                   }}>
-                  {getTextPreview(entry.description)}
+                  {getTextPreview(description)}
                 </Text>
 
                 <Box
@@ -193,14 +222,14 @@ export default function Journal() {
                     style={{
                       fontSize: 12,
                     }}>
-                    {new Date(entry.createdAt).toLocaleString()}
+                    {new Date(createdAt).toLocaleString()}
                   </Text>
 
                   <Text
                     style={{
                       fontSize: 12,
                     }}>
-                    {entry.author}
+                    {author}
                   </Text>
                 </Box>
               </TouchableOpacity>
@@ -211,7 +240,14 @@ export default function Journal() {
       <Modal isOpen={modalOpen}>
         <ModalBackdrop onPress={handleCloseModal} />
 
-        <ModalContent>
+        <ModalContent
+          style={{
+            height: '80%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+          }}>
           <ModalCloseButton onPress={handleCloseModal} />
 
           <ModalHeader>
@@ -222,6 +258,10 @@ export default function Journal() {
             style={{
               padding: 20,
               gap: 20,
+              width: '100%',
+              flexDirection: 'column',
+              justifyContent: 'flex-start',
+              flex: 1,
             }}>
             <Input>
               <InputField
@@ -233,10 +273,10 @@ export default function Journal() {
 
             <Input
               style={{
-                height: 200,
                 flexDirection: 'column',
                 justifyContent: 'flex-start',
                 alignContent: 'flex-start',
+                flex: 1,
               }}>
               <InputField
                 value={modalValues.description}
@@ -245,8 +285,8 @@ export default function Journal() {
                 multiline
                 numberOfLines={8}
                 style={{
-                  height: 200,
                   textAlignVertical: 'top',
+                  padding: 10,
                 }}
               />
             </Input>

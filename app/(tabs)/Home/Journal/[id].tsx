@@ -13,6 +13,7 @@ import {
   InputField,
   RefreshControl,
   Spinner,
+  Divider,
 } from '@gluestack-ui/themed';
 import { useAppTheme, useAuth, useFirebase } from '../../../../hooks';
 import { StatusBar } from 'react-native';
@@ -167,9 +168,9 @@ export default function Note() {
             <Box
               style={{
                 width: '100%',
-                flexDirection: 'row',
+                flexDirection: 'column',
                 justifyContent: 'space-between',
-                alignItems: 'center',
+                alignItems: 'flex-start',
                 gap: 10,
               }}>
               <Text
@@ -177,13 +178,16 @@ export default function Note() {
                   fontSize: 24,
                   fontWeight: 'bold',
                   color: colorMode === 'dark' ? '#FFFFFF' : '#000000',
+                  lineHeight: 32,
                 }}>
                 {note?.title}
               </Text>
 
               <Text>{note?.author}</Text>
+
+              <Divider />
             </Box>
-            <Box paddingBottom={20}>
+            <Box paddingVertical={20}>
               <Text
                 style={{
                   color: colorMode === 'dark' ? '#FFFFFF' : '#000000',

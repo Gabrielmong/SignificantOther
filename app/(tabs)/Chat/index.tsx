@@ -32,6 +32,9 @@ export default function Chat() {
         if (data.length === messages.length) return;
 
         if (data.length > 0) {
+          // reverse the data to show the latest messages first
+          data = data.reverse();
+
           setMessages(data);
         }
       }, user.roomId);
@@ -45,7 +48,9 @@ export default function Chat() {
           const data = snapshot.val();
 
           if (data) {
-            const messages = Object.keys(data).map((key) => data[key]);
+            const messages = Object.keys(data)
+              .map((key) => data[key])
+              .reverse();
 
             if (messages.length > 0) {
               setMessages(messages);
@@ -175,6 +180,7 @@ export default function Chat() {
           <FlashList
             data={messages}
             ref={flashListRef}
+            inverted
             estimatedItemSize={200}
             keyExtractor={(item) => item.timestamp.toString()}
             renderItem={({ item, index }) => (
