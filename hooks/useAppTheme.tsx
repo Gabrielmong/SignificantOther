@@ -1,18 +1,16 @@
-import { useMemo } from 'react';
-import { useColorScheme } from 'react-native';
+import { useContext } from 'react';
+import { ThemeContext } from '../contexts/ThemeContext';
 
+/**
+ * Hook to access the current theme
+ * Provides theme object, colorMode, and toggle function
+ */
 export const useAppTheme = () => {
-  let colorScheme = useColorScheme();
+  const context = useContext(ThemeContext);
 
-  const colorMode = useMemo(() => {
-    if (colorScheme === 'dark') {
-      return 'dark';
-    } else {
-      return 'light';
-    }
-  }, [colorScheme]);
+  if (context === undefined) {
+    throw new Error('useAppTheme must be used within a ThemeProvider');
+  }
 
-  return {
-    colorMode,
-  };
+  return context;
 };

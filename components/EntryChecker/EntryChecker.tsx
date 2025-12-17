@@ -1,4 +1,4 @@
-import { Slot, useLocalSearchParams, useSegments, AllRoutes } from 'expo-router';
+import { Slot, useLocalSearchParams, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useAppSelector } from '../../state';
 import { router } from 'expo-router';
@@ -10,7 +10,7 @@ export const EntryCheckerWrapper = ({ children }: { children: React.ReactNode })
   const isLogged = useAppSelector((state) => state.user.loggedIn);
   const { initialize } = useAuth();
   const segments = useSegments();
-  const [currentRoute, setCurrentRoute] = useState<AllRoutes | null>(null);
+  const [currentRoute, setCurrentRoute] = useState<string | null>(null);
 
   useEffect(() => {
     initialize();
@@ -18,7 +18,7 @@ export const EntryCheckerWrapper = ({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     if (segments) {
-      setCurrentRoute(('/' + segments.join('/')) as AllRoutes);
+      setCurrentRoute('/' + segments.join('/'));
     }
   }, [segments]);
 
@@ -31,7 +31,7 @@ export const EntryCheckerWrapper = ({ children }: { children: React.ReactNode })
       if (currentRoute === '/' || currentRoute === null) {
         router.replace('/(tabs)/Home');
       } else if (currentRoute) {
-        router.replace(currentRoute);
+        router.replace(currentRoute as any); // Type assertion needed for dynamic routes
       }
     } else {
       router.replace('/Auth/Signin');

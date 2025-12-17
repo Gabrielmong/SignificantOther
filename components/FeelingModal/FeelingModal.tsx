@@ -13,6 +13,8 @@ import {
 } from '@gluestack-ui/themed';
 import { Pressable } from 'react-native';
 import { FEELINGS_LABELS, FEELINGS_MAP } from '../../constants';
+import { useAppTheme } from '../../hooks';
+import { useState } from 'react';
 
 const capitalize = (s: string) => {
   return s.charAt(0).toUpperCase() + s.slice(1);
@@ -31,6 +33,18 @@ export const FeelingModal = ({
   handleFeelingSend: () => void;
   onClose: () => void;
 }) => {
+  const [internalFeeling, setInternalFeeling] = useState(ownFeeling);
+  const { theme } = useAppTheme();
+
+  const handleFeelingSelect = (feeling: string) => {
+    setInternalFeeling(feeling);
+  };
+
+  const handleSave = () => {
+    setOwnFeeling(internalFeeling);
+    handleFeelingSend();
+  };
+
   return (
     <Modal isOpen={isOpen}>
       <ModalBackdrop onPress={onClose} />
@@ -40,11 +54,19 @@ export const FeelingModal = ({
 
         <ModalHeader>
           <Box>
-            <Text>How i'm feeling</Text>
             <Text
               style={{
-                color: 'rgba(255, 255, 255, 0.5)',
-                fontSize: 12,
+                fontSize: theme.fontSize.lg,
+                fontWeight: theme.fontWeight.bold,
+                color: theme.colors.text,
+              }}>
+              How I'm feeling
+            </Text>
+            <Text
+              style={{
+                color: theme.colors.textTertiary,
+                fontSize: theme.fontSize.xs,
+                marginTop: theme.spacing[1],
               }}>
               Only your partner will see it
             </Text>
@@ -53,21 +75,21 @@ export const FeelingModal = ({
         <ModalBody>
           <ScrollView
             style={{
-              gap: 20,
+              gap: theme.spacing[5],
               height: 350,
             }}>
             <Box
               style={{
                 flexDirection: 'row',
                 flexWrap: 'wrap',
-                gap: 10,
+                gap: theme.spacing[3],
                 justifyContent: 'center',
               }}>
               {Object.keys(FEELINGS_MAP).map((feeling) => (
                 <Pressable
                   key={feeling}
                   onPress={() => {
-                    setOwnFeeling(feeling);
+                    handleFeelingSelect(feeling);
                   }}>
                   <Image
                     source={FEELINGS_MAP[feeling]}
@@ -75,17 +97,19 @@ export const FeelingModal = ({
                     style={{
                       width: 80,
                       height: 80,
-                      borderRadius: 10,
-                      borderWidth: feeling === ownFeeling ? 3 : 0,
-                      borderColor: feeling === ownFeeling ? '#8438ff' : 'transparent',
+                      borderRadius: theme.radii.md,
+                      borderWidth: feeling === internalFeeling ? 3 : 0,
+                      borderColor:
+                        feeling === internalFeeling ? theme.colors.primary : 'transparent',
                     }}
                   />
 
                   <Text
                     style={{
                       textAlign: 'center',
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      fontSize: 12,
+                      color: theme.colors.textTertiary,
+                      fontSize: theme.fontSize.xs,
+                      marginTop: theme.spacing[1],
                     }}>
                     {capitalize(FEELINGS_LABELS[feeling] || feeling)}
                   </Text>
@@ -95,11 +119,20 @@ export const FeelingModal = ({
           </ScrollView>
         </ModalBody>
         <Button
-          onPress={handleFeelingSend}
+          onPress={handleSave}
           style={{
             width: '100%',
+            backgroundColor: theme.colors.primary,
+            ...theme.shadows.sm,
           }}>
-          <Text>Save</Text>
+          <Text
+            style={{
+              color: theme.colors.white,
+              fontSize: theme.fontSize.md,
+              fontWeight: theme.fontWeight.semibold,
+            }}>
+            Save
+          </Text>
         </Button>
       </ModalContent>
     </Modal>

@@ -2,18 +2,18 @@ import { Spinner, StatusBar, View } from '@gluestack-ui/themed';
 import { useAppTheme } from '../../hooks';
 
 export const LoadingScreen = () => {
-  const { colorMode } = useAppTheme();
+  const { theme } = useAppTheme();
   return (
     <View
-      $dark-backgroundColor="#121212"
       style={{
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: theme.colors.background,
       }}>
-      <Spinner />
+      <Spinner color={theme.colors.primary} size="large" />
 
-      <StatusBar backgroundColor={colorMode === 'dark' ? '#000000' : '#F5F5F5'} />
+      <StatusBar backgroundColor={theme.colors.background} />
     </View>
   );
 };

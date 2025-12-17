@@ -2,7 +2,16 @@ import { version } from '../package.json';
 
 export const APP_VERSION = version;
 
-export const TAB_HIDDEN_ROUTES = ['/Profile/EditProfile', '/Home/WhiteBoard', '/Home/Wishlist'];
+export const TAB_HIDDEN_ROUTES = [
+  '/Profile/EditProfile',
+  '/Home/WhiteBoard',
+  '/Home/Wishlist',
+  '/Home/Map',
+  '/Home/Zones',
+  '/Home/Countdowns',
+  '/Home/Journal',
+  '/Home/Journal/[id]',
+];
 
 export const FLOWER_MAP: {
   [key: string]: any;

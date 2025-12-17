@@ -23,18 +23,19 @@ export const WhiteBoardPreview = ({
   loading,
 }: WhiteBoardPreviewProps) => {
   const { user } = useAuth();
-  const { colorMode } = useAppTheme();
+  const { theme } = useAppTheme();
 
   return (
     <TouchableOpacity
       onPress={onPress}
       style={{
-        padding: 10,
-        backgroundColor: colorMode === 'dark' ? '#000000' : '#F5F5F5',
-        borderRadius: 10,
+        padding: theme.spacing[4],
+        backgroundColor: theme.colors.surface,
+        borderRadius: theme.radii.md,
         width: '100%',
         alignItems: 'flex-start',
-        gap: 10,
+        gap: theme.spacing[3],
+        ...theme.shadows.sm,
       }}>
       <Box
         style={{
@@ -45,7 +46,8 @@ export const WhiteBoardPreview = ({
         }}>
         <Text
           style={{
-            color: 'rgba(255, 255, 255, 0.5)',
+            color: theme.colors.textTertiary,
+            fontSize: theme.fontSize.sm,
           }}>
           Shared board
         </Text>
@@ -59,12 +61,12 @@ export const WhiteBoardPreview = ({
           height: height,
         }}>
         {loading ? (
-          <Spinner />
+          <Spinner color={theme.colors.primary} />
         ) : (
           <Svg
             height={'100%'}
             width={'100%'}
-            style={{ backgroundColor: canvasColor, borderRadius: 10 }}>
+            style={{ backgroundColor: canvasColor, borderRadius: theme.radii.md }}>
             {paths?.map((path, index) => (
               <Path
                 key={index}

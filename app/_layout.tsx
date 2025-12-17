@@ -6,32 +6,50 @@ import { Provider } from 'react-redux';
 import { Slot } from 'expo-router';
 import { EntryCheckerWrapper } from '../components';
 import { useAppTheme } from '../hooks/';
+import { ThemeProvider } from '../contexts/ThemeContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { AppRegistry, Platform } from 'react-native';
+import { AppRegistry, Platform, KeyboardAvoidingView } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 import * as Notifications from 'expo-notifications';
+// Import location task to register it
+import '../services/locationTask';
 
-export default function AppLayout() {
-  const { colorMode } = useAppTheme();
+// Inner component that consumes theme
+function AppContent() {
+  const { colorMode, theme } = useAppTheme();
 
   return (
-    <Provider store={store}>
-      <GluestackUIProvider config={config} colorMode={'dark'}>
-        <GestureHandlerRootView
+    <GluestackUIProvider config={config} colorMode={colorMode}>
+      <GestureHandlerRootView
+        style={{
+          flex: 1,
+        }}>
+        <SafeAreaView
           style={{
             flex: 1,
+            backgroundColor: theme.colors.background,
           }}>
-          <SafeAreaView
-            style={{
-              flex: 1,
-            }}>
-            <StatusBar backgroundColor={colorMode === 'dark' ? '#121212' : '#F5F5F5'} />
+          <StatusBar backgroundColor={theme.colors.background} />
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
             <EntryCheckerWrapper>
               <Slot />
             </EntryCheckerWrapper>
-          </SafeAreaView>
-        </GestureHandlerRootView>
-      </GluestackUIProvider>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </GestureHandlerRootView>
+    </GluestackUIProvider>
+  );
+}
+
+export default function AppLayout() {
+  return (
+    <Provider store={store}>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
     </Provider>
   );
 }

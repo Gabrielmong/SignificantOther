@@ -21,7 +21,7 @@ import {
 import { PathData } from '../components';
 import { useAuth } from './useAuth';
 import uuid from 'react-native-uuid';
-import { Activity, ActivityObject, Wishlist } from '../types';
+import { Activity, ActivityObject, Wishlist, Countdown, CountdownObject } from '../types';
 import { Journal, JournalObject } from '../types/Journal';
 
 export const useFirebase = () => {
@@ -158,7 +158,7 @@ export const useFirebase = () => {
   ) => {
     const whiteboardRef = databaseRef(db, `rooms/${roomId}/whiteboard`);
 
-    onValue(whiteboardRef, (snapshot) => {
+    const unsubscribe = onValue(whiteboardRef, (snapshot) => {
       const data = snapshot.val();
 
       if (data) {
@@ -169,6 +169,9 @@ export const useFirebase = () => {
         });
       }
     });
+
+    // Return the unsubscribe function
+    return unsubscribe;
   };
 
   const getWhiteboard = async (roomId: string) => {
@@ -200,10 +203,16 @@ export const useFirebase = () => {
     roomId,
     uid,
     message,
+    replyingTo,
   }: {
     roomId: string;
     uid: string;
     message: string;
+    replyingTo?: {
+      messageId: number;
+      message: string;
+      uid: string;
+    };
   }) => {
     const roomRef = databaseRef(db, `rooms/${roomId}/messages`);
     const id = Date.now().toString();
@@ -213,6 +222,7 @@ export const useFirebase = () => {
         message,
         uid,
         timestamp: Date.now(),
+        ...(replyingTo && { replyingTo }),
       },
     });
   };
@@ -274,7 +284,7 @@ export const useFirebase = () => {
   ) => {
     const roomRef = databaseRef(db, `rooms/${roomId}/users/${uid}`);
 
-    onValue(roomRef, (snapshot) => {
+    const unsubscribe = onValue(roomRef, (snapshot) => {
       const data = snapshot.val();
 
       if (data) {
@@ -284,6 +294,8 @@ export const useFirebase = () => {
         });
       }
     });
+
+    return unsubscribe;
   };
 
   const getFeeling = async (roomId: string, uid: string) => {
@@ -307,7 +319,7 @@ export const useFirebase = () => {
   ) => {
     const roomRef = databaseRef(db, `rooms/${roomId}/users/${uid}`);
 
-    onValue(roomRef, (snapshot) => {
+    const unsubscribe = onValue(roomRef, (snapshot) => {
       const data = snapshot.val();
 
       if (data) {
@@ -316,6 +328,8 @@ export const useFirebase = () => {
         });
       }
     });
+
+    return unsubscribe;
   };
 
   // Whishlist
@@ -360,7 +374,7 @@ export const useFirebase = () => {
   ) => {
     const roomRef = databaseRef(db, `rooms/${uid}/wishlist`);
 
-    onValue(roomRef, (snapshot) => {
+    const unsubscribe = onValue(roomRef, (snapshot) => {
       const data = snapshot.val();
 
       if (data) {
@@ -369,6 +383,8 @@ export const useFirebase = () => {
         });
       }
     });
+
+    return unsubscribe;
   };
 
   const deleteWishlistEntry = async (
@@ -407,7 +423,7 @@ export const useFirebase = () => {
   ) => {
     const roomRef = databaseRef(db, `rooms/${uid}/wishlist`);
 
-    onValue(roomRef, (snapshot) => {
+    const unsubscribe = onValue(roomRef, (snapshot) => {
       const data = snapshot.val();
 
       if (data) {
@@ -422,6 +438,8 @@ export const useFirebase = () => {
         });
       }
     });
+
+    return unsubscribe;
   };
 
   const getJournal = async (uid: string) => {
@@ -479,7 +497,7 @@ export const useFirebase = () => {
   ) => {
     const roomRef = databaseRef(db, `rooms/${uid}/journal`);
 
-    onValue(roomRef, (snapshot) => {
+    const unsubscribe = onValue(roomRef, (snapshot) => {
       const data = snapshot.val();
 
       if (data) {
@@ -488,6 +506,8 @@ export const useFirebase = () => {
         });
       }
     });
+
+    return unsubscribe;
   };
 
   const getNumberOfItemsInJournal = async (uid: string) => {
@@ -502,6 +522,197 @@ export const useFirebase = () => {
         return Object.keys(data).length;
       }
     }
+  };
+
+  // Location
+  const updateLocation = async (
+    roomId: string,
+    uid: string,
+    location: { latitude: number; longitude: number; timestamp: number },
+  ) => {
+    const locationRef = databaseRef(db, `rooms/${roomId}/users/${uid}/location`);
+
+    await update(locationRef, {
+      latitude: location.latitude,
+      longitude: location.longitude,
+      timestamp: location.timestamp,
+    });
+  };
+
+  const getLocation = async (roomId: string, uid: string) => {
+    const locationRef = databaseRef(db, `rooms/${roomId}/users/${uid}/location`);
+
+    const snapshot = await get(locationRef);
+
+    if (snapshot.exists()) {
+      return snapshot.val();
+    }
+
+    return null;
+  };
+
+  const listenToLocationChanges = (
+    locationCallback: (
+      location: {
+        latitude: number;
+        longitude: number;
+        timestamp: number;
+      } | null,
+    ) => void,
+    roomId: string,
+    uid: string,
+  ) => {
+    const locationRef = databaseRef(db, `rooms/${roomId}/users/${uid}/location`);
+
+    const unsubscribe = onValue(locationRef, (snapshot) => {
+      const data = snapshot.val();
+
+      if (data) {
+        locationCallback({
+          latitude: data.latitude,
+          longitude: data.longitude,
+          timestamp: data.timestamp,
+        });
+      } else {
+        locationCallback(null);
+      }
+    });
+
+    return unsubscribe;
+  };
+
+  // Countdown Management
+  const getCountdowns = async (uid: string) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/countdowns`);
+    const snapshot = await get(roomRef);
+
+    if (snapshot.exists()) {
+      return snapshot.val();
+    }
+    return null;
+  };
+
+  const createCountdown = async (uid: string, countdown: Countdown) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/countdowns`);
+    const id = uuid.v4().toString().substring(0, 12);
+
+    await update(roomRef, {
+      [id]: { ...countdown, id },
+    });
+
+    return id;
+  };
+
+  const updateCountdown = async (uid: string, countdownId: string, countdown: Countdown) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/countdowns/${countdownId}`);
+    await update(roomRef, countdown);
+  };
+
+  const deleteCountdown = async (uid: string, countdownId: string) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/countdowns/${countdownId}`);
+    return remove(roomRef);
+  };
+
+  const listenToCountdownChanges = (
+    countdownCallback: ({ countdowns }: { countdowns: CountdownObject }) => void,
+    uid: string,
+  ) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/countdowns`);
+
+    const unsubscribe = onValue(roomRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        countdownCallback({ countdowns: data });
+      }
+    });
+
+    return unsubscribe;
+  };
+
+  // Zone Management Functions
+  const getZones = async (uid: string) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/zones`);
+    const snapshot = await get(roomRef);
+    if (snapshot.exists()) {
+      return snapshot.val();
+    }
+    return null;
+  };
+
+  const createZone = async (uid: string, zone: any) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/zones`);
+    const id = uuid.v4().toString().substring(0, 12);
+    await update(roomRef, {
+      [id]: {
+        ...zone,
+        id,
+      },
+    });
+    return id;
+  };
+
+  const updateZone = async (uid: string, zoneId: string, zone: any) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/zones/${zoneId}`);
+    await update(roomRef, zone);
+  };
+
+  const deleteZone = async (uid: string, zoneId: string) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/zones/${zoneId}`);
+    return remove(roomRef);
+  };
+
+  const listenToZoneChanges = (zoneCallback: ({ zones }: { zones: any }) => void, uid: string) => {
+    const roomRef = databaseRef(db, `rooms/${uid}/zones`);
+
+    const unsubscribe = onValue(roomRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        zoneCallback({ zones: data });
+      }
+    });
+
+    return unsubscribe;
+  };
+
+  // Zone Status Functions
+  const updateZoneStatus = async (uid: string, userId: string, zoneId: string, status: any) => {
+    const statusRef = databaseRef(db, `rooms/${uid}/zoneStatus/${userId}/${zoneId}`);
+    await update(statusRef, status);
+  };
+
+  const getZoneStatus = async (uid: string, userId: string) => {
+    const statusRef = databaseRef(db, `rooms/${uid}/zoneStatus/${userId}`);
+    const snapshot = await get(statusRef);
+    if (snapshot.exists()) {
+      return snapshot.val();
+    }
+    return null;
+  };
+
+  const listenToZoneStatusChanges = (
+    statusCallback: (status: any) => void,
+    uid: string,
+    userId: string,
+  ) => {
+    const statusRef = databaseRef(db, `rooms/${uid}/zoneStatus/${userId}`);
+
+    const unsubscribe = onValue(statusRef, (snapshot) => {
+      const data = snapshot.val();
+      statusCallback(data || {});
+    });
+
+    return unsubscribe;
+  };
+
+  const getUserProfile = async (uid: string) => {
+    const userRef = databaseRef(db, `users/${uid}`);
+    const snapshot = await get(userRef);
+
+    if (snapshot.exists()) {
+      return snapshot.val();
+    }
+
+    return null;
   };
 
   return {
@@ -538,5 +749,22 @@ export const useFirebase = () => {
     listenToJournalChanges,
     getEntryInJournal,
     getNumberOfItemsInJournal,
+    updateLocation,
+    getLocation,
+    listenToLocationChanges,
+    getCountdowns,
+    createCountdown,
+    updateCountdown,
+    deleteCountdown,
+    listenToCountdownChanges,
+    getZones,
+    createZone,
+    updateZone,
+    deleteZone,
+    listenToZoneChanges,
+    updateZoneStatus,
+    getZoneStatus,
+    listenToZoneStatusChanges,
+    getUserProfile,
   };
 };

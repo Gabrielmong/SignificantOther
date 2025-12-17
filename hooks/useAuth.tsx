@@ -24,6 +24,10 @@ import messaging from '@react-native-firebase/messaging';
 import { useEffect } from 'react';
 import { PermissionsAndroid } from 'react-native';
 import { Linking } from 'react-native';
+import {
+  setLocationTaskUserInfo,
+  clearLocationTaskUserInfo,
+} from '../services/locationTask';
 
 export const useAuth = () => {
   const { auth } = useFirebase();
@@ -94,8 +98,9 @@ export const useAuth = () => {
   const logout = (): Promise<void> => {
     if (!auth) return Promise.resolve();
 
-    return auth.signOut().then(() => {
+    return auth.signOut().then(async () => {
       dispatch(stateLogout());
+      await clearLocationTaskUserInfo();
 
       showToast({
         title: 'Logout',
@@ -154,6 +159,16 @@ export const useAuth = () => {
         };
 
         dispatch(setUser(userPayload));
+
+        // Create user entry in Firebase Realtime Database
+        const userDocRef = ref(db, `users/${userCredential.user?.uid}`);
+        update(userDocRef, {
+          displayName: userCredential.user?.displayName || '',
+          email: userCredential.user?.email || '',
+          photoURL: userCredential.user?.photoURL || null,
+        }).catch((error) => {
+          console.error('Error creating user in database:', error);
+        });
 
         showToast({
           title: 'Sign up success',
@@ -238,6 +253,12 @@ export const useAuth = () => {
       .then(() => {
         dispatch(updateUser(updatedFields));
 
+        // Also save to Firebase Realtime Database so partners can see the photo
+        const userDocRef = ref(db, `users/${user?.uid}`);
+        update(userDocRef, updatedFields).catch((error) => {
+          console.error('Error updating user profile in database:', error);
+        });
+
         showToast({
           title: 'Profile updated',
           description: 'Profile has been updated',
@@ -314,6 +335,11 @@ export const useAuth = () => {
             dispatch(setRoom(roomFields));
 
             dispatch(updateUser(updatedFields));
+
+            // Set location task user info for background tracking
+            if (user?.uid && data.roomId) {
+              setLocationTaskUserInfo(user.uid, data.roomId);
+            }
           }
         });
       }

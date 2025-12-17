@@ -13,6 +13,8 @@ import {
 } from '@gluestack-ui/themed';
 import { Pressable } from 'react-native';
 import { FLOWER_MAP } from '../../constants';
+import { useAppTheme } from '../../hooks';
+import { useState } from 'react';
 
 export const FlowerModal = ({
   showFlowerModal,
@@ -31,6 +33,24 @@ export const FlowerModal = ({
   handleFlowerSend: () => void;
   onClose: () => void;
 }) => {
+  const [internalFlower, setInternalFlower] = useState(ownFlower);
+  const [internalFlowerMessage, setInternalFlowerMessage] = useState(ownFlowerMessage);
+  const { theme } = useAppTheme();
+
+  const handleFlowerSelect = (flower: string) => {
+    setInternalFlower(flower);
+  };
+
+  const handleFlowerMessageChange = (message: string) => {
+    setInternalFlowerMessage(message);
+  };
+
+  const handleSave = () => {
+    setOwnFlower(internalFlower);
+    setOwnFlowerMessage(internalFlowerMessage);
+    handleFlowerSend();
+  };
+
   return (
     <Modal isOpen={showFlowerModal}>
       <ModalBackdrop onPress={onClose} />
@@ -40,11 +60,19 @@ export const FlowerModal = ({
 
         <ModalHeader>
           <Box>
-            <Text>Flowers I wish I could give you</Text>
             <Text
               style={{
-                color: 'rgba(255, 255, 255, 0.5)',
-                fontSize: 12,
+                fontSize: theme.fontSize.lg,
+                fontWeight: theme.fontWeight.bold,
+                color: theme.colors.text,
+              }}>
+              Flowers I wish I could give you
+            </Text>
+            <Text
+              style={{
+                color: theme.colors.textTertiary,
+                fontSize: theme.fontSize.xs,
+                marginTop: theme.spacing[1],
               }}>
               Only your partner will see it
             </Text>
@@ -53,21 +81,21 @@ export const FlowerModal = ({
 
         <Box
           style={{
-            padding: 20,
-            gap: 20,
+            padding: theme.commonSpacing.screenPadding,
+            gap: theme.spacing[5],
           }}>
           <Box
             style={{
               flexDirection: 'row',
               flexWrap: 'wrap',
-              gap: 10,
+              gap: theme.spacing[3],
               justifyContent: 'center',
             }}>
             {Object.keys(FLOWER_MAP).map((flower) => (
               <Pressable
                 key={flower}
                 onPress={() => {
-                  setOwnFlower(flower);
+                  handleFlowerSelect(flower);
                 }}>
                 <Image
                   source={FLOWER_MAP[flower]}
@@ -75,9 +103,9 @@ export const FlowerModal = ({
                   style={{
                     width: 80,
                     height: 80,
-                    borderRadius: 10,
-                    borderWidth: flower === ownFlower ? 3 : 0,
-                    borderColor: flower === ownFlower ? '#8438ff' : 'transparent',
+                    borderRadius: theme.radii.md,
+                    borderWidth: flower === internalFlower ? 3 : 0,
+                    borderColor: flower === internalFlower ? theme.colors.primary : 'transparent',
                   }}
                 />
               </Pressable>
@@ -86,35 +114,52 @@ export const FlowerModal = ({
 
           <Box>
             <Input
+              variant="outline"
               style={{
                 height: 'auto',
-                paddingVertical: 5,
+                paddingVertical: theme.spacing[2],
+                borderRadius: theme.radii.md,
+                backgroundColor: theme.colors.inputBackground,
               }}>
               <InputField
-                value={ownFlowerMessage}
-                onChangeText={(text) => setOwnFlowerMessage(text)}
+                value={internalFlowerMessage}
+                onChangeText={(text) => handleFlowerMessageChange(text)}
                 placeholder="Flower Message"
                 maxLength={100}
                 multiline
+                style={{
+                  fontSize: theme.fontSize.md,
+                  color: theme.colors.text,
+                }}
               />
             </Input>
 
             <Text
               style={{
                 textAlign: 'right',
-                color: 'rgba(255, 255, 255, 0.5)',
-                fontSize: 12,
+                color: theme.colors.textTertiary,
+                fontSize: theme.fontSize.xs,
+                marginTop: theme.spacing[1],
               }}>
-              {ownFlowerMessage.length}/100
+              {internalFlowerMessage.length}/100
             </Text>
           </Box>
         </Box>
         <Button
-          onPress={handleFlowerSend}
+          onPress={handleSave}
           style={{
             width: '100%',
+            backgroundColor: theme.colors.primary,
+            ...theme.shadows.sm,
           }}>
-          <Text>Save</Text>
+          <Text
+            style={{
+              color: theme.colors.white,
+              fontSize: theme.fontSize.md,
+              fontWeight: theme.fontWeight.semibold,
+            }}>
+            Save
+          </Text>
         </Button>
       </ModalContent>
     </Modal>

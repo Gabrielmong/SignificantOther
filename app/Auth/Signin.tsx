@@ -25,7 +25,7 @@ export default function Home() {
   const [visible, setVisible] = useState(false);
 
   const { signIn } = useAuth();
-  const { colorMode } = useAppTheme();
+  const { theme } = useAppTheme();
 
   const handleSignIn = async () => {
     setLoading(true);
@@ -40,14 +40,14 @@ export default function Home() {
 
   return (
     <View
-      $dark-backgroundColor="#121212"
       style={{
         flex: 1,
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 20,
+        padding: theme.commonSpacing.screenPadding,
+        backgroundColor: theme.colors.background,
       }}>
-      <StatusBar backgroundColor={colorMode === 'dark' ? '#000000' : '#F5F5F5'} />
+      <StatusBar backgroundColor={theme.colors.background} />
 
       <Box
         style={{
@@ -57,18 +57,25 @@ export default function Home() {
       <Box
         style={{
           width: '100%',
-          gap: 20,
+          gap: theme.spacing[5],
         }}>
         <Text
           style={{
-            fontSize: 24,
-            lineHeight: 32,
-            fontWeight: 'bold',
+            fontSize: theme.fontSize['3xl'],
+            lineHeight: theme.lineHeight.tight * theme.fontSize['3xl'],
+            fontWeight: theme.fontWeight.bold,
+            color: theme.colors.text,
+            textAlign: 'center',
           }}>
           Significant Other
         </Text>
 
-        <Input>
+        <Input
+          variant="outline"
+          style={{
+            borderRadius: theme.radii.md,
+            backgroundColor: theme.colors.inputBackground,
+          }}>
           <InputField
             placeholder="Email"
             value={email}
@@ -77,21 +84,34 @@ export default function Home() {
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
+            style={{
+              fontSize: theme.fontSize.md,
+              color: theme.colors.text,
+            }}
           />
         </Input>
 
-        <Input>
+        <Input
+          variant="outline"
+          style={{
+            borderRadius: theme.radii.md,
+            backgroundColor: theme.colors.inputBackground,
+          }}>
           <InputField
             placeholder="Password"
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!visible}
+            style={{
+              fontSize: theme.fontSize.md,
+              color: theme.colors.text,
+            }}
           />
 
           <TouchableOpacity
             style={{
               width: 40,
-              borderRadius: 20,
+              borderRadius: theme.radii.full,
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
@@ -100,16 +120,30 @@ export default function Home() {
             <Icon
               as={visible ? EyeOff : Eye}
               style={{
-                color: 'grey',
-                width: 30,
-                height: 30,
+                color: theme.colors.textTertiary,
+                width: 24,
+                height: 24,
               }}
             />
           </TouchableOpacity>
         </Input>
 
-        <Button onPress={handleSignIn} isDisabled={loading}>
-          <Text>Sign In</Text>
+        <Button
+          onPress={handleSignIn}
+          isDisabled={loading}
+          style={{
+            backgroundColor: theme.colors.primary,
+            borderRadius: theme.radii.md,
+            ...theme.shadows.sm,
+          }}>
+          <Text
+            style={{
+              color: theme.colors.white,
+              fontSize: theme.fontSize.md,
+              fontWeight: theme.fontWeight.semibold,
+            }}>
+            Sign In
+          </Text>
 
           {loading && <ButtonSpinner />}
         </Button>
@@ -119,11 +153,25 @@ export default function Home() {
             justifyContent: 'space-between',
           }}>
           <Link href="/Auth/Signup">
-            <Text>Sign Up</Text>
+            <Text
+              style={{
+                color: theme.colors.primary,
+                fontSize: theme.fontSize.md,
+                fontWeight: theme.fontWeight.medium,
+              }}>
+              Sign Up
+            </Text>
           </Link>
 
           <Link href="/Auth/ForgotPassword">
-            <Text>Forgot Password?</Text>
+            <Text
+              style={{
+                color: theme.colors.primary,
+                fontSize: theme.fontSize.md,
+                fontWeight: theme.fontWeight.medium,
+              }}>
+              Forgot Password?
+            </Text>
           </Link>
         </HStack>
       </Box>

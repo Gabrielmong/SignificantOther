@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 import { Svg, Path } from 'react-native-svg';
 import { GestureResponderEvent } from 'react-native';
+import { runOnJS } from 'react-native-reanimated';
 import {
   Slider,
   SliderFilledTrack,
@@ -28,6 +29,7 @@ import ColorPicker, {
 } from 'reanimated-color-picker';
 import { IconButton } from '../IconButton';
 import { Brush, Eraser, PaintBucket, Palette, Pipette, UndoDot } from 'lucide-react-native';
+import { useAppTheme } from '../../hooks';
 
 export interface PathData {
   path: string[];
@@ -51,6 +53,7 @@ export const Whiteboard = ({
   toolsVisible,
   setToolsVisible,
 }: WhiteboardProps) => {
+  const { theme } = useAppTheme();
   const [paths, setPaths] = useState<PathData[]>([]);
   const [currentPath, setCurrentPath] = useState<string[]>([]);
   const [currentColor, setCurrentColor] = useState<string>('red');
@@ -130,7 +133,8 @@ export const Whiteboard = ({
   };
 
   const onSelectColor = ({ hex }: { hex: string }) => {
-    setCurrentColor(hex);
+    'worklet';
+    runOnJS(setCurrentColor)(hex);
   };
 
   const setInternalCanvasColor = (color: string) => {
@@ -139,13 +143,18 @@ export const Whiteboard = ({
   };
 
   useEffect(() => {
-    if (incomingPaths && incomingPaths.length > 0) {
-      setPaths(incomingPaths);
+    if (incomingPaths) {
+      // Only update if the incoming paths are different from current paths
+      // to avoid resetting while user is actively drawing
+      if (JSON.stringify(incomingPaths) !== JSON.stringify(paths)) {
+        setPaths(incomingPaths);
+        setPreviousPaths(incomingPaths);
+      }
     }
   }, [incomingPaths]);
 
   useEffect(() => {
-    if (incomingCanvasColor) {
+    if (incomingCanvasColor && incomingCanvasColor !== canvasColor) {
       setCanvasColor(incomingCanvasColor);
     }
   }, [incomingCanvasColor]);
@@ -162,7 +171,7 @@ export const Whiteboard = ({
         flexDirection: 'column',
         justifyContent: 'flex-start',
         alignItems: 'center',
-        gap: 10,
+        gap: theme.spacing[3],
         flex: 1,
       }}>
       {toolsVisible && (
@@ -173,26 +182,32 @@ export const Whiteboard = ({
             top: 0,
             right: 0,
             width: 'auto',
-            gap: 10,
+            gap: theme.spacing[2],
             flexDirection: 'row',
             justifyContent: 'space-between',
             zIndex: 10,
-            backgroundColor: 'rgba(0, 0, 0, 0.3)',
-            borderRadius: 50,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            borderRadius: theme.radii.full,
+            padding: theme.spacing[2],
           }}>
-          <IconButton icon={Eraser} onPress={handleClearButtonClick} />
+          <IconButton icon={Eraser} onPress={handleClearButtonClick} variant="ghost" />
 
           <IconButton
             icon={UndoDot}
             onPress={handleUndoButtonClick}
             disabled={previousPaths.length === 0}
+            variant="ghost"
           />
 
-          <IconButton icon={Palette} onPress={() => setShowModal(true)} />
+          <IconButton icon={Palette} onPress={() => setShowModal(true)} variant="ghost" />
 
-          <IconButton icon={PaintBucket} onPress={() => setInternalCanvasColor(currentColor)} />
+          <IconButton
+            icon={PaintBucket}
+            onPress={() => setInternalCanvasColor(currentColor)}
+            variant="ghost"
+          />
 
-          <IconButton icon={Brush} onPress={handleOpenBrushWidth} />
+          <IconButton icon={Brush} onPress={handleOpenBrushWidth} variant="ghost" />
         </Animated.View>
       )}
       {brushWidthOpen && (
@@ -202,12 +217,15 @@ export const Whiteboard = ({
             top: 50,
             right: 0,
             width: 'auto',
-            padding: 10,
+            padding: theme.spacing[3],
             flexDirection: 'row',
             justifyContent: 'space-between',
+            alignItems: 'center',
             zIndex: 10,
-            backgroundColor: 'rgba(0, 0, 0, 0.3)',
-            borderRadius: 50,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            borderRadius: theme.radii.full,
+            gap: theme.spacing[2],
+            ...theme.shadows.lg,
           }}>
           <Slider
             style={{ width: 200 }}
@@ -218,12 +236,43 @@ export const Whiteboard = ({
             onChange={(value) => {
               setCurrentWidth(value);
             }}>
-            <SliderTrack>
-              <SliderFilledTrack />
+            <SliderTrack
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                height: 6,
+                borderRadius: theme.radii.full,
+              }}>
+              <SliderFilledTrack
+                style={{
+                  backgroundColor: theme.colors.white,
+                  borderRadius: theme.radii.full,
+                }}
+              />
             </SliderTrack>
-            <SliderThumb />
+            <SliderThumb
+              style={{
+                backgroundColor: theme.colors.white,
+                width: 20,
+                height: 20,
+                borderRadius: theme.radii.full,
+                borderWidth: 2,
+                borderColor: theme.colors.primary,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+                elevation: 5,
+              }}
+            />
           </Slider>
-          <Text>{currentWidth}</Text>
+          <Text
+            style={{
+              color: theme.colors.white,
+              fontSize: theme.fontSize.md,
+              fontWeight: theme.fontWeight.semibold,
+            }}>
+            {currentWidth}
+          </Text>
         </Box>
       )}
 
@@ -242,7 +291,7 @@ export const Whiteboard = ({
         <Svg
           height={'100%'}
           width={'100%'}
-          style={{ backgroundColor: canvasColor, borderRadius: 15 }}>
+          style={{ backgroundColor: canvasColor, borderRadius: theme.radii.lg }}>
           {paths &&
             paths?.map(({ path, color, width }, index) => (
               <Path
@@ -279,13 +328,19 @@ export const Whiteboard = ({
 
           <ModalContent>
             <ModalHeader>
-              <Heading size="lg">Color picker</Heading>
+              <Heading
+                size="lg"
+                style={{
+                  color: theme.colors.text,
+                }}>
+                Color picker
+              </Heading>
               <ModalCloseButton onPress={() => setShowModal(false)}>
                 <Icon as={CloseIcon} />
               </ModalCloseButton>
             </ModalHeader>
             <ColorPicker value={currentColor} onComplete={onSelectColor}>
-              <Box gap={4} p={10}>
+              <Box gap={theme.spacing[4]} p={theme.spacing[3]}>
                 <Preview />
                 <Panel1 />
                 <HueSlider />

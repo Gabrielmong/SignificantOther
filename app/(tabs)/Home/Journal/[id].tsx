@@ -8,39 +8,27 @@ import {
   ModalCloseButton,
   ModalContent,
   ModalHeader,
-  Button,
-  Input,
-  InputField,
   RefreshControl,
   Spinner,
-  Divider,
+  HStack,
 } from '@gluestack-ui/themed';
 import { useAppTheme, useAuth, useFirebase } from '../../../../hooks';
-import { StatusBar } from 'react-native';
+import { StatusBar, TouchableOpacity } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Journal } from '../../../../types';
-import { IconButton } from '../../../../components';
-import { ArrowLeft, Edit, Trash } from 'lucide-react-native';
+import { ArrowLeft, Edit, Trash, Calendar, User, Clock } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function Note() {
-  const { colorMode } = useAppTheme();
+  const { theme } = useAppTheme();
   const { user } = useAuth();
   const params = useLocalSearchParams();
   console.log(params.id);
-  const { getEntryInJournal, updateEntryInJournal, deleteEntryInJournal } = useFirebase();
+  const { getEntryInJournal, deleteEntryInJournal } = useFirebase();
   const [note, setNote] = useState<Journal | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [modalValues, setModalValues] = useState<Journal>({
-    author: user.displayName || '',
-    authorId: user.uid || '',
-    title: '',
-    description: '',
-    createdAt: '',
-    updatedAt: '',
-  });
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   useEffect(() => {
@@ -53,16 +41,6 @@ export default function Note() {
     if (params.id && user.roomId) {
       getEntryInJournal(user.roomId, String(params.id)).then((data) => {
         setNote(data);
-
-        setModalValues({
-          author: data.author,
-          authorId: data.authorId,
-          title: data.title,
-          description: data.description,
-          createdAt: data.createdAt,
-          updatedAt: data.updatedAt,
-        });
-
         setLoading(false);
       });
     }
@@ -73,28 +51,19 @@ export default function Note() {
 
   const isUpdated = createdDate.getTime() !== updatedDate.getTime();
 
-  const handleOpenModal = () => {
-    setModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setModalOpen(false);
-  };
-
-  const handleUpdateNote = () => {
-    const updatedNote: Journal = {
-      author: modalValues.author,
-      authorId: modalValues.authorId,
-      createdAt: modalValues.createdAt,
-      title: modalValues.title,
-      description: modalValues.description,
-      updatedAt: new Date().toISOString(),
-    };
-
-    updateEntryInJournal(String(user.roomId), String(params.id), updatedNote).then(() => {
-      setModalOpen(false);
-      loadData();
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
     });
+  };
+
+  const handleEdit = () => {
+    router.push(`/(tabs)/Home/Journal/editor?id=${params.id}`);
   };
 
   const handleDeleteModalOpen = () => {
@@ -107,190 +76,263 @@ export default function Note() {
     });
   };
 
+  const isSelf = user?.uid === note?.authorId;
+  const gradientColors = isSelf ? ['#8B5CF6', '#7C3AED'] : ['#3B82F6', '#2563EB'];
+
   return (
-    <ScrollView
-      style={{
-        backgroundColor: colorMode === 'dark' ? '#121212' : '#F5F5F5',
-        padding: 20,
-        paddingBottom: 20,
-        flex: 1,
-        gap: 10,
-      }}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} />}>
-      <>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      {/* Header */}
+      <Box
+        style={{
+          paddingTop: 16,
+          paddingHorizontal: 20,
+          paddingBottom: 20,
+          backgroundColor: theme?.colors?.surface,
+          ...theme?.shadows?.sm,
+        }}>
+        <HStack
+          style={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}>
+          <TouchableOpacity onPress={router.back}>
+            <ArrowLeft size={24} color={theme?.colors?.text} />
+          </TouchableOpacity>
+
+          <Text
+            style={{
+              fontSize: theme?.fontSize?.xl,
+              fontWeight: theme?.fontWeight?.bold,
+              color: theme?.colors?.text,
+            }}>
+            Journal Entry
+          </Text>
+
+          <HStack style={{ gap: theme.spacing[2] }}>
+            {user?.uid === note?.authorId && (
+              <>
+                <TouchableOpacity onPress={handleEdit}>
+                  <Edit size={22} color={theme?.colors?.text} />
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={handleDeleteModalOpen}>
+                  <Trash size={22} color={theme?.colors?.error} />
+                </TouchableOpacity>
+              </>
+            )}
+          </HStack>
+        </HStack>
+      </Box>
+
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          padding: theme.commonSpacing.screenPadding,
+        }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={loadData}
+            tintColor={theme.colors.primary}
+            colors={[theme.colors.primary]}
+          />
+        }>
         {loading ? (
           <Box
             style={{
               flex: 1,
               justifyContent: 'center',
               alignItems: 'center',
-              gap: 20,
+              paddingVertical: theme.spacing[10],
             }}>
-            <Text>Loading...</Text>
+            <Spinner size="large" color={theme.colors.primary} />
+            <Text style={{ marginTop: theme.spacing[3], color: theme.colors.textSecondary }}>
+              Loading...
+            </Text>
           </Box>
         ) : (
           <>
-            <Box
+            {/* Content Card with Gradient */}
+            <LinearGradient
+              colors={gradientColors}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
               style={{
-                width: '100%',
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                paddingBottom: 20,
+                borderRadius: theme.radii.xl,
+                padding: theme.spacing[5],
+                ...theme.shadows.lg,
+                marginBottom: theme.spacing[4],
               }}>
-              <IconButton icon={ArrowLeft} onPress={router.back} />
-
-              <Box
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  gap: 10,
-                }}>
-                <Text
-                  style={{
-                    fontSize: 24,
-                    lineHeight: 32,
-                    fontWeight: 'bold',
-                  }}>
-                  Note
-                </Text>
-
-                {user?.uid === note?.authorId && (
-                  <>
-                    <IconButton icon={Edit} onPress={handleOpenModal} />
-
-                    <IconButton icon={Trash} onPress={handleDeleteModalOpen} />
-                  </>
-                )}
-              </Box>
-            </Box>
-            <Box
-              style={{
-                width: '100%',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                gap: 10,
-              }}>
+              {/* Title */}
               <Text
                 style={{
-                  fontSize: 24,
-                  fontWeight: 'bold',
-                  color: colorMode === 'dark' ? '#FFFFFF' : '#000000',
-                  lineHeight: 32,
+                  fontSize: theme.fontSize['3xl'],
+                  fontWeight: theme.fontWeight.bold,
+                  color: '#FFFFFF',
+                  lineHeight: theme.lineHeight.tight * theme.fontSize['3xl'],
+                  marginBottom: theme.spacing[4],
                 }}>
                 {note?.title}
               </Text>
 
-              <Text>{note?.author}</Text>
+              {/* Author Badge */}
+              <HStack
+                style={{
+                  alignItems: 'center',
+                  gap: theme.spacing[2],
+                  marginBottom: theme.spacing[4],
+                  paddingBottom: theme.spacing[4],
+                  borderBottomWidth: 1,
+                  borderBottomColor: 'rgba(255, 255, 255, 0.2)',
+                }}>
+                <Box
+                  style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    paddingHorizontal: theme.spacing[3],
+                    paddingVertical: theme.spacing[1],
+                    borderRadius: theme.radii.full,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: theme.spacing[1],
+                  }}>
+                  <User size={14} color="#FFFFFF" />
+                  <Text
+                    style={{
+                      fontSize: theme.fontSize.sm,
+                      color: '#FFFFFF',
+                      fontWeight: theme.fontWeight.semibold,
+                    }}>
+                    {isSelf ? 'You' : note?.author}
+                  </Text>
+                </Box>
+              </HStack>
 
-              <Divider />
-            </Box>
-            <Box paddingVertical={20}>
+              {/* Description */}
               <Text
                 style={{
-                  color: colorMode === 'dark' ? '#FFFFFF' : '#000000',
+                  color: 'rgba(255, 255, 255, 0.95)',
+                  fontSize: theme.fontSize.md,
+                  lineHeight: theme.lineHeight.relaxed * theme.fontSize.md,
                 }}>
                 {note?.description}
               </Text>
-            </Box>
-            <Box>
-              <Text>
-                Created{' '}
-                {createdDate.toLocaleString('en-US', {
-                  month: 'long',
-                  day: 'numeric',
-                  year: 'numeric',
-                  hour: 'numeric',
-                  minute: 'numeric',
-                })}
-              </Text>
+            </LinearGradient>
 
-              {isUpdated && <Text>Updated {updatedDate.toDateString()}</Text>}
+            {/* Metadata Card */}
+            <Box
+              style={{
+                backgroundColor: theme.colors.surface,
+                borderRadius: theme.radii.lg,
+                padding: theme.spacing[4],
+                gap: theme.spacing[3],
+                ...theme.shadows.sm,
+              }}>
+              {/* Created Date */}
+              <HStack style={{ alignItems: 'center', gap: theme.spacing[2] }}>
+                <Calendar size={16} color={theme.colors.textSecondary} />
+                <Text
+                  style={{
+                    fontSize: theme.fontSize.sm,
+                    color: theme.colors.textSecondary,
+                  }}>
+                  Created: {formatDateTime(String(note?.createdAt))}
+                </Text>
+              </HStack>
+
+              {/* Updated Date */}
+              {isUpdated && (
+                <HStack style={{ alignItems: 'center', gap: theme.spacing[2] }}>
+                  <Clock size={16} color={theme.colors.textSecondary} />
+                  <Text
+                    style={{
+                      fontSize: theme.fontSize.sm,
+                      color: theme.colors.textSecondary,
+                    }}>
+                    Updated: {formatDateTime(String(note?.updatedAt))}
+                  </Text>
+                </HStack>
+              )}
             </Box>
           </>
         )}
-      </>
-      <StatusBar backgroundColor={colorMode === 'dark' ? '#000000' : '#F5F5F5'} />
+      </ScrollView>
 
-      <Modal isOpen={modalOpen} onClose={handleCloseModal}>
-        <ModalBackdrop />
-        <ModalContent>
-          <ModalHeader>
-            <Text>Update Note</Text>
-          </ModalHeader>
-          <ModalCloseButton />
-          <Box
-            style={{
-              padding: 20,
-              gap: 10,
-            }}>
-            <Input>
-              <InputField
-                value={modalValues.title}
-                onChangeText={(text) => setModalValues({ ...modalValues, title: text })}
-                placeholder="Title"
-              />
-            </Input>
+      <StatusBar backgroundColor="transparent" translucent />
 
-            <Input
-              style={{
-                height: 200,
-                flexDirection: 'column',
-                justifyContent: 'flex-start',
-                alignContent: 'flex-start',
-              }}>
-              <InputField
-                value={modalValues.description}
-                onChangeText={(text) => setModalValues({ ...modalValues, description: text })}
-                placeholder="Description"
-                multiline
-                style={{
-                  height: 200,
-                  textAlignVertical: 'top',
-                }}
-              />
-            </Input>
-            <Button
-              onPress={handleUpdateNote}
-              style={{
-                backgroundColor: '#005e78',
-                padding: 10,
-                borderRadius: 10,
-              }}>
-              <Text>Update</Text>
-            </Button>
-          </Box>
-        </ModalContent>
-      </Modal>
-
+      {/* Delete Confirmation Modal */}
       <Modal isOpen={deleteModalOpen} onClose={() => setDeleteModalOpen(false)}>
-        <ModalBackdrop />
+        <ModalBackdrop onPress={() => setDeleteModalOpen(false)} />
         <ModalContent>
-          <ModalHeader>
-            <Text>Are you sure?</Text>
-          </ModalHeader>
           <ModalCloseButton />
+          <ModalHeader>
+            <Text
+              style={{
+                fontSize: theme.fontSize.xl,
+                fontWeight: theme.fontWeight.bold,
+                color: theme.colors.text,
+              }}>
+              Delete Entry?
+            </Text>
+          </ModalHeader>
+
           <Box
             style={{
-              padding: 20,
-              gap: 10,
+              padding: theme.commonSpacing.screenPadding,
+              gap: theme.spacing[3],
             }}>
-            <Button
-              onPress={() => setDeleteModalOpen(false)}
+            <Text
               style={{
-                padding: 10,
-                borderRadius: 10,
+                fontSize: theme.fontSize.sm,
+                color: theme.colors.textSecondary,
+                marginBottom: theme.spacing[2],
               }}>
-              <Text>Cancel</Text>
-            </Button>
-            <Button onPress={handleDeleteNote} variant="outline">
-              <Text>Delete</Text>
-            </Button>
+              This action cannot be undone. The entry will be permanently deleted.
+            </Text>
+
+            <HStack style={{ gap: theme.spacing[3] }}>
+              <TouchableOpacity onPress={() => setDeleteModalOpen(false)} style={{ flex: 1 }}>
+                <Box
+                  style={{
+                    padding: theme.spacing[3],
+                    borderRadius: theme.radii.lg,
+                    backgroundColor: theme.colors.surface,
+                    borderWidth: 1,
+                    borderColor: theme.colors.border,
+                    alignItems: 'center',
+                  }}>
+                  <Text
+                    style={{
+                      color: theme.colors.text,
+                      fontSize: theme.fontSize.md,
+                      fontWeight: theme.fontWeight.semibold,
+                    }}>
+                    Cancel
+                  </Text>
+                </Box>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={handleDeleteNote} style={{ flex: 1 }}>
+                <Box
+                  style={{
+                    padding: theme.spacing[3],
+                    borderRadius: theme.radii.lg,
+                    backgroundColor: theme.colors.error,
+                    alignItems: 'center',
+                  }}>
+                  <Text
+                    style={{
+                      color: '#FFFFFF',
+                      fontSize: theme.fontSize.md,
+                      fontWeight: theme.fontWeight.semibold,
+                    }}>
+                    Delete
+                  </Text>
+                </Box>
+              </TouchableOpacity>
+            </HStack>
           </Box>
         </ModalContent>
       </Modal>
-    </ScrollView>
+    </View>
   );
 }

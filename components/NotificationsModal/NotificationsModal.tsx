@@ -11,7 +11,7 @@ import {
   ModalBody,
 } from '@gluestack-ui/themed';
 import { useEffect, useState } from 'react';
-import { useAppToast, useAuth } from '../../hooks';
+import { useAppToast, useAuth, useAppTheme } from '../../hooks';
 import * as Notifications from 'expo-notifications';
 import { IconButton } from '../IconButton';
 import { Minus, Plus } from 'lucide-react-native';
@@ -32,6 +32,7 @@ export const NotificationsModal = ({
 }) => {
   const { getPermission, requestUserPermission, revokeUserPermission, editExtraProfile } =
     useAuth();
+  const { theme } = useAppTheme();
   const [enabled, setEnabled] = useState(false);
   const { showToast } = useAppToast();
   const { notifications } = useAppSelector((state) => state.user);
@@ -65,6 +66,8 @@ export const NotificationsModal = ({
         shouldShowAlert: true,
         shouldPlaySound: false,
         shouldSetBadge: true,
+        shouldShowBanner: true,
+        shouldShowList: true,
       }),
     });
   };
@@ -76,6 +79,7 @@ export const NotificationsModal = ({
         body: 'Let your significant other know how you feel today.',
       },
       trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
         hour: notificationTime[0],
         minute: notificationTime[1],
         repeats: true,
@@ -149,7 +153,14 @@ export const NotificationsModal = ({
 
         <ModalHeader>
           <Box>
-            <Text>Notifications</Text>
+            <Text
+              style={{
+                fontSize: theme.fontSize.lg,
+                fontWeight: theme.fontWeight.bold,
+                color: theme.colors.text,
+              }}>
+              Notifications
+            </Text>
           </Box>
         </ModalHeader>
 
@@ -157,22 +168,29 @@ export const NotificationsModal = ({
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            padding: 20,
-            gap: 20,
+            padding: theme.commonSpacing.screenPadding,
+            gap: theme.spacing[5],
           }}>
           <Box
             style={{
               flexDirection: 'row',
               width: '100%',
               justifyContent: 'space-between',
+              alignItems: 'center',
             }}>
-            <Text>Notifications {enabled ? 'enabled' : 'disabled'}</Text>
+            <Text
+              style={{
+                fontSize: theme.fontSize.md,
+                color: theme.colors.text,
+              }}>
+              Notifications {enabled ? 'enabled' : 'disabled'}
+            </Text>
             <Switch
               value={enabled}
               onValueChange={onSwitchChange}
               trackColor={{
-                true: '#F5E8C7',
-                false: '#7077A1',
+                true: theme.colors.primary,
+                false: theme.colors.textTertiary,
               }}
             />
           </Box>
@@ -184,22 +202,35 @@ export const NotificationsModal = ({
               justifyContent: 'space-between',
               alignItems: 'center',
             }}>
-            <Text>Check-in notifications</Text>
+            <Text
+              style={{
+                fontSize: theme.fontSize.md,
+                color: theme.colors.text,
+              }}>
+              Check-in notifications
+            </Text>
 
             <Box
               style={{
                 flexDirection: 'row',
-                gap: 10,
+                gap: theme.spacing[2],
                 justifyContent: 'center',
                 alignItems: 'center',
               }}>
-              <IconButton icon={Minus} onPress={handleTimeMinus} size={25} />
+              <IconButton icon={Minus} onPress={handleTimeMinus} size={32} variant="ghost" />
 
-              <Text>
+              <Text
+                style={{
+                  fontSize: theme.fontSize.lg,
+                  fontWeight: theme.fontWeight.semibold,
+                  color: theme.colors.text,
+                  minWidth: 60,
+                  textAlign: 'center',
+                }}>
                 {formatTimeLabel(notificationTime[0])}:{formatTimeLabel(notificationTime[1])}
               </Text>
 
-              <IconButton icon={Plus} onPress={handleTimePlus} size={25} />
+              <IconButton icon={Plus} onPress={handleTimePlus} size={32} variant="ghost" />
             </Box>
           </Box>
         </Box>
@@ -208,8 +239,17 @@ export const NotificationsModal = ({
           onPress={handleSave}
           style={{
             width: '100%',
+            backgroundColor: theme.colors.primary,
+            ...theme.shadows.sm,
           }}>
-          <Text>Save</Text>
+          <Text
+            style={{
+              color: theme.colors.white,
+              fontSize: theme.fontSize.md,
+              fontWeight: theme.fontWeight.semibold,
+            }}>
+            Save
+          </Text>
         </Button>
       </ModalContent>
     </Modal>

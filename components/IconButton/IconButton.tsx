@@ -1,5 +1,7 @@
 import { Icon } from '@gluestack-ui/themed';
 import { TouchableOpacity } from 'react-native';
+import { useAppTheme } from '../../hooks';
+import { applyOpacity } from '../../config/theme';
 
 export interface IconButtonProps {
   icon: any;
@@ -9,7 +11,7 @@ export interface IconButtonProps {
   variant?: IconButtonVariant;
 }
 
-type IconButtonVariant = 'solid' | 'outline' | 'ghost';
+type IconButtonVariant = 'solid' | 'outline' | 'ghost' | 'primary' | 'secondary';
 
 export const IconButton = ({
   icon,
@@ -18,29 +20,64 @@ export const IconButton = ({
   size = 40,
   variant = 'solid',
 }: IconButtonProps) => {
-  const BACKGROUNDS: Record<IconButtonVariant, string> = {
-    solid: 'rgba(255, 255, 255, 0.3)',
-    outline: 'transparent',
-    ghost: 'transparent',
+  const { theme } = useAppTheme();
+
+  const getBackgroundColor = (): string => {
+    if (disabled) {
+      return applyOpacity(theme.colors.text, 0.1);
+    }
+
+    switch (variant) {
+      case 'primary':
+        return theme.colors.primary;
+      case 'secondary':
+        return theme.colors.secondary;
+      case 'solid':
+        return applyOpacity(theme.colors.text, 0.3);
+      case 'outline':
+      case 'ghost':
+      default:
+        return 'transparent';
+    }
   };
 
-  const BORDER: Record<IconButtonVariant, string> = {
-    solid: 'transparent',
-    outline: 'rgba(255, 255, 255, 0.3)',
-    ghost: 'transparent',
+  const getBorderColor = (): string => {
+    switch (variant) {
+      case 'outline':
+        return applyOpacity(theme.colors.text, 0.3);
+      case 'primary':
+        return theme.colors.primary;
+      case 'secondary':
+        return theme.colors.secondary;
+      default:
+        return 'transparent';
+    }
+  };
+
+  const getIconColor = (): string => {
+    if (disabled) {
+      return applyOpacity(theme.colors.text, 0.5);
+    }
+
+    switch (variant) {
+      case 'primary':
+      case 'secondary':
+        return theme.colors.white;
+      default:
+        return applyOpacity(theme.colors.text, 0.8);
+    }
   };
 
   const iconSize = size * 0.6;
 
-  const backgroundColor = BACKGROUNDS[variant];
   return (
     <TouchableOpacity
       style={{
-        backgroundColor: disabled ? 'rgba(255, 255, 255, 0.1)' : backgroundColor,
+        backgroundColor: getBackgroundColor(),
         width: size,
         height: size,
-        borderRadius: 20,
-        borderColor: BORDER[variant],
+        borderRadius: theme.radii.xl,
+        borderColor: getBorderColor(),
         borderWidth: variant === 'outline' ? 1 : 0,
         display: 'flex',
         justifyContent: 'center',
@@ -51,7 +88,7 @@ export const IconButton = ({
       <Icon
         as={icon}
         style={{
-          color: disabled ? 'rgba(255, 255, 255, 0.5)' : 'rgba(255, 255, 255, 0.8)',
+          color: getIconColor(),
           width: iconSize,
           height: iconSize,
         }}

@@ -5,51 +5,27 @@ import {
   ScrollView,
   StatusBar,
   Box,
-  Button,
-  Input,
-  InputField,
-  Modal,
-  ModalBackdrop,
-  ModalCloseButton,
-  ModalContent,
-  ModalHeader,
+  HStack,
 } from '@gluestack-ui/themed';
-import { useAppTheme, useAppToast, useAuth, useFirebase, useImageUpload } from '../../../../hooks';
+import { useAppTheme, useAuth, useFirebase } from '../../../../hooks';
 import { useEffect, useState } from 'react';
-import { Journal as JournalType, JournalObject } from '../../../../types';
-import { IconButton } from '../../../../components';
+import { JournalObject } from '../../../../types';
 import { router } from 'expo-router';
-import { ArrowLeft, Plus } from 'lucide-react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-
-const cardColors = {
-  own: '#32285c',
-  other: '#1e3375',
-};
+import { ArrowLeft, Plus, Calendar, User, ChevronRight } from 'lucide-react-native';
+import { TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface ParsedJournal extends JournalType {
   id: string;
 }
 
 export default function Journal() {
-  const { colorMode } = useAppTheme();
-  const { showToast } = useAppToast();
+  const { theme } = useAppTheme();
   const { user } = useAuth();
   const [journal, setJournal] = useState<ParsedJournal[] | null>(null);
-  const { uploadImage, askPermission } = useImageUpload();
-  const [isUploading, setIsUploading] = useState(false);
-  const { getJournal, listenToJournalChanges, createEntryInJournal } = useFirebase();
+  const { getJournal, listenToJournalChanges } = useFirebase();
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalValues, setModalValues] = useState<JournalType>({
-    author: user.displayName || '',
-    authorId: user.uid || '',
-    title: '',
-    description: '',
-    createdAt: '',
-    updatedAt: '',
-  });
 
   const loadData = async () => {
     if (user.roomId) {
@@ -93,36 +69,34 @@ export default function Journal() {
     }
   }, []);
 
-  const handleOpenModal = () => {
-    setModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setModalOpen(false);
-  };
-
-  const handleSave = async () => {
-    if (!user.roomId) return;
-
-    if (modalValues.title && modalValues.description) {
-      const data = {
-        ...modalValues,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      await createEntryInJournal(user.roomId, data);
-      showToast({ description: 'Entry created', status: 'success', title: 'Success' });
-      setModalOpen(false);
-    }
+  const handleCreateEntry = () => {
+    router.push('/(tabs)/Home/Journal/editor');
   };
 
   const getTextPreview = (text: string) => {
-    if (!text) return;
+    if (!text) return '';
 
-    if (text.length > 100) {
-      return text.slice(0, 100) + '...';
+    if (text.length > 120) {
+      return text.slice(0, 120) + '...';
     }
     return text;
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    } else if (diffDays === 1) {
+      return 'Yesterday';
+    } else if (diffDays < 7) {
+      return date.toLocaleDateString('en-US', { weekday: 'long' });
+    } else {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
   };
 
   const goToEntry = (entryId: string) => {
@@ -136,184 +110,216 @@ export default function Journal() {
   return (
     <View
       style={{
-        backgroundColor: colorMode === 'dark' ? '#121212' : '#F5F5F5',
-        padding: 20,
-        paddingBottom: 20,
+        backgroundColor: theme.colors.background,
         flex: 1,
       }}>
+      {/* Header */}
       <Box
         style={{
-          width: '100%',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          paddingTop: 16,
+          paddingHorizontal: 20,
           paddingBottom: 20,
+          backgroundColor: theme?.colors?.surface,
+          ...theme?.shadows?.sm,
         }}>
-        <IconButton icon={ArrowLeft} onPress={router.back} />
-
-        <Box
+        <HStack
           style={{
-            flexDirection: 'row',
-            justifyContent: 'center',
             alignItems: 'center',
-            gap: 10,
+            justifyContent: 'space-between',
           }}>
+          <TouchableOpacity onPress={router.back}>
+            <ArrowLeft size={24} color={theme?.colors?.text} />
+          </TouchableOpacity>
+
           <Text
             style={{
-              fontSize: 24,
-              lineHeight: 32,
-              fontWeight: 'bold',
+              fontSize: theme?.fontSize?.xl,
+              fontWeight: theme?.fontWeight?.bold,
+              color: theme?.colors?.text,
             }}>
-            Journal
+            Journal 📔
           </Text>
 
-          <IconButton icon={Plus} onPress={handleOpenModal} />
-        </Box>
+          <TouchableOpacity onPress={handleCreateEntry}>
+            <Plus size={24} color={theme?.gradients?.primary?.colors?.[0]} />
+          </TouchableOpacity>
+        </HStack>
       </Box>
       <ScrollView
-        $dark-backgroundColor="#121212"
+        style={{
+          backgroundColor: theme.colors.background,
+        }}
         contentContainerStyle={{
-          justifyContent: 'flex-start',
-          alignItems: 'center',
+          paddingTop: theme.spacing[4],
+          paddingHorizontal: theme.commonSpacing.screenPadding,
           paddingBottom: 60,
-          gap: 10,
+          gap: theme.spacing[3],
         }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} />}>
-        {journal &&
+        {journal && journal.length > 0 &&
           journal.map(({ id, authorId, title, description, author, createdAt }) => {
+            const isSelf = user?.uid === authorId;
+            const gradientColors = isSelf
+              ? ['#8B5CF6', '#7C3AED'] // Purple for self
+              : ['#3B82F6', '#2563EB']; // Blue for partner
+
             return (
               <TouchableOpacity
                 key={id}
-                style={{
-                  minWidth: '100%',
-                  backgroundColor: user?.uid === authorId ? cardColors.own : cardColors.other,
-                  padding: 20,
-                  borderRadius: 10,
-                  flexDirection: 'column',
-                  justifyContent: 'flex-start',
-                  gap: 10,
-                }}
+                style={{ width: '100%' }}
+                activeOpacity={0.9}
                 onPress={() => goToEntry(id)}>
-                <Box
+                <LinearGradient
+                  colors={gradientColors}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
                   style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: 10,
+                    borderRadius: theme.radii.xl,
+                    padding: theme.commonSpacing.cardPadding,
+                    ...theme.shadows.lg,
                   }}>
-                  <Text
+                  {/* Header with title and chevron */}
+                  <HStack
                     style={{
-                      fontSize: 18,
-                      fontWeight: 'bold',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: theme.spacing[2],
                     }}>
-                    {title}
-                  </Text>
-                </Box>
-                <Text
-                  style={{
-                    fontSize: 14,
-                  }}>
-                  {getTextPreview(description)}
-                </Text>
+                    <Text
+                      style={{
+                        fontSize: theme.fontSize.xl,
+                        fontWeight: theme.fontWeight.bold,
+                        color: '#FFFFFF',
+                        flex: 1,
+                      }}
+                      numberOfLines={2}>
+                      {title}
+                    </Text>
+                    <ChevronRight size={20} color="rgba(255, 255, 255, 0.6)" />
+                  </HStack>
 
-                <Box
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: 10,
-                  }}>
+                  {/* Description */}
                   <Text
                     style={{
-                      fontSize: 12,
+                      fontSize: theme.fontSize.sm,
+                      color: 'rgba(255, 255, 255, 0.9)',
+                      lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
+                      marginBottom: theme.spacing[3],
                     }}>
-                    {new Date(createdAt).toLocaleString()}
+                    {getTextPreview(description)}
                   </Text>
 
-                  <Text
+                  {/* Footer with date and author */}
+                  <HStack
                     style={{
-                      fontSize: 12,
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      paddingTop: theme.spacing[2],
+                      borderTopWidth: 1,
+                      borderTopColor: 'rgba(255, 255, 255, 0.2)',
                     }}>
-                    {author}
-                  </Text>
-                </Box>
+                    <HStack
+                      style={{
+                        alignItems: 'center',
+                        gap: theme.spacing[1],
+                      }}>
+                      <Calendar size={14} color="rgba(255, 255, 255, 0.8)" />
+                      <Text
+                        style={{
+                          fontSize: theme.fontSize.xs,
+                          color: 'rgba(255, 255, 255, 0.8)',
+                        }}>
+                        {formatDate(createdAt)}
+                      </Text>
+                    </HStack>
+
+                    <HStack
+                      style={{
+                        alignItems: 'center',
+                        gap: theme.spacing[1],
+                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        paddingHorizontal: theme.spacing[2],
+                        paddingVertical: theme.spacing[1],
+                        borderRadius: theme.radii.full,
+                      }}>
+                      <User size={12} color="#FFFFFF" />
+                      <Text
+                        style={{
+                          fontSize: theme.fontSize.xs,
+                          color: '#FFFFFF',
+                          fontWeight: theme.fontWeight.semibold,
+                        }}>
+                        {isSelf ? 'You' : author}
+                      </Text>
+                    </HStack>
+                  </HStack>
+                </LinearGradient>
               </TouchableOpacity>
             );
           })}
-        <StatusBar backgroundColor={colorMode === 'dark' ? '#000000' : '#F5F5F5'} />
-      </ScrollView>
-      <Modal isOpen={modalOpen}>
-        <ModalBackdrop onPress={handleCloseModal} />
 
-        <ModalContent
-          style={{
-            height: '80%',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'flex-start',
-            alignItems: 'center',
-          }}>
-          <ModalCloseButton onPress={handleCloseModal} />
-
-          <ModalHeader>
-            <Text>New note</Text>
-          </ModalHeader>
-
+        {/* Empty State */}
+        {journal && journal.length === 0 && !loading && (
           <Box
             style={{
-              padding: 20,
-              gap: 20,
               width: '100%',
-              flexDirection: 'column',
-              justifyContent: 'flex-start',
-              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingVertical: theme.spacing[10],
+              gap: theme.spacing[4],
             }}>
-            <Input>
-              <InputField
-                value={modalValues.title}
-                onChangeText={(value) => setModalValues({ ...modalValues, title: value })}
-                placeholder="Title"
-              />
-            </Input>
-
-            <Input
+            <Text style={{ fontSize: 64 }}>📔</Text>
+            <Text
               style={{
-                flexDirection: 'column',
-                justifyContent: 'flex-start',
-                alignContent: 'flex-start',
-                flex: 1,
+                fontSize: theme.fontSize.xl,
+                fontWeight: theme.fontWeight.bold,
+                color: theme.colors.text,
+                textAlign: 'center',
               }}>
-              <InputField
-                value={modalValues.description}
-                onChangeText={(value) => setModalValues({ ...modalValues, description: value })}
-                placeholder="Note"
-                multiline
-                numberOfLines={8}
-                style={{
-                  textAlignVertical: 'top',
-                  padding: 10,
-                }}
-              />
-            </Input>
-
-            <Button
-              onPress={handleSave}
+              No journal entries yet
+            </Text>
+            <Text
               style={{
-                backgroundColor: '#005e78',
-                padding: 10,
-                borderRadius: 10,
+                fontSize: theme.fontSize.sm,
+                color: theme.colors.textSecondary,
+                textAlign: 'center',
+                paddingHorizontal: theme.spacing[8],
               }}>
-              <Text
+              Start documenting your memories and thoughts together!
+            </Text>
+            <TouchableOpacity
+              onPress={handleCreateEntry}
+              style={{
+                marginTop: theme.spacing[4],
+              }}>
+              <LinearGradient
+                colors={theme?.gradients?.primary?.colors || ['#8B5CF6', '#EC4899']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
                 style={{
-                  color: '#ffffff',
-                  textAlign: 'center',
+                  paddingVertical: theme.spacing[3],
+                  paddingHorizontal: theme.spacing[6],
+                  borderRadius: theme.radii.full,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: theme.spacing[2],
                 }}>
-                Save
-              </Text>
-            </Button>
+                <Plus size={20} color="#FFFFFF" />
+                <Text
+                  style={{
+                    color: '#FFFFFF',
+                    fontWeight: theme.fontWeight.semibold,
+                    fontSize: theme.fontSize.md,
+                  }}>
+                  Write Your First Entry
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
           </Box>
-        </ModalContent>
-      </Modal>
+        )}
+      </ScrollView>
+
+      <StatusBar backgroundColor="transparent" translucent />
     </View>
   );
 }

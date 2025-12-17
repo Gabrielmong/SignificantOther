@@ -19,7 +19,7 @@ import { StatusBar } from 'expo-status-bar';
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const { colorMode } = useAppTheme();
+  const { theme } = useAppTheme();
   const { forgotPassword } = useAuth();
 
   const handleForgotPassword = async () => {
@@ -31,42 +31,71 @@ export default function ForgotPassword() {
 
   return (
     <View
-      $dark-backgroundColor="#121212"
       style={{
         flex: 1,
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 20,
+        padding: theme.commonSpacing.screenPadding,
+        backgroundColor: theme.colors.background,
       }}>
-      <StatusBar backgroundColor={colorMode === 'dark' ? '#000000' : '#F5F5F5'} />
+      <StatusBar backgroundColor={theme.colors.background} />
 
       <Box
         style={{
           width: '100%',
         }}>
-        <IconButton icon={ArrowLeft} onPress={router.back} />
+        <IconButton icon={ArrowLeft} onPress={router.back} variant="ghost" />
       </Box>
 
       <Box
         style={{
           width: '100%',
-          gap: 20,
+          gap: theme.spacing[5],
         }}>
         <Text
           style={{
-            fontSize: 24,
-            lineHeight: 32,
-            fontWeight: 'bold',
+            fontSize: theme.fontSize['3xl'],
+            lineHeight: theme.lineHeight.tight * theme.fontSize['3xl'],
+            fontWeight: theme.fontWeight.bold,
+            color: theme.colors.text,
+            textAlign: 'center',
           }}>
           Forgot Password
         </Text>
 
-        <Input>
-          <InputField placeholder="Email" value={email} onChangeText={setEmail} />
+        <Input
+          variant="outline"
+          style={{
+            borderRadius: theme.radii.md,
+            backgroundColor: theme.colors.inputBackground,
+          }}>
+          <InputField
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            style={{
+              fontSize: theme.fontSize.md,
+              color: theme.colors.text,
+            }}
+          />
         </Input>
 
-        <Button onPress={handleForgotPassword} isDisabled={loading}>
-          <Text>Send code</Text>
+        <Button
+          onPress={handleForgotPassword}
+          isDisabled={loading}
+          style={{
+            backgroundColor: theme.colors.primary,
+            borderRadius: theme.radii.md,
+            ...theme.shadows.sm,
+          }}>
+          <Text
+            style={{
+              color: theme.colors.white,
+              fontSize: theme.fontSize.md,
+              fontWeight: theme.fontWeight.semibold,
+            }}>
+            Send code
+          </Text>
 
           {loading && <ButtonSpinner />}
         </Button>

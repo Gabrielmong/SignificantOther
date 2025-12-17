@@ -3,7 +3,6 @@ import {
   Text,
   RefreshControl,
   ScrollView,
-  StatusBar,
   Box,
   Button,
   Input,
@@ -25,31 +24,37 @@ import {
   SelectDragIndicatorWrapper,
   SelectBackdrop,
   Divider,
-  Checkbox,
-  CheckboxIndicator,
-  CheckboxIcon,
+  HStack,
 } from '@gluestack-ui/themed';
 import { useAppTheme, useAppToast, useAuth, useFirebase, useImageUpload } from '../../../hooks';
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Activity, Wishlist as WishlistType } from '../../../types';
-import { IconButton } from '../../../components';
 import { router } from 'expo-router';
-import { ArrowLeft, CheckIcon, ChevronDownIcon, Plus, Trash } from 'lucide-react-native';
-import { Linking } from 'react-native';
-
-const activitiesBackgroundColors = {
-  activities: '#005e78',
-  music: '#558a42',
-  movies: '#94250f',
-  books: '#4682B4',
-  food: '#610d82',
-  dates: '#a30052',
-  other: '#503C3C',
-  gifts: '#305438',
-};
+import {
+  ArrowLeft,
+  CheckIcon,
+  ChevronDownIcon,
+  Plus,
+  Trash,
+  ExternalLink,
+} from 'lucide-react-native';
+import { Linking, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function Wishlist() {
-  const { colorMode } = useAppTheme();
+  const { theme } = useAppTheme();
+
+  // Map categories to gradient colors
+  const categoryGradients: Record<string, string[]> = {
+    activities: ['#8B5CF6', '#7C3AED'],
+    music: ['#EC4899', '#DB2777'],
+    movies: ['#3B82F6', '#2563EB'],
+    books: ['#10B981', '#059669'],
+    food: ['#F59E0B', '#D97706'],
+    dates: ['#EF4444', '#DC2626'],
+    other: ['#6366F1', '#4F46E5'],
+    gifts: ['#8B5CF6', '#EC4899'],
+  };
   const { showToast } = useAppToast();
   const { user } = useAuth();
   const [wishlist, setWishlist] = useState<WishlistType | null>(null);
@@ -73,6 +78,7 @@ export default function Wishlist() {
     link: '',
     under: '',
   });
+  const [selectedFilter, setSelectedFilter] = useState<string>('all');
 
   const loadData = async () => {
     if (user.roomId) {
@@ -190,165 +196,420 @@ export default function Wishlist() {
     Linking.openURL(link);
   };
 
+  const categories = [
+    { value: 'all', label: 'All' },
+    { value: 'activities', label: 'Activities', emoji: '💤' },
+    { value: 'music', label: 'Music', emoji: '🎵' },
+    { value: 'movies', label: 'Movies', emoji: '📽' },
+    { value: 'books', label: 'Books', emoji: '📚' },
+    { value: 'food', label: 'Food', emoji: '🍔' },
+    { value: 'dates', label: 'Dates', emoji: '👩‍❤️‍👨' },
+    { value: 'gifts', label: 'Gifts', emoji: '🎁' },
+    { value: 'other', label: 'Other', emoji: '🎊' },
+  ];
+
+  const getFilteredWishlist = () => {
+    if (!wishlist) return null;
+
+    if (selectedFilter === 'all') {
+      return wishlist;
+    }
+
+    // Return only the selected category, ensuring it exists
+    const categoryData = wishlist[selectedFilter as keyof typeof wishlist];
+    return {
+      [selectedFilter]: categoryData || {},
+    };
+  };
+
+  const filteredWishlist = getFilteredWishlist();
+
   return (
     <View
       style={{
-        backgroundColor: colorMode === 'dark' ? '#121212' : '#F5F5F5',
-        padding: 20,
-        paddingBottom: 20,
+        backgroundColor: theme.colors.background,
         flex: 1,
       }}>
+      {/* Header */}
       <Box
         style={{
-          width: '100%',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          paddingTop: 16,
+          paddingHorizontal: 20,
           paddingBottom: 20,
+          backgroundColor: theme?.colors?.surface,
+          ...theme?.shadows?.sm,
         }}>
-        <IconButton icon={ArrowLeft} onPress={router.back} />
-
-        <Box
+        <HStack
           style={{
-            flexDirection: 'row',
-            justifyContent: 'center',
             alignItems: 'center',
-            gap: 10,
+            justifyContent: 'space-between',
           }}>
+          <TouchableOpacity onPress={router.back}>
+            <ArrowLeft size={24} color={theme?.colors?.text} />
+          </TouchableOpacity>
+
           <Text
             style={{
-              fontSize: 24,
-              lineHeight: 32,
-              fontWeight: 'bold',
+              fontSize: theme?.fontSize?.xl,
+              fontWeight: theme?.fontWeight?.bold,
+              color: theme?.colors?.text,
             }}>
             Wishlist
           </Text>
 
-          <IconButton icon={Plus} onPress={handleOpenModal} />
-        </Box>
+          <TouchableOpacity onPress={handleOpenModal}>
+            <Plus size={24} color={theme?.gradients?.primary?.colors?.[0]} />
+          </TouchableOpacity>
+        </HStack>
+      </Box>
+
+      {/* Filter Chips */}
+      <Box
+        style={{
+          backgroundColor: theme.colors.background,
+        }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: theme.commonSpacing.screenPadding,
+            paddingVertical: theme.spacing[3],
+            gap: theme.spacing[2],
+          }}>
+        {categories.map((category) => {
+          const isSelected = selectedFilter === category.value;
+          const gradientColors =
+            category.value === 'all'
+              ? ['#8B5CF6', '#EC4899']
+              : categoryGradients[category.value] || ['#8B5CF6', '#EC4899'];
+
+          return (
+            <TouchableOpacity
+              key={category.value}
+              onPress={() => setSelectedFilter(category.value)}
+              activeOpacity={0.7}>
+              {isSelected ? (
+                <LinearGradient
+                  colors={gradientColors}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{
+                    paddingHorizontal: theme.spacing[4],
+                    paddingVertical: theme.spacing[2],
+                    borderRadius: theme.radii.full,
+                    ...theme.shadows.sm,
+                  }}>
+                  <Text
+                    style={{
+                      color: '#FFFFFF',
+                      fontSize: theme.fontSize.sm,
+                      fontWeight: theme.fontWeight.semibold,
+                    }}>
+                    {category.emoji ? `${category.emoji} ${category.label}` : category.label}
+                  </Text>
+                </LinearGradient>
+              ) : (
+                <Box
+                  style={{
+                    paddingHorizontal: theme.spacing[4],
+                    paddingVertical: theme.spacing[2],
+                    borderRadius: theme.radii.full,
+                    backgroundColor: theme.colors.surface,
+                    borderWidth: 1,
+                    borderColor: theme.colors.border,
+                  }}>
+                  <Text
+                    style={{
+                      color: theme.colors.textSecondary,
+                      fontSize: theme.fontSize.sm,
+                      fontWeight: theme.fontWeight.medium,
+                    }}>
+                    {category.emoji ? `${category.emoji} ${category.label}` : category.label}
+                  </Text>
+                </Box>
+              )}
+            </TouchableOpacity>
+          );
+        })}
+        </ScrollView>
       </Box>
       <ScrollView
-        $dark-backgroundColor="#121212"
+        style={{
+          backgroundColor: theme.colors.background,
+        }}
         contentContainerStyle={{
           justifyContent: 'flex-start',
           alignItems: 'center',
           paddingBottom: 60,
-          gap: 10,
+          paddingTop: theme.spacing[4],
+          paddingHorizontal: theme.commonSpacing.screenPadding,
+          gap: theme.spacing[4],
         }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} />}>
-        {wishlist && !loading && (
+        {filteredWishlist && !loading && (
           <View
             style={{
               width: '100%',
-              gap: 10,
+              gap: theme.spacing[4],
               justifyContent: 'flex-start',
               alignItems: 'flex-start',
             }}>
-            {Object.keys(wishlist).map((key, index) => {
+            {Object.keys(filteredWishlist).map((key, index) => {
+              const categoryKey = key as keyof typeof filteredWishlist;
+              const hasItems = Object.keys(filteredWishlist[categoryKey]).length > 0;
+
+              if (!hasItems) return null;
+
               return (
-                <>
-                  <Text
+                <Fragment key={key}>
+                  {/* Category Header */}
+                  <Box
                     style={{
-                      fontSize: 20,
-                      fontWeight: 'bold',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: theme.spacing[2],
+                      marginTop: index > 0 ? theme.spacing[2] : 0,
                     }}>
-                    {capitalize(key)}
-                  </Text>
-                  {Object.keys(wishlist[key as keyof typeof wishlist]).map((activity) => {
-                    const item = wishlist[key as keyof typeof wishlist][activity];
+                    <Text
+                      style={{
+                        fontSize: theme.fontSize.xl,
+                        fontWeight: theme.fontWeight.bold,
+                        color: theme.colors.text,
+                      }}>
+                      {capitalize(key)}
+                    </Text>
+                    <Box
+                      style={{
+                        backgroundColor: theme.colors.surface,
+                        paddingHorizontal: theme.spacing[2],
+                        paddingVertical: theme.spacing[1],
+                        borderRadius: theme.radii.full,
+                      }}>
+                      <Text
+                        style={{
+                          fontSize: theme.fontSize.xs,
+                          color: theme.colors.textSecondary,
+                          fontWeight: theme.fontWeight.semibold,
+                        }}>
+                        {Object.keys(filteredWishlist[categoryKey]).length}
+                      </Text>
+                    </Box>
+                  </Box>
+
+                  {Object.keys(filteredWishlist[categoryKey]).map((activity) => {
+                    const item = filteredWishlist[categoryKey][activity];
+                    const gradientColors = categoryGradients[key] || ['#8B5CF6', '#EC4899'];
 
                     return (
-                      <Box
+                      <TouchableOpacity
                         key={activity}
-                        style={{
-                          width: '100%',
-                          padding: 20,
-                          gap: 10,
-                          borderRadius: 10,
-                          backgroundColor: activitiesBackgroundColors[key as keyof typeof wishlist],
-                        }}>
-                        <Box
+                        style={{ width: '100%' }}
+                        activeOpacity={0.95}>
+                        <LinearGradient
+                          colors={gradientColors}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
                           style={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            gap: 10,
+                            borderRadius: theme.radii.xl,
+                            padding: theme.commonSpacing.cardPadding,
+                            gap: theme.spacing[3],
+                            ...theme.shadows.lg,
                           }}>
-                          <Box>
-                            <Text
-                              style={{
-                                fontSize: 16,
-                                fontWeight: 'bold',
-                              }}>
-                              {item.title}
-                            </Text>
-
-                            <Text>{item.description}</Text>
-                          </Box>
-
-                          <Box
+                          <HStack
                             style={{
-                              display: 'flex',
-                              flexDirection: 'row',
-                              gap: 10,
+                              justifyContent: 'space-between',
+                              alignItems: 'flex-start',
+                              gap: theme.spacing[3],
                             }}>
-                            <Checkbox
-                              value={String(item.done)}
-                              isChecked={item.done}
-                              aria-label="Done or not done"
-                              onChange={(value) => {
-                                handleToggleDone({
-                                  id: activity,
-                                  entry: { ...item, done: value },
-                                  under: key,
-                                });
+                            <Box style={{ flex: 1 }}>
+                              <Text
+                                style={{
+                                  fontSize: theme.fontSize.lg,
+                                  fontWeight: theme.fontWeight.bold,
+                                  color: '#FFFFFF',
+                                  marginBottom: theme.spacing[1],
+                                }}>
+                                {item.title}
+                              </Text>
+
+                              <Text
+                                style={{
+                                  fontSize: theme.fontSize.sm,
+                                  color: 'rgba(255, 255, 255, 0.9)',
+                                  lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
+                                }}>
+                                {item.description}
+                              </Text>
+                            </Box>
+
+                            <HStack
+                              style={{
+                                gap: theme.spacing[2],
+                                alignItems: 'center',
                               }}>
-                              <CheckboxIndicator>
-                                <CheckboxIcon as={CheckIcon} />
-                              </CheckboxIndicator>
-                            </Checkbox>
+                              <TouchableOpacity
+                                onPress={() => {
+                                  handleToggleDone({
+                                    id: activity,
+                                    entry: { ...item, done: !item.done },
+                                    under: key,
+                                  });
+                                }}
+                                style={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: 16,
+                                  backgroundColor: item.done
+                                    ? 'rgba(255, 255, 255, 1)'
+                                    : 'rgba(255, 255, 255, 0.2)',
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                  borderWidth: 2,
+                                  borderColor: '#FFFFFF',
+                                }}>
+                                {item.done && <CheckIcon size={18} color={gradientColors[0]} />}
+                              </TouchableOpacity>
 
-                            <IconButton
-                              icon={Trash}
-                              onPress={() =>
-                                handleDeleteEntry(activity, key as keyof typeof wishlist)
-                              }
-                            />
-                          </Box>
-                        </Box>
+                              <TouchableOpacity
+                                onPress={() => handleDeleteEntry(activity, categoryKey)}
+                                style={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: 16,
+                                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                }}>
+                                <Trash size={16} color="#FFFFFF" />
+                              </TouchableOpacity>
+                            </HStack>
+                          </HStack>
 
-                        <Box>
+                          {/* Image */}
                           {item.image && (
                             <Image
                               source={{ uri: item.image }}
                               alt="Image"
                               style={{
                                 width: '100%',
-                                height: 100,
-                                borderRadius: 10,
+                                height: 160,
+                                borderRadius: theme.radii.lg,
+                                marginTop: theme.spacing[2],
                               }}
+                              resizeMode="cover"
                             />
                           )}
 
+                          {/* Link Button */}
                           {item.link && (
-                            <Button onPress={() => handleLinkClick(String(item.link))}>
-                              <Text>Link</Text>
-                            </Button>
+                            <TouchableOpacity
+                              onPress={() => handleLinkClick(String(item.link))}
+                              style={{
+                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                paddingVertical: theme.spacing[3],
+                                paddingHorizontal: theme.spacing[4],
+                                borderRadius: theme.radii.lg,
+                                marginTop: theme.spacing[2],
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: theme.spacing[2],
+                              }}>
+                              <ExternalLink size={18} color={gradientColors[0]} />
+                              <Text
+                                style={{
+                                  color: gradientColors[0],
+                                  fontWeight: theme.fontWeight.semibold,
+                                  fontSize: theme.fontSize.sm,
+                                }}>
+                                Open Link
+                              </Text>
+                            </TouchableOpacity>
                           )}
-                        </Box>
-                      </Box>
+                        </LinearGradient>
+                      </TouchableOpacity>
                     );
                   })}
 
-                  {index !== Object.keys(wishlist).length - 1 && <Divider />}
-                </>
+                  {index !== Object.keys(filteredWishlist).length - 1 && <Divider />}
+                </Fragment>
               );
             })}
           </View>
         )}
 
-        <StatusBar backgroundColor={colorMode === 'dark' ? '#000000' : '#F5F5F5'} />
+        {/* Empty State */}
+        {filteredWishlist &&
+          !loading &&
+          Object.keys(filteredWishlist).every(
+            (key) =>
+              Object.keys(filteredWishlist[key as keyof typeof filteredWishlist]).length === 0,
+          ) && (
+            <Box
+              style={{
+                width: '100%',
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: theme.spacing[10],
+                gap: theme.spacing[4],
+              }}>
+              <Text style={{ fontSize: 64 }}>
+                {selectedFilter === 'all'
+                  ? '🎁'
+                  : categories.find((c) => c.value === selectedFilter)?.emoji || '🎁'}
+              </Text>
+              <Text
+                style={{
+                  fontSize: theme.fontSize.xl,
+                  fontWeight: theme.fontWeight.bold,
+                  color: theme.colors.text,
+                  textAlign: 'center',
+                }}>
+                {selectedFilter === 'all'
+                  ? 'Your wishlist is empty'
+                  : `No ${selectedFilter} items yet`}
+              </Text>
+              <Text
+                style={{
+                  fontSize: theme.fontSize.sm,
+                  color: theme.colors.textSecondary,
+                  textAlign: 'center',
+                  paddingHorizontal: theme.spacing[8],
+                }}>
+                {selectedFilter === 'all'
+                  ? "Start adding items you'd like to do, watch, read, or get!"
+                  : `Add your first ${selectedFilter} item to the wishlist!`}
+              </Text>
+              <TouchableOpacity
+                onPress={handleOpenModal}
+                style={{
+                  marginTop: theme.spacing[4],
+                }}>
+                <LinearGradient
+                  colors={theme?.gradients?.primary?.colors || ['#8B5CF6', '#EC4899']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{
+                    paddingVertical: theme.spacing[3],
+                    paddingHorizontal: theme.spacing[6],
+                    borderRadius: theme.radii.full,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: theme.spacing[2],
+                  }}>
+                  <Plus size={20} color="#FFFFFF" />
+                  <Text
+                    style={{
+                      color: '#FFFFFF',
+                      fontWeight: theme.fontWeight.semibold,
+                      fontSize: theme.fontSize.md,
+                    }}>
+                    Add Your First Item
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </Box>
+          )}
       </ScrollView>
       <Modal isOpen={modalOpen}>
         <ModalBackdrop onPress={handleCloseModal} />
