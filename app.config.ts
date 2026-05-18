@@ -5,7 +5,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Significant Other',
   slug: 'SignificantOtherApp',
-  version: '1.8.0',
+  version: '1.9.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
