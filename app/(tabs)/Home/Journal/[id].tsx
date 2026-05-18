@@ -17,7 +17,7 @@ import { StatusBar, TouchableOpacity } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Journal } from '../../../../types';
-import { ArrowLeft, Edit, Trash, Calendar, User, Clock } from 'lucide-react-native';
+import { ArrowLeft, Edit, Trash, Calendar, User, Clock, Eye } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function Note() {
@@ -25,7 +25,7 @@ export default function Note() {
   const { user } = useAuth();
   const params = useLocalSearchParams();
   console.log(params.id);
-  const { getEntryInJournal, deleteEntryInJournal } = useFirebase();
+  const { getEntryInJournal, deleteEntryInJournal, markJournalEntryAsRead } = useFirebase();
   const [note, setNote] = useState<Journal | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -41,6 +41,9 @@ export default function Note() {
     if (params.id && user.roomId) {
       getEntryInJournal(user.roomId, String(params.id)).then((data) => {
         setNote(data);
+        if (data && data.authorId !== user.uid && !data.readAt) {
+          markJournalEntryAsRead(user.roomId!, String(params.id)).catch(() => {});
+        }
         setLoading(false);
       });
     }
@@ -249,6 +252,20 @@ export default function Note() {
                       color: theme.colors.textSecondary,
                     }}>
                     Updated: {formatDateTime(String(note?.updatedAt))}
+                  </Text>
+                </HStack>
+              )}
+
+              {/* Read Receipt — only visible to the author */}
+              {isSelf && note?.readAt && (
+                <HStack style={{ alignItems: 'center', gap: theme.spacing[2] }}>
+                  <Eye size={16} color={theme.colors.textSecondary} />
+                  <Text
+                    style={{
+                      fontSize: theme.fontSize.sm,
+                      color: theme.colors.textSecondary,
+                    }}>
+                    Seen: {formatDateTime(note.readAt)}
                   </Text>
                 </HStack>
               )}
