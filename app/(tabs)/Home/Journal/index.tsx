@@ -9,13 +9,13 @@ import {
 } from '@gluestack-ui/themed';
 import { useAppTheme, useAuth, useFirebase } from '../../../../hooks';
 import { useEffect, useState } from 'react';
-import { JournalObject } from '../../../../types';
+import { Journal, JournalObject } from '../../../../types';
 import { router } from 'expo-router';
-import { ArrowLeft, Plus, Calendar, User, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft, Plus, Calendar, User, ChevronRight, Eye } from 'lucide-react-native';
 import { TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-interface ParsedJournal extends JournalType {
+interface ParsedJournal extends Journal {
   id: string;
 }
 
@@ -157,7 +157,7 @@ export default function Journal() {
         }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} />}>
         {journal && journal.length > 0 &&
-          journal.map(({ id, authorId, title, description, author, createdAt }) => {
+          journal.map(({ id, authorId, title, description, author, createdAt, readAt }) => {
             const isSelf = user?.uid === authorId;
             const gradientColors = isSelf
               ? ['#8B5CF6', '#7C3AED'] // Purple for self
@@ -233,24 +233,48 @@ export default function Journal() {
                       </Text>
                     </HStack>
 
-                    <HStack
-                      style={{
-                        alignItems: 'center',
-                        gap: theme.spacing[1],
-                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                        paddingHorizontal: theme.spacing[2],
-                        paddingVertical: theme.spacing[1],
-                        borderRadius: theme.radii.full,
-                      }}>
-                      <User size={12} color="#FFFFFF" />
-                      <Text
+                    <HStack style={{ alignItems: 'center', gap: theme.spacing[2] }}>
+                      <HStack
                         style={{
-                          fontSize: theme.fontSize.xs,
-                          color: '#FFFFFF',
-                          fontWeight: theme.fontWeight.semibold,
+                          alignItems: 'center',
+                          gap: theme.spacing[1],
+                          backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                          paddingHorizontal: theme.spacing[2],
+                          paddingVertical: theme.spacing[1],
+                          borderRadius: theme.radii.full,
                         }}>
-                        {isSelf ? 'You' : author}
-                      </Text>
+                        <User size={12} color="#FFFFFF" />
+                        <Text
+                          style={{
+                            fontSize: theme.fontSize.xs,
+                            color: '#FFFFFF',
+                            fontWeight: theme.fontWeight.semibold,
+                          }}>
+                          {isSelf ? 'You' : author}
+                        </Text>
+                      </HStack>
+
+                      {isSelf && readAt && (
+                        <HStack
+                          style={{
+                            alignItems: 'center',
+                            gap: theme.spacing[1],
+                            backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                            paddingHorizontal: theme.spacing[2],
+                            paddingVertical: theme.spacing[1],
+                            borderRadius: theme.radii.full,
+                          }}>
+                          <Eye size={12} color="#FFFFFF" />
+                          <Text
+                            style={{
+                              fontSize: theme.fontSize.xs,
+                              color: '#FFFFFF',
+                              fontWeight: theme.fontWeight.semibold,
+                            }}>
+                            Seen
+                          </Text>
+                        </HStack>
+                      )}
                     </HStack>
                   </HStack>
                 </LinearGradient>
