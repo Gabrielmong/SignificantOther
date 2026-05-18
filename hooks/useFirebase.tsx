@@ -491,6 +491,11 @@ export const useFirebase = () => {
     return remove(roomRef);
   };
 
+  const markJournalEntryAsRead = async (roomId: string, entryId: string) => {
+    const entryRef = databaseRef(db, `rooms/${roomId}/journal/${entryId}`);
+    await update(entryRef, { readAt: new Date().toISOString() });
+  };
+
   const listenToJournalChanges = (
     journalCallback: ({ journal }: { journal: JournalObject }) => void,
     uid: string,
@@ -746,6 +751,7 @@ export const useFirebase = () => {
     createEntryInJournal,
     updateEntryInJournal,
     deleteEntryInJournal,
+    markJournalEntryAsRead,
     listenToJournalChanges,
     getEntryInJournal,
     getNumberOfItemsInJournal,
