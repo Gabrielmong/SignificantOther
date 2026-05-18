@@ -12,12 +12,13 @@ import {
   HStack,
 } from '@gluestack-ui/themed';
 import { useAppTheme, useAuth, useFirebase, useAppToast } from '../../../../hooks';
-import { StatusBar, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import { Alert, StatusBar, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState, useRef } from 'react';
 import { Journal } from '../../../../types';
 import { ArrowLeft, Save } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useAppSelector } from '../../../../state';
 
 export default function JournalEditor() {
   const { theme } = useAppTheme();
@@ -25,6 +26,7 @@ export default function JournalEditor() {
   const { showToast } = useAppToast();
   const params = useLocalSearchParams();
   const { getEntryInJournal, updateEntryInJournal, createEntryInJournal } = useFirebase();
+  const { partnerName } = useAppSelector((state) => state.room);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -60,12 +62,28 @@ export default function JournalEditor() {
     setHasChanges(changed);
   }, [title, description, initialData]);
 
+  const saveNewEntry = async (roomId: string, notify: boolean) => {
+    const newEntry: Journal = {
+      author: user.displayName || '',
+      authorId: user.uid || '',
+      title: title.trim(),
+      description: description.trim(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      notifyPartner: notify,
+      readAt: null,
+    };
+    await createEntryInJournal(roomId, newEntry);
+    showToast({ title: 'Success', description: 'Entry created', status: 'success' });
+    router.back();
+  };
+
   const handleSave = async () => {
     if (!title.trim() || !description.trim()) {
       showToast({
         title: 'Incomplete',
         description: 'Please fill in both title and description',
-        status: 'warning',
+        status: 'error',
       });
       return;
     }
@@ -74,46 +92,44 @@ export default function JournalEditor() {
 
     try {
       if (params.id && user.roomId) {
-        // Update existing entry
-        const updatedEntry: Journal = {
+        // Update existing entry — only update content fields, preserve notifyPartner/readAt
+        const updatedEntry = {
           author: user.displayName || '',
           authorId: user.uid || '',
           title: title.trim(),
           description: description.trim(),
-          createdAt: '', // Will be preserved
           updatedAt: new Date().toISOString(),
         };
-
-        await updateEntryInJournal(user.roomId, String(params.id), updatedEntry);
+        await updateEntryInJournal(user.roomId, String(params.id), updatedEntry as Journal);
         showToast({ title: 'Success', description: 'Entry updated', status: 'success' });
+        setLoading(false);
         router.back();
       } else if (user.roomId) {
-        // Create new entry
-        const newEntry: Journal = {
-          author: user.displayName || '',
-          authorId: user.uid || '',
-          title: title.trim(),
-          description: description.trim(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        await createEntryInJournal(user.roomId, newEntry);
-        showToast({ title: 'Success', description: 'Entry created', status: 'success' });
-        router.back();
+        const roomId = user.roomId;
+        setLoading(false);
+        Alert.alert(
+          'Notify ' + (partnerName || 'your partner') + '?',
+          'They will receive a push notification about this entry.',
+          [
+            {
+              text: 'No',
+              style: 'cancel',
+              onPress: () => saveNewEntry(roomId, false),
+            },
+            {
+              text: 'Yes',
+              onPress: () => saveNewEntry(roomId, true),
+            },
+          ],
+        );
       }
     } catch (error) {
       showToast({ title: 'Error', description: 'Failed to save entry', status: 'error' });
-    } finally {
       setLoading(false);
     }
   };
 
   const handleBack = () => {
-    if (hasChanges) {
-      // TODO: Could add a confirmation dialog here
-      // For now, just go back
-    }
     router.back();
   };
 
@@ -219,7 +235,6 @@ export default function JournalEditor() {
               backgroundColor: theme.colors.surface,
             }}>
             <InputField
-              ref={descriptionInputRef}
               value={description}
               onChangeText={setDescription}
               placeholder="Start writing..."
