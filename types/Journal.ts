@@ -5,6 +5,8 @@ export type Journal = {
   authorId: string;
   createdAt: string;
   updatedAt: string;
+  notifyPartner: boolean;
+  readAt: string | null;
 };
 
 export type JournalObject = {
