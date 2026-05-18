@@ -197,7 +197,12 @@ export default function WhiteBoard() {
 
               <IconButton icon={Bookmark} onPress={handleSaveSnapshot} variant="ghost" size={15} />
               <IconButton icon={Clock} onPress={handleOpenGallery} variant="ghost" size={15} />
-              <IconButton icon={Edit} onPress={handleEditWhiteboardName} variant="ghost" size={15} />
+              <IconButton
+                icon={Edit}
+                onPress={handleEditWhiteboardName}
+                variant="ghost"
+                size={15}
+              />
               <IconButton icon={Eye} onPress={toggleTools} variant="ghost" size={15} />
             </Box>
           </Box>
@@ -329,7 +334,7 @@ export default function WhiteBoard() {
           {selectedSnapshot && (
             <>
               <Svg
-                height={Dimensions.get('window').height * 0.65}
+                height={Dimensions.get('window').height * 0.9}
                 width="100%"
                 style={{ backgroundColor: selectedSnapshot.canvasColor }}>
                 {selectedSnapshot.paths?.map((p, pi) => (

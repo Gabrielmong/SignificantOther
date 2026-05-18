@@ -14,7 +14,7 @@ import {
 import { Pressable } from 'react-native';
 import { FLOWER_MAP } from '../../constants';
 import { useAppTheme } from '../../hooks';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export const FlowerModal = ({
   showFlowerModal,
@@ -35,6 +35,13 @@ export const FlowerModal = ({
 }) => {
   const [internalFlower, setInternalFlower] = useState(ownFlower);
   const [internalFlowerMessage, setInternalFlowerMessage] = useState(ownFlowerMessage);
+
+  useEffect(() => {
+    if (showFlowerModal) {
+      setInternalFlower(ownFlower);
+      setInternalFlowerMessage(ownFlowerMessage);
+    }
+  }, [showFlowerModal]);
   const { theme } = useAppTheme();
 
   const handleFlowerSelect = (flower: string) => {

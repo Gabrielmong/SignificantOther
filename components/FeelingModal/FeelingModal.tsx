@@ -14,7 +14,7 @@ import {
 import { Pressable } from 'react-native';
 import { FEELINGS_LABELS, FEELINGS_MAP } from '../../constants';
 import { useAppTheme } from '../../hooks';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const capitalize = (s: string) => {
   return s.charAt(0).toUpperCase() + s.slice(1);
@@ -34,6 +34,12 @@ export const FeelingModal = ({
   onClose: () => void;
 }) => {
   const [internalFeeling, setInternalFeeling] = useState(ownFeeling);
+
+  useEffect(() => {
+    if (isOpen) {
+      setInternalFeeling(ownFeeling);
+    }
+  }, [isOpen]);
   const { theme } = useAppTheme();
 
   const handleFeelingSelect = (feeling: string) => {

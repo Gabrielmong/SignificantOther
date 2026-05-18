@@ -403,35 +403,27 @@ export default function Home() {
     return () => clearInterval(intervalId);
   }, [userDataReady, user.roomId, user.uid]);
 
-  // Start background location tracking
-  useEffect(() => {
-    const setupBackgroundTracking = async () => {
-      if (user.roomId && user.uid) {
-        // Set user info for background task (persists in AsyncStorage)
-        await setLocationTaskUserInfo(user.uid, user.roomId);
-
-        // Start background tracking if not already running
-        if (!isTracking) {
-          // Small delay to ensure app is fully loaded
-          setTimeout(async () => {
-            const started = await startBackgroundUpdate();
-            if (!started) {
-              // Only show toast on failure
-              console.warn('❌ Failed to start background location tracking - check permissions');
-              showToast({
-                title: 'Background Location',
-                description:
-                  'Please enable "Always Allow" location permission for background tracking.',
-                status: 'info',
-              });
-            }
-          }, 3000);
-        }
-      }
-    };
-
-    setupBackgroundTracking();
-  }, [user.roomId, user.uid, isTracking, startBackgroundUpdate, showToast]);
+  // Background location tracking temporarily disabled
+  // useEffect(() => {
+  //   const setupBackgroundTracking = async () => {
+  //     if (user.roomId && user.uid) {
+  //       await setLocationTaskUserInfo(user.uid, user.roomId);
+  //       if (!isTracking) {
+  //         setTimeout(async () => {
+  //           const started = await startBackgroundUpdate();
+  //           if (!started) {
+  //             showToast({
+  //               title: 'Background Location',
+  //               description: 'Please enable "Always Allow" location permission for background tracking.',
+  //               status: 'info',
+  //             });
+  //           }
+  //         }, 3000);
+  //       }
+  //     }
+  //   };
+  //   setupBackgroundTracking();
+  // }, [user.roomId, user.uid, isTracking, startBackgroundUpdate, showToast]);
 
   const handleCreateRoom = useCallback(async () => {
     if (!user?.uid) return;
@@ -665,9 +657,8 @@ export default function Home() {
                   />
                 </Box>
 
-                <Divider my={4} />
+                {/* <Divider my={4} />
 
-                {/* Location and Zones Section */}
                 <LocationAndZonesSection
                   areTogether={areTogether}
                   partnerName={partnerName}
@@ -680,7 +671,8 @@ export default function Home() {
                   zones={zones}
                   onMapPress={handleMapPress}
                   onZonesPress={handleZonesPress}
-                />
+                /> 
+                */}
 
                 <Divider my={4} />
                 {/* Countdowns Section */}
