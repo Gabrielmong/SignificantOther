@@ -9,13 +9,13 @@ import {
 } from '@gluestack-ui/themed';
 import { useAppTheme, useAuth, useFirebase } from '../../../../hooks';
 import { useEffect, useState } from 'react';
-import { Journal, JournalObject } from '../../../../types';
+import { Journal as JournalEntry, JournalObject } from '../../../../types';
 import { router } from 'expo-router';
 import { ArrowLeft, Plus, Calendar, User, ChevronRight, Eye } from 'lucide-react-native';
 import { TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-interface ParsedJournal extends Journal {
+interface ParsedJournal extends JournalEntry {
   id: string;
 }
 
