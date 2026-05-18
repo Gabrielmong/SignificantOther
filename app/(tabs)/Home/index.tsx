@@ -263,33 +263,8 @@ export default function Home() {
         setNumberOfItems(wishlistCount || 0);
         setNumberOfItemsInJournal(journalCount || 0);
 
-        // Load location data in the background (non-blocking)
-        setLocationLoading(true);
-        Promise.all([
-          // Safely attempt to get current location; return null if unavailable
-          (async () => {
-            try {
-              return await getCurrentLocation(true);
-            } catch {
-              return null;
-            }
-          })(),
-          getLocation(user.roomId, partnerId),
-        ])
-          .then(([currentLocation, partnerLoc]) => {
-            if (currentLocation && user.roomId && user.uid) {
-              updateLocation(user.roomId, user.uid, currentLocation);
-              setUserCurrentLocation(currentLocation);
-            }
-            if (partnerLoc) {
-              setPartnerLocation(partnerLoc);
-            }
-            setLocationLoading(false);
-          })
-          .catch(() => {
-            // If location is unavailable, just stop the loader without error noise
-            setLocationLoading(false);
-          });
+        // Location loading temporarily disabled
+        setLocationLoading(false);
 
         setRefreshing(false);
         setLoading(false);
@@ -312,9 +287,6 @@ export default function Home() {
     loadWhiteboardData,
     loadFlowerData,
     loadFeelingData,
-    getCurrentLocation,
-    getLocation,
-    updateLocation,
   ]);
 
   useEffect(() => {
@@ -325,28 +297,11 @@ export default function Home() {
         setNumberOfItems(data.count);
       }, user.roomId);
 
-      const unsubscribePartnerLocation = listenToLocationChanges(
-        (location) => {
-          setPartnerLocation(location);
-        },
-        user.roomId,
-        partnerId,
-      );
-
-      // Also listen to user's own location changes
-      const unsubscribeUserLocation = listenToLocationChanges(
-        (location) => {
-          setUserCurrentLocation(location);
-        },
-        user.roomId,
-        user.uid,
-      );
+      // Location listeners temporarily disabled
 
       // Cleanup all listeners
       return () => {
         if (unsubscribeWishlist) unsubscribeWishlist();
-        if (unsubscribePartnerLocation) unsubscribePartnerLocation();
-        if (unsubscribeUserLocation) unsubscribeUserLocation();
       };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -376,32 +331,7 @@ export default function Home() {
     }
   }, [userCurrentLocation, partnerLocation]);
 
-  // Periodic location updates while app is open
-  useEffect(() => {
-    if (!userDataReady || !user.roomId || !user.uid) return;
-
-    // Update location every 60 seconds while on home screen
-    const intervalId = setInterval(async () => {
-      try {
-        // Safely attempt to get current location; skip if unavailable
-        const currentLoc = await (async () => {
-          try {
-            return await getCurrentLocation(true);
-          } catch {
-            return null;
-          }
-        })();
-        if (currentLoc && user.roomId && user.uid) {
-          await updateLocation(user.roomId, user.uid, currentLoc);
-          setUserCurrentLocation(currentLoc);
-        }
-      } catch (e) {
-        // Silently ignore periodic errors if location is unavailable
-      }
-    }, 60000); // Update every 60 seconds
-
-    return () => clearInterval(intervalId);
-  }, [userDataReady, user.roomId, user.uid]);
+  // Periodic location updates temporarily disabled
 
   // Background location tracking temporarily disabled
   // useEffect(() => {
