@@ -17,12 +17,14 @@ import {
   get,
   child,
   remove,
+  push,
 } from 'firebase/database';
 import { PathData } from '../components';
 import { useAuth } from './useAuth';
 import uuid from 'react-native-uuid';
 import { Activity, ActivityObject, Wishlist, Countdown, CountdownObject } from '../types';
 import { Journal, JournalObject } from '../types/Journal';
+import { WhiteboardSnapshot } from '../types/WhiteboardSnapshot';
 
 export const useFirebase = () => {
   let app, auth;
@@ -178,6 +180,21 @@ export const useFirebase = () => {
     const whiteboardRef = databaseRef(db, `rooms/${roomId}/whiteboard`);
 
     return get(whiteboardRef);
+  };
+
+  const saveWhiteboardSnapshot = async (roomId: string, snapshot: WhiteboardSnapshot) => {
+    const snapshotsRef = databaseRef(db, `rooms/${roomId}/whiteboardSnapshots`);
+    await push(snapshotsRef, snapshot);
+  };
+
+  const getWhiteboardSnapshots = async (roomId: string): Promise<WhiteboardSnapshot[]> => {
+    const snapshotsRef = databaseRef(db, `rooms/${roomId}/whiteboardSnapshots`);
+    const snapshot = await get(snapshotsRef);
+    if (!snapshot.exists()) return [];
+    const data = snapshot.val() as Record<string, WhiteboardSnapshot>;
+    return Object.values(data).sort(
+      (a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime(),
+    );
   };
 
   const joinRoom = async (roomId: string, userId: string) => {
@@ -728,6 +745,8 @@ export const useFirebase = () => {
     joinRoom,
     updateWhiteboard,
     getWhiteboard,
+    saveWhiteboardSnapshot,
+    getWhiteboardSnapshots,
     createRoom,
     updateWhiteBoardName,
     sendMessage,
