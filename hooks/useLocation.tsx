@@ -20,60 +20,14 @@ export const useLocation = () => {
   const { showToast } = useAppToast();
 
   // Request foreground location permission
+  // Location permissions temporarily disabled
   const requestPermission = useCallback(async (): Promise<boolean> => {
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      const granted = status === 'granted';
-      setHasPermission(granted);
+    return false;
+  }, []);
 
-      if (!granted) {
-        showToast({
-          title: 'Location Permission Required',
-          description:
-            'Please enable location permissions to see the distance between you and your partner.',
-          status: 'error',
-        });
-      }
-
-      return granted;
-    } catch (error) {
-      console.error('Error requesting location permission:', error);
-      setHasPermission(false);
-      return false;
-    }
-  }, [showToast]);
-
-  // Request background location permission
   const requestBackgroundPermission = useCallback(async (): Promise<boolean> => {
-    try {
-      // First ensure we have foreground permission
-      const { status: foregroundStatus } = await Location.getForegroundPermissionsAsync();
-      if (foregroundStatus !== 'granted') {
-        const granted = await requestPermission();
-        if (!granted) return false;
-      }
-
-      // Then request background permission
-      const { status } = await Location.requestBackgroundPermissionsAsync();
-      const granted = status === 'granted';
-      setHasBackgroundPermission(granted);
-
-      if (!granted) {
-        showToast({
-          title: 'Background Location Required',
-          description:
-            'Please enable background location to keep distance updated when app is closed.',
-          status: 'info',
-        });
-      }
-
-      return granted;
-    } catch (error) {
-      console.error('Error requesting background permission:', error);
-      setHasBackgroundPermission(false);
-      return false;
-    }
-  }, [requestPermission, showToast]);
+    return false;
+  }, []);
 
   // Get current location
   const getCurrentLocation = useCallback(
