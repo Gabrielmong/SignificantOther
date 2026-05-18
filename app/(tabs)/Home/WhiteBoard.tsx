@@ -18,7 +18,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useAppTheme, useAuth, useFirebase } from '../../../hooks';
 import { IconButton, PathData, Whiteboard } from '../../../components';
 import { router } from 'expo-router';
-import { Alert, TouchableOpacity } from 'react-native';
+import { Alert, Dimensions, TouchableOpacity } from 'react-native';
 import { ArrowLeft, Bookmark, Clock, Edit, Eye, X } from 'lucide-react-native';
 import { Path, Svg } from 'react-native-svg';
 import { WhiteboardSnapshot } from '../../../types';
@@ -329,7 +329,7 @@ export default function WhiteBoard() {
           {selectedSnapshot && (
             <>
               <Svg
-                height={400}
+                height={Dimensions.get('window').height * 0.65}
                 width="100%"
                 style={{ backgroundColor: selectedSnapshot.canvasColor }}>
                 {selectedSnapshot.paths?.map((p, pi) => (
