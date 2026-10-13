@@ -61,6 +61,7 @@ export default function Home() {
   const [showModal, setShowModal] = useState(false);
   const [numberOfItems, setNumberOfItems] = useState(0);
   const [numberOfItemsInJournal, setNumberOfItemsInJournal] = useState(0);
+  const [numberOfFavoriteThings, setNumberOfFavoriteThings] = useState(0);
   const [partnerLocation, setPartnerLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -95,6 +96,7 @@ export default function Home() {
     getNumberOfItemsInWishlist,
     listentoNumberOfItemsInWishlist,
     getNumberOfItemsInJournal,
+    getNumberOfFavoriteThings,
     updateLocation,
     getLocation,
     listenToLocationChanges,
@@ -224,6 +226,7 @@ export default function Home() {
           partnerFeelingSnapshot,
           wishlistCount,
           journalCount,
+          favoriteThingsCount,
         ] = await Promise.all([
           getWhiteboard(user.roomId).catch((error) => {
             console.error('Error loading whiteboard:', error);
@@ -253,6 +256,10 @@ export default function Home() {
             console.error('Error loading journal count:', error);
             return 0;
           }),
+          getNumberOfFavoriteThings(user.roomId, user.uid).catch((error) => {
+            console.error('Error loading favorite things count:', error);
+            return 0;
+          }),
         ]);
 
         // Update state with loaded data using hook helper methods
@@ -262,6 +269,7 @@ export default function Home() {
 
         setNumberOfItems(wishlistCount || 0);
         setNumberOfItemsInJournal(journalCount || 0);
+        setNumberOfFavoriteThings(favoriteThingsCount || 0);
 
         // Location loading temporarily disabled
         setLocationLoading(false);
@@ -284,6 +292,7 @@ export default function Home() {
     getFeeling,
     getNumberOfItemsInWishlist,
     getNumberOfItemsInJournal,
+    getNumberOfFavoriteThings,
     loadWhiteboardData,
     loadFlowerData,
     loadFeelingData,
@@ -381,6 +390,10 @@ export default function Home() {
 
   const handleJournalPress = useCallback(() => {
     router.push('/(tabs)/Home/Journal/');
+  }, []);
+
+  const handleFavoriteThingsPress = useCallback(() => {
+    router.push('/(tabs)/Home/FavoriteThings');
   }, []);
 
   const handleMapPress = useCallback(() => {
@@ -632,6 +645,14 @@ export default function Home() {
                     gradientKey="aurora"
                     count={numberOfItemsInJournal}
                     countLabel={numberOfItemsInJournal === 1 ? 'entry' : 'entries'}
+                  />
+                  <GradientButton
+                    title="Favorites"
+                    icon="💛"
+                    onPress={handleFavoriteThingsPress}
+                    gradientKey="sunset"
+                    count={numberOfFavoriteThings}
+                    countLabel={numberOfFavoriteThings === 1 ? 'item' : 'items'}
                   />
                 </HStack>
               </>

@@ -25,6 +25,8 @@ export const FLOWER_MAP: {
   sunflower: require('../assets/flowers/sunflower.jpeg'),
   tulip: require('../assets/flowers/tulip.jpeg'),
   violet: require('../assets/flowers/violet.png'),
+  amaranth: require('../assets/flowers/amaranth.png'),
+  carnation: require('../assets/flowers/carnation.png'),
 } as const;
 
 export const FEELINGS_MAP: {

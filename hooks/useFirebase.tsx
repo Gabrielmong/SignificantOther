@@ -25,6 +25,7 @@ import uuid from 'react-native-uuid';
 import { Activity, ActivityObject, Wishlist, Countdown, CountdownObject } from '../types';
 import { Journal, JournalObject } from '../types/Journal';
 import { WhiteboardSnapshot } from '../types/WhiteboardSnapshot';
+import { FavoriteThing, FavoriteThings } from '../types/FavoriteThing';
 
 export const useFirebase = () => {
   let app, auth;
@@ -546,6 +547,112 @@ export const useFirebase = () => {
     }
   };
 
+  // Favorites
+  // Scoped under the author's own uid so each partner's list is only ever
+  // read/written by themselves, keeping entries private from the partner.
+
+  const getFavoriteThings = async (roomId: string, authorUid: string) => {
+    const favoriteThingsRef = databaseRef(db, `rooms/${roomId}/favoriteThings/${authorUid}`);
+
+    const snapshot = await get(favoriteThingsRef);
+
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+
+      if (data) {
+        return data;
+      }
+    }
+  };
+
+  const createFavoriteThing = async (
+    roomId: string,
+    authorUid: string,
+    favoriteThing: FavoriteThing,
+    under: string,
+  ) => {
+    const favoriteThingsRef = databaseRef(
+      db,
+      `rooms/${roomId}/favoriteThings/${authorUid}/${under}`,
+    );
+    const id = uuid.v4().toString().substring(0, 12);
+
+    await update(favoriteThingsRef, {
+      [id]: favoriteThing,
+    });
+  };
+
+  const updateFavoriteThing = async (
+    roomId: string,
+    authorUid: string,
+    entryId: string,
+    favoriteThing: FavoriteThing,
+    under: string,
+  ) => {
+    const favoriteThingRef = databaseRef(
+      db,
+      `rooms/${roomId}/favoriteThings/${authorUid}/${under}/${entryId}`,
+    );
+
+    await update(favoriteThingRef, favoriteThing);
+  };
+
+  const deleteFavoriteThing = async (
+    roomId: string,
+    authorUid: string,
+    entryId: string,
+    under: string,
+  ): Promise<void> => {
+    const favoriteThingRef = databaseRef(
+      db,
+      `rooms/${roomId}/favoriteThings/${authorUid}/${under}/${entryId}`,
+    );
+
+    return remove(favoriteThingRef);
+  };
+
+  const listenToFavoriteThingsChanges = (
+    favoriteThingsCallback: ({ favoriteThings }: { favoriteThings: FavoriteThings }) => void,
+    roomId: string,
+    authorUid: string,
+  ) => {
+    const favoriteThingsRef = databaseRef(db, `rooms/${roomId}/favoriteThings/${authorUid}`);
+
+    const unsubscribe = onValue(favoriteThingsRef, (snapshot) => {
+      const data = snapshot.val();
+
+      if (data) {
+        favoriteThingsCallback({
+          favoriteThings: data,
+        });
+      }
+    });
+
+    return unsubscribe;
+  };
+
+  const getNumberOfFavoriteThings = async (roomId: string, authorUid: string) => {
+    const favoriteThingsRef = databaseRef(db, `rooms/${roomId}/favoriteThings/${authorUid}`);
+
+    const snapshot = await get(favoriteThingsRef);
+
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+
+      if (data) {
+        let count = 0;
+
+        Object.keys(data).forEach((key) => {
+          count += Object.keys(data[key]).length;
+        });
+
+        return count;
+      }
+    }
+
+    return 0;
+  };
+
   // Location
   const updateLocation = async (
     roomId: string,
@@ -774,6 +881,12 @@ export const useFirebase = () => {
     listenToJournalChanges,
     getEntryInJournal,
     getNumberOfItemsInJournal,
+    getFavoriteThings,
+    createFavoriteThing,
+    updateFavoriteThing,
+    deleteFavoriteThing,
+    listenToFavoriteThingsChanges,
+    getNumberOfFavoriteThings,
     updateLocation,
     getLocation,
     listenToLocationChanges,

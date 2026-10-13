@@ -30,7 +30,7 @@ export const FlowerModal = ({
   setOwnFlower: (flower: string) => void;
   ownFlowerMessage: string;
   setOwnFlowerMessage: (message: string) => void;
-  handleFlowerSend: () => void;
+  handleFlowerSend: (flower: string, message: string) => void;
   onClose: () => void;
 }) => {
   const [internalFlower, setInternalFlower] = useState(ownFlower);
@@ -53,9 +53,7 @@ export const FlowerModal = ({
   };
 
   const handleSave = () => {
-    setOwnFlower(internalFlower);
-    setOwnFlowerMessage(internalFlowerMessage);
-    handleFlowerSend();
+    handleFlowerSend(internalFlower, internalFlowerMessage);
   };
 
   return (

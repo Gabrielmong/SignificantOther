@@ -30,7 +30,7 @@ export const FeelingModal = ({
   isOpen: boolean;
   ownFeeling: string;
   setOwnFeeling: (feeling: string) => void;
-  handleFeelingSend: () => void;
+  handleFeelingSend: (feeling: string) => void;
   onClose: () => void;
 }) => {
   const [internalFeeling, setInternalFeeling] = useState(ownFeeling);
@@ -47,8 +47,7 @@ export const FeelingModal = ({
   };
 
   const handleSave = () => {
-    setOwnFeeling(internalFeeling);
-    handleFeelingSend();
+    handleFeelingSend(internalFeeling);
   };
 
   return (

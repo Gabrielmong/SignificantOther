@@ -15,6 +15,7 @@ import {
   RoomPayload,
   setRoom,
   updateRoom,
+  store,
 } from '../state';
 import { useFirebase } from './useFirebase';
 import { useAppToast } from './useAppToast';
@@ -28,6 +29,40 @@ import {
   setLocationTaskUserInfo,
   clearLocationTaskUserInfo,
 } from '../services/locationTask';
+import { setWidgetTaskUserInfo, clearWidgetTaskUserInfo } from '../services/widgetTask';
+import { Platform } from 'react-native';
+import { BatteryOptEnabled, RequestDisableOptimization } from 'react-native-battery-optimization-check';
+
+// Guards against re-registering messaging().onTokenRefresh() every time
+// initialize() runs (it's called on every route change via EntryChecker,
+// the same way auth.onAuthStateChanged is already re-registered there).
+let tokenRefreshListenerRegistered = false;
+
+// Guards against re-prompting for battery optimization exemption on every
+// route change — ask at most once per app session.
+let batteryOptimizationPrompted = false;
+
+// Persists an FCM token for a user as a plain array — the one shape every
+// call site (editExtraProfile, checkPermission, this) agrees on — deduping
+// against whatever's already stored in both Firebase and Redux.
+const persistFcmToken = async (
+  db: ReturnType<typeof getDatabase>,
+  dispatch: ReturnType<typeof useAppDispatch>,
+  uid: string,
+  fcmToken: string,
+) => {
+  const userDocRef = ref(db, `users/${uid}`);
+  const snapshot = await get(userDocRef);
+  const data = snapshot.val();
+  const existingTokens: string[] = Array.isArray(data?.fcmtokens) ? data.fcmtokens : [];
+
+  if (existingTokens.includes(fcmToken)) return;
+
+  const fcmtokens = [...existingTokens, fcmToken];
+
+  await update(userDocRef, { fcmtokens });
+  dispatch(updateUser({ fcmtokens }));
+};
 
 export const useAuth = () => {
   const { auth } = useFirebase();
@@ -50,48 +85,56 @@ export const useAuth = () => {
 
     const fcmToken = await messaging().getToken();
 
-    if (fcmToken) {
+    if (fcmToken && user?.uid) {
       dispatch(
         updateUser({
           thisDeviceToken: fcmToken,
         }),
       );
 
-      const userDocRef = ref(db, `users/${user?.uid}`);
+      await persistFcmToken(db, dispatch, user.uid, fcmToken);
+    }
+  };
 
-      get(userDocRef).then((snapshot) => {
-        const data = snapshot.val();
+  // Fires whenever the OS silently rotates the FCM token (independent of
+  // checkToken, which only runs on auth-state/route changes) and persists
+  // the new token the same way. Guarded so it's only registered once, even
+  // though initialize() (which calls this) re-runs on every route change.
+  const registerTokenRefreshListener = () => {
+    if (tokenRefreshListenerRegistered) return;
+    tokenRefreshListenerRegistered = true;
 
-        if (data.fcmtokens) {
-          const exists = Object.values(data.fcmtokens).includes(fcmToken);
+    messaging().onTokenRefresh(async (fcmToken) => {
+      // This listener is registered once and lives for the app's lifetime,
+      // so it must read the current uid fresh from the store rather than
+      // close over whichever `user` was in scope at registration time.
+      const currentUid = store.getState().user.uid;
+      if (!currentUid) return;
 
-          let key = Number(Object.keys(data.fcmtokens).find((key) => data.fcmtokens[key]));
+      dispatch(updateUser({ thisDeviceToken: fcmToken }));
+      await persistFcmToken(getDatabase(), dispatch, currentUid, fcmToken);
+    });
+  };
 
-          if (!key) key = 0;
+  // Asks the user to exempt the app from battery optimization, so background
+  // work (widget updates, location tracking) stays reliable even when the
+  // app has been closed for a while. Only meaningful on Android, and only
+  // worth asking once per app session rather than on every route change.
+  const requestBatteryOptimizationExemption = async () => {
+    if (Platform.OS !== 'android' || batteryOptimizationPrompted) return;
+    batteryOptimizationPrompted = true;
 
-          if (!exists) {
-            update(userDocRef, {
-              fcmtokens: { ...data.fcmtokens, [key + 1]: fcmToken },
-            });
+    const isRestricted = await BatteryOptEnabled();
 
-            dispatch(
-              updateUser({
-                fcmtokens: { ...data.fcmtokens, fcmToken },
-              }),
-            );
-          }
-        } else {
-          update(userDocRef, {
-            fcmtokens: { 0: fcmToken },
-          });
-
-          dispatch(
-            updateUser({
-              fcmtokens: [fcmToken],
-            }),
-          );
-        }
+    if (isRestricted) {
+      showToast({
+        title: 'One more thing',
+        description:
+          "To keep your partner's updates reliable, please allow this app to run without battery restrictions on the next screen.",
+        status: 'info',
       });
+
+      RequestDisableOptimization();
     }
   };
 
@@ -101,6 +144,7 @@ export const useAuth = () => {
     return auth.signOut().then(async () => {
       dispatch(stateLogout());
       await clearLocationTaskUserInfo();
+      await clearWidgetTaskUserInfo();
 
       showToast({
         title: 'Logout',
@@ -194,6 +238,8 @@ export const useAuth = () => {
   const initialize = () => {
     if (!auth) return;
 
+    registerTokenRefreshListener();
+
     auth.onAuthStateChanged(async (user) => {
       if (user) {
         user?.getIdTokenResult().then((idTokenResult) => {});
@@ -201,6 +247,7 @@ export const useAuth = () => {
         await getExtraProfile();
 
         await checkToken();
+        await requestBatteryOptimizationExemption();
 
         const userPayload: UserPayload = {
           displayName: user.displayName,
@@ -339,6 +386,17 @@ export const useAuth = () => {
             // Set location task user info for background tracking
             if (user?.uid && data.roomId) {
               setLocationTaskUserInfo(user.uid, data.roomId);
+            }
+
+            // Set widget task user info so the home-screen widget's
+            // background handler/task can resolve the right partner
+            if (user?.uid && data.roomId && roomFields.partnerId) {
+              setWidgetTaskUserInfo(
+                user.uid,
+                data.roomId,
+                roomFields.partnerId,
+                roomFields.partnerName,
+              );
             }
           }
         });

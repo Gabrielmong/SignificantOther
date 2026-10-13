@@ -93,23 +93,27 @@ export const useFeelings = ({
     setShowFeelingModal(false);
   }, [oldFeeling]);
 
-  const handleFeelingSend = useCallback(async () => {
-    if (!roomId || !userId) return;
+  const handleFeelingSend = useCallback(
+    async (selectedFeeling: string) => {
+      if (!roomId || !userId) return;
 
-    try {
-      await updateFeeling(roomId, userId, ownFeeling);
+      try {
+        setOwnFeeling(selectedFeeling);
+        await updateFeeling(roomId, userId, selectedFeeling);
 
-      setShowFeelingModal(false);
+        setShowFeelingModal(false);
 
-      showToast({
-        title: 'Feeling updated',
-        description: 'Your feeling has been updated',
-        status: 'success',
-      });
-    } catch (error) {
-      console.error('Error updating feeling:', error);
-    }
-  }, [roomId, userId, ownFeeling, updateFeeling, showToast]);
+        showToast({
+          title: 'Feeling updated',
+          description: 'Your feeling has been updated',
+          status: 'success',
+        });
+      } catch (error) {
+        console.error('Error updating feeling:', error);
+      }
+    },
+    [roomId, userId, updateFeeling, showToast],
+  );
 
   const loadFeelingData = useCallback(
     async (

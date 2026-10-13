@@ -17,6 +17,13 @@ type GradientsType = { [key: string]: GradientConfig };
  */
 export const gradients: GradientsType = {
   // Primary gradients (Purple)
+  // `primary` aliases `primarySubtle`, the app's default accent gradient,
+  // referenced throughout as `theme.gradients.primary` (header icons, spinners, CTAs).
+  primary: {
+    colors: ['#9d75ff', '#8859ff'],
+    start: { x: 0, y: 0 },
+    end: { x: 1, y: 1 },
+  },
   primarySubtle: {
     colors: ['#9d75ff', '#8859ff'],
     start: { x: 0, y: 0 },
@@ -35,6 +42,12 @@ export const gradients: GradientsType = {
   },
 
   // Secondary gradients (Blue)
+  // `ocean` aliases `secondaryBold`, referenced as `theme.gradients.ocean`.
+  ocean: {
+    colors: ['#7179f6', '#2a2f9e'],
+    start: { x: 0, y: 0 },
+    end: { x: 1, y: 1 },
+  },
   secondarySubtle: {
     colors: ['#5d66e8', '#323aba'],
     start: { x: 0, y: 0 },

@@ -4,3 +4,4 @@ export * from './Journal';
 export * from './Countdown';
 export * from './Zone';
 export * from './WhiteboardSnapshot';
+export * from './FavoriteThing';

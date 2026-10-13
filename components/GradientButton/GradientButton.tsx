@@ -48,8 +48,10 @@ export const GradientButton: React.FC<GradientButtonProps> = ({
         end={gradient?.end}
         locations={gradient?.locations}
         style={{
+          flex: 1,
           padding: theme?.spacing?.[4] || 16,
           alignItems: 'center',
+          justifyContent: 'center',
           gap: theme?.spacing?.[2] || 8,
         }}>
         <Text style={{ fontSize: 24 }}>{icon}</Text>

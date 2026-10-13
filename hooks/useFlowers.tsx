@@ -93,23 +93,28 @@ export const useFlowers = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId, userId]);
 
-  const handleFlowerSend = useCallback(async () => {
-    if (!roomId || !userId) return;
+  const handleFlowerSend = useCallback(
+    async (selectedFlower: string, message: string) => {
+      if (!roomId || !userId) return;
 
-    try {
-      await updateFlower(roomId, userId, ownFlower, ownFlowerMessage);
+      try {
+        setOwnFlower(selectedFlower);
+        setOwnFlowerMessage(message);
+        await updateFlower(roomId, userId, selectedFlower, message);
 
-      setShowFlowerModal(false);
+        setShowFlowerModal(false);
 
-      showToast({
-        title: 'Flower updated',
-        description: 'Your flower has been updated',
-        status: 'success',
-      });
-    } catch (error) {
-      console.error('Error updating flower:', error);
-    }
-  }, [roomId, userId, ownFlower, ownFlowerMessage, updateFlower, showToast]);
+        showToast({
+          title: 'Flower updated',
+          description: 'Your flower has been updated',
+          status: 'success',
+        });
+      } catch (error) {
+        console.error('Error updating flower:', error);
+      }
+    },
+    [roomId, userId, updateFlower, showToast],
+  );
 
   const handleFlowerOpenPress = useCallback(() => {
     setOldFlowerValues({

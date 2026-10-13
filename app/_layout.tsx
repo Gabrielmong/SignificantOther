@@ -11,6 +11,9 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppRegistry, Platform, KeyboardAvoidingView } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 import * as Notifications from 'expo-notifications';
+import { requestWidgetUpdate } from 'react-native-android-widget';
+import { PartnerStatusWidget, PartnerStatusCompactWidget } from '../widgets/PartnerStatusWidget';
+import { setWidgetLastData, WidgetDisplayData } from '../services/widgetTask';
 // Import location task to register it
 import '../services/locationTask';
 
@@ -54,12 +57,54 @@ export default function AppLayout() {
   );
 }
 
+async function handleWidgetRefreshMessage(remoteMessage: {
+  data?: { [key: string]: string | object };
+}) {
+  if (remoteMessage.data?.type !== 'widget-refresh') {
+    return false;
+  }
+
+  const data: WidgetDisplayData = {
+    flower: String(remoteMessage.data.flower || ''),
+    message: String(remoteMessage.data.message || ''),
+    feeling: String(remoteMessage.data.feeling || ''),
+    partnerName: String(remoteMessage.data.partnerName || ''),
+    updatedAt: Date.now(),
+  };
+
+  await setWidgetLastData(data);
+
+  await requestWidgetUpdate({
+    widgetName: 'PartnerStatus',
+    renderWidget: () => <PartnerStatusWidget data={data} />,
+    widgetNotFound: () => {
+      console.log('PartnerStatus widget not found on home screen, skipping render');
+    },
+  });
+
+  await requestWidgetUpdate({
+    widgetName: 'PartnerStatusCompact',
+    renderWidget: () => <PartnerStatusCompactWidget data={data} />,
+    widgetNotFound: () => {
+      console.log('PartnerStatusCompact widget not found on home screen, skipping render');
+    },
+  });
+
+  return true;
+}
+
 messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-  console.log('Message handled in the background!', remoteMessage);
+  const handled = await handleWidgetRefreshMessage(remoteMessage);
+  if (!handled) {
+    console.log('Message handled in the background!', remoteMessage);
+  }
 });
 
 messaging().onMessage(async (remoteMessage) => {
-  console.log('Message handled in the foreground!', remoteMessage);
+  const handled = await handleWidgetRefreshMessage(remoteMessage);
+  if (!handled) {
+    console.log('Message handled in the foreground!', remoteMessage);
+  }
 });
 
 messaging().onNotificationOpenedApp(async (remoteMessage) => {
