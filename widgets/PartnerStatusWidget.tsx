@@ -56,7 +56,7 @@ export function PartnerStatusWidget({ data }: PartnerStatusWidgetProps) {
         width: 'match_parent',
         backgroundGradient: CARD_GRADIENT,
         borderRadius: 20,
-        padding: 12,
+        padding: 6,
         flexDirection: 'column',
       }}
       clickAction="OPEN_APP">
@@ -64,9 +64,9 @@ export function PartnerStatusWidget({ data }: PartnerStatusWidgetProps) {
         {flowerImage && (
           <FlexWidget
             style={{
-              width: 76,
-              height: 76,
-              borderRadius: 38,
+              width: 70,
+              height: 70,
+              borderRadius: 35,
               backgroundColor: 'rgba(255, 255, 255, 0.18)',
               justifyContent: 'center',
               alignItems: 'center',
