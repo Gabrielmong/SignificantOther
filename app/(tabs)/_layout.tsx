@@ -12,11 +12,12 @@ import { usePathname } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { TAB_HIDDEN_ROUTES } from '../../constants';
 import { AnimatedTabIcon } from '../../components';
-import { useAppTheme } from '../../hooks';
+import { useAppTheme, useOnThisDayNotifications } from '../../hooks';
 
 export default function HomeLayout() {
   const pathname = usePathname();
   const { theme, colorMode, gluestackConfig } = useAppTheme();
+  useOnThisDayNotifications();
   const [tabHidden, setTabHidden] = useState(false);
 
   useEffect(() => {

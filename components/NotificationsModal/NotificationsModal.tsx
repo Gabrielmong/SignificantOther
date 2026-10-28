@@ -16,6 +16,11 @@ import * as Notifications from 'expo-notifications';
 import { IconButton } from '../IconButton';
 import { Minus, Plus } from 'lucide-react-native';
 import { useAppSelector } from '../../state';
+import {
+  isOnThisDayEnabled,
+  requestOnThisDayReschedule,
+  setOnThisDayEnabled,
+} from '../../services/onThisDay';
 
 const formatTimeLabel = (time: number) => {
   return time < 10 ? `0${time}` : time;
@@ -38,11 +43,23 @@ export const NotificationsModal = ({
   const { notifications } = useAppSelector((state) => state.user);
   const [notificationTime, setNotificationTime] = useState(notifications?.checkin || [9, 0]);
   const [checkingChanged, setCheckingChanged] = useState(false);
+  const [onThisDay, setOnThisDay] = useState(true);
+
+  useEffect(() => {
+    if (isOpen) isOnThisDayEnabled().then(setOnThisDay);
+  }, [isOpen]);
+
+  const onOnThisDayChange = (on: boolean) => {
+    setOnThisDay(on);
+    setOnThisDayEnabled(on);
+  };
 
   const onSwitchChange = async () => {
     if (enabled) {
       cancelAllNotifications();
       setEnabled(false);
+      // Off means off: On this day stays off until turned back on
+      onOnThisDayChange(false);
 
       showToast({ description: 'Notifications disabled', status: 'success', title: 'Success' });
     } else {
@@ -142,6 +159,9 @@ export const NotificationsModal = ({
       cancelAllNotifications();
       addNotification();
     }
+
+    // The check-in path above cancels every notification; put ours back
+    requestOnThisDayReschedule();
   };
 
   return (
@@ -188,6 +208,32 @@ export const NotificationsModal = ({
             <Switch
               value={enabled}
               onValueChange={onSwitchChange}
+              trackColor={{
+                true: theme.colors.primary,
+                false: theme.colors.textTertiary,
+              }}
+            />
+          </Box>
+
+          <Box
+            style={{
+              flexDirection: 'row',
+              width: '100%',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+            <Box style={{ flex: 1, paddingRight: 12 }}>
+              <Text style={{ fontSize: theme.fontSize.md, color: theme.colors.text }}>
+                On this day
+              </Text>
+              <Text style={{ fontSize: theme.fontSize.xs, color: theme.colors.textSecondary }}>
+                A morning note on days with a memory
+              </Text>
+            </Box>
+            <Switch
+              value={enabled && onThisDay}
+              onValueChange={onOnThisDayChange}
+              isDisabled={!enabled}
               trackColor={{
                 true: theme.colors.primary,
                 false: theme.colors.textTertiary,

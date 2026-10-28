@@ -21,11 +21,13 @@ import {
   PhotoStrip,
   PhotoViewer,
   PlacesPreview,
+  OnThisDayCard,
   YouTwoHeader,
   pickPhotosForGallery,
 } from '../../../components';
 import { Milestone, MilestoneKind, SpecialKind } from '../../../types';
 import { formatCounter, pickCounterMilestone } from '../../../utils/milestones';
+import { buildStory, memoriesOn, pickHighlight } from '../../../utils/story';
 
 // Today's date that also changes at local midnight and when the app comes
 // back to the foreground, so the counter never goes stale.
@@ -69,7 +71,7 @@ export default function YouTwo() {
     saveMilestone,
     removeMilestone,
   } = useMilestones();
-  const { places, savePlace } = usePlaces();
+  const { places, byId: placesById, savePlace } = usePlaces();
   const openPlace = (placeId: string) =>
     router.push({ pathname: '/(tabs)/YouTwo/Places', params: { focus: placeId } } as unknown as Href);
   const params = useLocalSearchParams<{ milestone?: string }>();
@@ -136,6 +138,25 @@ export default function YouTwo() {
     return m ? formatCounter(m, today) : null;
   }, [milestones, today]);
 
+  // On this day: special milestones count here (they're only left out of notifications)
+  const story = useMemo(() => buildStory(milestones, gallery.photos), [milestones, gallery.photos]);
+  const highlight = useMemo(() => pickHighlight(memoriesOn(story, today)), [story, today]);
+  const openStory = (day?: string) =>
+    router.push(
+      (day
+        ? { pathname: '/(tabs)/YouTwo/Story', params: { day } }
+        : '/(tabs)/YouTwo/Story') as unknown as Href,
+    );
+
+  // The latest two milestones; the full list lives in the story
+  const recentMilestones = useMemo(
+    () =>
+      [...milestones]
+        .sort((a, b) => b.day.localeCompare(a.day) || b.createdAt - a.createdAt)
+        .slice(0, 2),
+    [milestones],
+  );
+
   // First names only: "Diana & Gabriel"
   const firstName = (name: string | null | undefined, fallback: string) =>
     name?.trim().split(/\s+/)[0] || fallback;
@@ -155,6 +176,16 @@ export default function YouTwo() {
           counter={counter}
           onAddDatingPress={() => setModal({ open: true, milestone: null, presetKind: 'dating' })}
         />
+
+        {highlight && (
+          <View style={{ paddingHorizontal: 16, marginBottom: 20 }}>
+            <OnThisDayCard
+              highlight={highlight}
+              placeName={highlight.placeId ? placesById[highlight.placeId]?.name : undefined}
+              onPress={() => openStory(highlight.day)}
+            />
+          </View>
+        )}
 
         <View style={{ paddingHorizontal: 16, marginBottom: 20 }}>
           <PhotoStrip
@@ -226,13 +257,23 @@ export default function YouTwo() {
               <Text style={{ color: theme.colors.textSecondary }}>Add your first milestone</Text>
             </TouchableOpacity>
           ) : (
-            milestones.map((m) => (
-              <MilestoneRow
-                key={m.id}
-                milestone={m}
-                onPress={() => setModal({ open: true, milestone: m })}
-              />
-            ))
+            <>
+              {recentMilestones.map((m) => (
+                <MilestoneRow
+                  key={m.id}
+                  milestone={m}
+                  onPress={() => setModal({ open: true, milestone: m })}
+                />
+              ))}
+              <TouchableOpacity
+                onPress={() => openStory()}
+                accessibilityRole="link"
+                style={{ alignSelf: 'flex-start', paddingVertical: 4 }}>
+                <Text style={{ color: theme.colors.primary, fontWeight: theme.fontWeight.semibold }}>
+                  See full story ›
+                </Text>
+              </TouchableOpacity>
+            </>
           )}
         </View>
       </ScrollView>

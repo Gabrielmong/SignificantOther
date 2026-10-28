@@ -32,6 +32,7 @@ import {
 } from '../services/locationTask';
 import { setWidgetTaskUserInfo, clearWidgetTaskUserInfo } from '../services/widgetTask';
 import { clearAccentStorage } from '../services/accentStorage';
+import { clearOnThisDay } from '../services/onThisDay';
 import { Platform } from 'react-native';
 import { BatteryOptEnabled, RequestDisableOptimization } from 'react-native-battery-optimization-check';
 
@@ -149,6 +150,7 @@ export const useAuth = () => {
       await clearLocationTaskUserInfo();
       await clearWidgetTaskUserInfo();
       await clearAccentStorage();
+      await clearOnThisDay();
 
       showToast({
         title: 'Logout',

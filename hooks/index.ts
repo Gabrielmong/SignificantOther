@@ -15,3 +15,4 @@ export * from './useDailyQuestion';
 export * from './useMilestones';
 export * from './useGallery';
 export * from './usePlaces';
+export * from './useOnThisDayNotifications';

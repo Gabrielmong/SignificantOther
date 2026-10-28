@@ -5,3 +5,5 @@ export * from './geofencing';
 export * from './milestones';
 export * from './photos';
 export * from './places';
+export * from './story';
+export * from './serial';

@@ -39,3 +39,4 @@ export * from './PlaceEditor';
 export * from './PlaceCard';
 export * from './PlacesPreview';
 export * from './PlacePicker';
+export * from './OnThisDayCard';
