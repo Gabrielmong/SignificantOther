@@ -2,7 +2,7 @@ import { Tabs } from 'expo-router';
 import { GluestackUIProvider, View } from '@gluestack-ui/themed';
 import { config } from '@gluestack-ui/config';
 import { Icon } from '@gluestack-ui/themed';
-import { CircleUserRound, Home, MessageCircle } from 'lucide-react-native';
+import { CalendarHeart, CircleUserRound, Home, MessageCircle } from 'lucide-react-native';
 import { usePathname } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { TAB_HIDDEN_ROUTES } from '../../constants';
@@ -61,6 +61,26 @@ export default function HomeLayout() {
                 }}>
                 <AnimatedTabIcon focused={focused}>
                   <Icon as={Home} color={color} />
+                </AnimatedTabIcon>
+              </View>
+            ),
+            headerShown: false,
+          }}
+        />
+        <Tabs.Screen
+          name="Calendar"
+          options={{
+            tabBarIcon: ({ color, focused }) => (
+              <View
+                style={{
+                  width: 48,
+                  height: 40,
+                  borderRadius: 14,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <AnimatedTabIcon focused={focused}>
+                  <Icon as={CalendarHeart} color={color} />
                 </AnimatedTabIcon>
               </View>
             ),

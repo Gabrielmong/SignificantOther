@@ -6,3 +6,4 @@ export * from './Zone';
 export * from './WhiteboardSnapshot';
 export * from './FavoriteThing';
 export * from './FeelingHistory';
+export * from './DailyQuestion';

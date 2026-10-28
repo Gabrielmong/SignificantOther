@@ -11,16 +11,19 @@ interface MoodCalendarProps {
   month: string;
   mineByDay: { [day: number]: string };
   partnerByDay: { [day: number]: string };
+  eventIconsByDay: { [day: number]: string };
   todayDay: number | null;
   onDayPress: (day: number) => void;
 }
 
 // Monday-first month grid. Each day shows the user's last feeling on the
-// left and the partner's on the right.
+// left and the partner's on the right, with the day's first countdown
+// event emoji next to the day number.
 export const MoodCalendar = ({
   month,
   mineByDay,
   partnerByDay,
+  eventIconsByDay,
   todayDay,
   onDayPress,
 }: MoodCalendarProps) => {
@@ -54,7 +57,8 @@ export const MoodCalendar = ({
 
           const mine = mineByDay[day];
           const partner = partnerByDay[day];
-          const hasEntries = !!mine || !!partner;
+          const eventIcon = eventIconsByDay[day];
+          const hasEntries = !!mine || !!partner || !!eventIcon;
           const isToday = day === todayDay;
 
           return (
@@ -74,14 +78,17 @@ export const MoodCalendar = ({
                   justifyContent: 'space-between',
                   paddingVertical: theme.spacing[1],
                 }}>
-                <Text
-                  style={{
-                    fontSize: theme.fontSize.xs,
-                    color: isToday ? theme.colors.primary : theme.colors.textSecondary,
-                    fontWeight: isToday ? theme.fontWeight.bold : theme.fontWeight.normal,
-                  }}>
-                  {day}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                  <Text
+                    style={{
+                      fontSize: theme.fontSize.xs,
+                      color: isToday ? theme.colors.primary : theme.colors.textSecondary,
+                      fontWeight: isToday ? theme.fontWeight.bold : theme.fontWeight.normal,
+                    }}>
+                    {day}
+                  </Text>
+                  {!!eventIcon && <Text style={{ fontSize: theme.fontSize.xs }}>{eventIcon}</Text>}
+                </View>
                 <View style={{ flexDirection: 'row', gap: 2 }}>
                   <Text style={{ fontSize: theme.fontSize.sm }}>
                     {mine ? feelingDisplay(mine).emoji : ' '}

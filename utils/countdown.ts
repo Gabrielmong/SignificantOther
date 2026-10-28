@@ -57,6 +57,68 @@ export const calculateNextRecurrenceDate = (
   return date.getTime();
 };
 
+const daysInMonth = (year: number, monthIndex: number) =>
+  new Date(year, monthIndex + 1, 0).getDate();
+
+export type RecurrenceStep = { months: number } | { days: number };
+
+/**
+ * The size of one recurrence step, in months or days.
+ * @returns null if the countdown does not recur (including a custom
+ * recurrence without a positive interval and a unit)
+ */
+export const recurrenceStep = (
+  recurrence: RecurrenceType,
+  recurrenceInterval: number | undefined,
+  recurrenceUnit: RecurrenceUnit | undefined,
+): RecurrenceStep | null => {
+  switch (recurrence) {
+    case 'yearly':
+      return { months: 12 };
+    case 'monthly':
+      return { months: 1 };
+    case 'weekly':
+      return { days: 7 };
+    case 'custom':
+      if (!recurrenceInterval || recurrenceInterval <= 0 || !recurrenceUnit) return null;
+      switch (recurrenceUnit) {
+        case 'days':
+          return { days: recurrenceInterval };
+        case 'weeks':
+          return { days: recurrenceInterval * 7 };
+        case 'months':
+          return { months: recurrenceInterval };
+        case 'years':
+          return { months: recurrenceInterval * 12 };
+        default:
+          return null;
+      }
+    default:
+      return null;
+  }
+};
+
+/**
+ * The n-th occurrence of a recurring date (n may be negative), computed
+ * from the anchor rather than by chaining steps, so month-end dates don't
+ * drift. Month steps clamp to the target month's last day (Jan 31 + 1
+ * month = Feb 28/29).
+ */
+export const nthOccurrence = (anchor: number, step: RecurrenceStep, n: number): number => {
+  const date = new Date(anchor);
+
+  if ('months' in step) {
+    const day = date.getDate();
+    date.setDate(1);
+    date.setMonth(date.getMonth() + step.months * n);
+    date.setDate(Math.min(day, daysInMonth(date.getFullYear(), date.getMonth())));
+    return date.getTime();
+  }
+
+  date.setDate(date.getDate() + step.days * n);
+  return date.getTime();
+};
+
 /**
  * Checks if a countdown date has passed
  * @param countdownDate - The countdown date (timestamp)

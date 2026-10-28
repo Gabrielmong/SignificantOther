@@ -22,3 +22,4 @@ export * from './LocationAndZonesSection';
 export * from './CountdownsSection';
 export * from './MoodCalendar';
 export * from './MoodDayModal';
+export * from './DailyQuestionCard';

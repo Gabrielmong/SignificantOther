@@ -10,6 +10,7 @@ import {
   useCountdowns,
   useFlowers,
   useFeelings,
+  useDailyQuestion,
   useWhiteboard,
   useZones,
 } from '../../../hooks';
@@ -24,6 +25,7 @@ import {
   GradientButton,
   LocationAndZonesSection,
   CountdownsSection,
+  DailyQuestionCard,
 } from '../../../components';
 import { GradientCard } from '../../../components/styled';
 import {
@@ -93,6 +95,9 @@ export default function Home() {
     getFeeling,
     updateFeeling,
     logFeelingHistory,
+    saveDailyAnswer,
+    editDailyAnswer,
+    listenToDailyQuestionDay,
     listenToFeelingChanges,
     getNumberOfItemsInWishlist,
     listentoNumberOfItemsInWishlist,
@@ -170,6 +175,16 @@ export default function Home() {
     updateFeeling,
     logFeelingHistory,
     listenToFeelingChanges,
+    showToast,
+  });
+
+  const dailyQuestion = useDailyQuestion({
+    roomId: user.roomId || null,
+    userId: user.uid || null,
+    partnerId: partnerId || null,
+    saveDailyAnswer,
+    editDailyAnswer,
+    listenToDailyQuestionDay,
     showToast,
   });
 
@@ -410,8 +425,12 @@ export default function Home() {
     router.push('/(tabs)/Home/Countdowns');
   }, []);
 
-  const handleMoodHistoryPress = useCallback(() => {
-    router.push('/(tabs)/Home/MoodHistory');
+  const handleCalendarPress = useCallback(() => {
+    router.push('/(tabs)/Calendar');
+  }, []);
+
+  const handleDailyQuestionHistoryPress = useCallback(() => {
+    router.push('/(tabs)/Home/DailyQuestion');
   }, []);
 
   // Handle case where theme is not yet loaded
@@ -605,7 +624,7 @@ export default function Home() {
                     loading={loading}
                   />
                   <TouchableOpacity
-                    onPress={handleMoodHistoryPress}
+                    onPress={handleCalendarPress}
                     style={{ alignSelf: 'flex-end', marginTop: theme?.spacing?.[2] || 8 }}>
                     <Text
                       style={{
@@ -613,10 +632,23 @@ export default function Home() {
                         fontWeight: theme?.fontWeight?.semibold,
                         color: theme?.colors?.primary,
                       }}>
-                      Mood history →
+                      Calendar →
                     </Text>
                   </TouchableOpacity>
                 </Box>
+
+                {/* Daily Question */}
+                <DailyQuestionCard
+                  question={dailyQuestion.question}
+                  status={dailyQuestion.status}
+                  loaded={dailyQuestion.loaded}
+                  myAnswer={dailyQuestion.myAnswer}
+                  partnerAnswer={dailyQuestion.partnerAnswer}
+                  partnerName={partnerName || 'Partner'}
+                  hasPartner={!!partnerId}
+                  onSubmit={dailyQuestion.submitAnswer}
+                  onOpenHistory={handleDailyQuestionHistoryPress}
+                />
 
                 {/* <Divider my={4} />
 

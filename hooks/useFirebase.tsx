@@ -18,6 +18,9 @@ import {
   child,
   remove,
   push,
+  query,
+  orderByKey,
+  limitToLast,
 } from 'firebase/database';
 import { PathData } from '../components';
 import { useAuth } from './useAuth';
@@ -30,6 +33,7 @@ import {
   CountdownObject,
   FeelingHistoryEntry,
   FeelingHistoryMonth,
+  DailyQuestionDay,
 } from '../types';
 import { monthKey } from '../utils/feelingHistory';
 import { Journal, JournalObject } from '../types/Journal';
@@ -366,6 +370,61 @@ export const useFirebase = () => {
           !!entry && typeof entry.feeling === 'string' && typeof entry.at === 'number',
       )
       .sort((a, b) => a.at - b.at);
+  };
+
+  const saveDailyAnswer = async (
+    roomId: string,
+    uid: string,
+    dateKey: string,
+    question: string,
+    text: string,
+  ) => {
+    const dayRef = databaseRef(db, `rooms/${roomId}/dailyQuestions/${dateKey}`);
+
+    // Store the question with the answer so editing the built-in list never
+    // changes what a past day showed. Creating answers/{uid} triggers the
+    // partner notification Cloud Function.
+    await update(dayRef, {
+      question,
+      [`answers/${uid}`]: { text, answeredAt: Date.now() },
+    });
+  };
+
+  const editDailyAnswer = async (roomId: string, uid: string, dateKey: string, text: string) => {
+    const answerRef = databaseRef(db, `rooms/${roomId}/dailyQuestions/${dateKey}/answers/${uid}`);
+
+    // Updates children of the existing node, so the "answer created" Cloud
+    // Function does not fire again.
+    await update(answerRef, { text, updatedAt: Date.now() });
+  };
+
+  const listenToDailyQuestionDay = (
+    roomId: string,
+    dateKey: string,
+    callback: (day: DailyQuestionDay | null) => void,
+  ) => {
+    const dayRef = databaseRef(db, `rooms/${roomId}/dailyQuestions/${dateKey}`);
+
+    return onValue(dayRef, (snapshot) => {
+      callback(snapshot.val());
+    });
+  };
+
+  const getDailyQuestionHistory = async (
+    roomId: string,
+    limit: number,
+  ): Promise<{ dateKey: string; day: DailyQuestionDay }[]> => {
+    const historyQuery = query(
+      databaseRef(db, `rooms/${roomId}/dailyQuestions`),
+      orderByKey(),
+      limitToLast(limit),
+    );
+    const snapshot = await get(historyQuery);
+    const data = (snapshot.val() || {}) as { [dateKey: string]: DailyQuestionDay };
+
+    return Object.entries(data)
+      .map(([dateKey, day]) => ({ dateKey, day }))
+      .sort((a, b) => b.dateKey.localeCompare(a.dateKey));
   };
 
   const listenToFeelingChanges = (
@@ -904,6 +963,10 @@ export const useFirebase = () => {
     listenToFeelingChanges,
     logFeelingHistory,
     getFeelingHistoryMonth,
+    saveDailyAnswer,
+    editDailyAnswer,
+    listenToDailyQuestionDay,
+    getDailyQuestionHistory,
     getWishlist,
     updateEntryInWishlist,
     listenToWishlistChanges,

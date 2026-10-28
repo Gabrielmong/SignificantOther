@@ -1,5 +1,6 @@
 import { FEELING_EMOJIS, FEELINGS_LABELS } from '../constants';
-import { FeelingHistoryEntry } from '../types';
+import { CountdownObject, FeelingHistoryEntry } from '../types';
+import { nthOccurrence, recurrenceStep } from './countdown';
 
 const pad = (value: number) => String(value).padStart(2, '0');
 
@@ -118,3 +119,93 @@ export const feelingDisplay = (feeling: string): { emoji: string; label: string 
   emoji: FEELING_EMOJIS[feeling] || '❔',
   label: FEELINGS_LABELS[feeling] || feeling,
 });
+
+export type CountdownOccurrence = {
+  id: string;
+  title: string;
+  icon: string;
+  date: number;
+};
+
+// Safety net for the per-month loop. A month holds at most ~31 occurrences
+// (a daily countdown), plus the one-step lead-in.
+const MAX_OCCURRENCES_PER_MONTH = 64;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Every occurrence of every countdown inside `month`, grouped by local day.
+ * Each recurring occurrence is computed directly from the stored date
+ * (month steps clamped to the target month's last day), so past and future
+ * months both show it without chaining steps. Each day's list is ordered
+ * by title.
+ */
+export const countdownOccurrencesInMonth = (
+  countdowns: CountdownObject | null | undefined,
+  month: string,
+): { [day: number]: CountdownOccurrence[] } => {
+  const { year, monthIndex } = parseMonthKey(month);
+  const monthStart = new Date(year, monthIndex, 1).getTime();
+  const monthEnd = new Date(year, monthIndex + 1, 1).getTime();
+  const byDay: { [day: number]: CountdownOccurrence[] } = {};
+
+  for (const [id, countdown] of Object.entries(countdowns ?? {})) {
+    if (!countdown || typeof countdown.date !== 'number' || !Number.isFinite(countdown.date)) {
+      continue;
+    }
+
+    const recurrence = countdown.recurrence || 'none';
+    const step =
+      recurrence === 'none'
+        ? null
+        : recurrenceStep(recurrence, countdown.recurrenceInterval, countdown.recurrenceUnit);
+
+    const add = (date: number) => {
+      const day = new Date(date).getDate();
+      (byDay[day] ??= []).push({
+        id,
+        title: countdown.title || '',
+        icon: countdown.icon || '📅',
+        date,
+      });
+    };
+
+    // One-off, or a custom recurrence with no usable interval.
+    if (!step) {
+      if (countdown.date >= monthStart && countdown.date < monthEnd) add(countdown.date);
+      continue;
+    }
+
+    // Estimate the first occurrence index near the month, start one step
+    // early, then walk forward through the month.
+    const anchor = new Date(countdown.date);
+    let n =
+      'months' in step
+        ? Math.floor(
+            ((year - anchor.getFullYear()) * 12 + (monthIndex - anchor.getMonth())) / step.months,
+          ) - 1
+        : Math.floor((monthStart - countdown.date) / (step.days * DAY_MS)) - 1;
+
+    for (let i = 0; i < MAX_OCCURRENCES_PER_MONTH; i++, n++) {
+      const date = nthOccurrence(countdown.date, step, n);
+      if (date >= monthEnd) break;
+      if (date >= monthStart) add(date);
+    }
+  }
+
+  for (const occurrences of Object.values(byDay)) {
+    occurrences.sort((a, b) => a.title.localeCompare(b.title));
+  }
+
+  return byDay;
+};
+
+/**
+ * Short weekday plus day number, e.g. "Thu 28".
+ */
+export const formatShortDate = (month: string, day: number): string => {
+  const { year, monthIndex } = parseMonthKey(month);
+  const weekday = new Date(year, monthIndex, day).toLocaleDateString(undefined, {
+    weekday: 'short',
+  });
+  return `${weekday} ${day}`;
+};
