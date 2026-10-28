@@ -2,7 +2,12 @@ import { Platform } from 'react-native';
 import { requestWidgetUpdate } from 'react-native-android-widget';
 import { PartnerStatusWidget, PartnerStatusCompactWidget } from './PartnerStatusWidget';
 import { CountdownObject } from '../types';
-import { getWidgetLastData, mergeWidgetLastData, WidgetDisplayData } from '../services/widgetTask';
+import {
+  getWidgetLastData,
+  mergeWidgetLastData,
+  WidgetAccent,
+  WidgetDisplayData,
+} from '../services/widgetTask';
 import { getNextCountdown, isSameWidgetCountdown } from '../utils/countdown';
 
 // Redraws every widget size placed on the home screen with the same data.
@@ -41,5 +46,29 @@ export async function syncNextCountdownToWidget(countdowns: CountdownObject) {
     await renderAllWidgets(data);
   } catch (error) {
     console.error('Error syncing countdown to widget:', error);
+  }
+}
+
+// Pushes the user's accent colors to the widgets when they have changed
+// (theme pick or light/dark switch).
+export async function syncAccentToWidget(accent: WidgetAccent) {
+  if (Platform.OS !== 'android') return;
+
+  try {
+    const cached = await getWidgetLastData();
+    const current = cached?.accent;
+    if (
+      current &&
+      current.from === accent.from &&
+      current.to === accent.to &&
+      current.text === accent.text
+    ) {
+      return;
+    }
+
+    const data = await mergeWidgetLastData({ accent });
+    await renderAllWidgets(data);
+  } catch (error) {
+    console.error('Error syncing accent to widget:', error);
   }
 }

@@ -182,7 +182,7 @@ export const AddCountdownModal: React.FC<AddCountdownModalProps> = ({
                       {
                         backgroundColor:
                           selectedIcon === icon
-                            ? theme?.gradients?.primary?.colors?.[0] || '#8B5CF6'
+                            ? theme.colors.primary
                             : theme?.colors?.surface || '#F3F4F6',
                       },
                     ]}>
@@ -268,7 +268,7 @@ export const AddCountdownModal: React.FC<AddCountdownModalProps> = ({
                       {
                         backgroundColor:
                           recurrence === option.value
-                            ? theme?.gradients?.primary?.colors?.[0] || '#8B5CF6'
+                            ? theme.colors.primary
                             : theme?.colors?.surface || '#F3F4F6',
                       },
                     ]}>
@@ -276,7 +276,7 @@ export const AddCountdownModal: React.FC<AddCountdownModalProps> = ({
                       style={{
                         color:
                           recurrence === option.value
-                            ? '#FFFFFF'
+                            ? theme.colors.onPrimary
                             : theme?.colors?.text || '#000000',
                         fontSize: theme?.fontSize?.sm || 14,
                         fontWeight: theme?.fontWeight?.semibold || '600',
@@ -339,8 +339,7 @@ export const AddCountdownModal: React.FC<AddCountdownModalProps> = ({
                           {
                             backgroundColor:
                               recurrenceUnit === option.value
-                                ? theme?.gradients?.primary?.colors?.[0] ||
-                                  '#8B5CF6'
+                                ? theme.colors.primary
                                 : theme?.colors?.surface || '#F3F4F6',
                           },
                         ]}>
@@ -348,7 +347,7 @@ export const AddCountdownModal: React.FC<AddCountdownModalProps> = ({
                           style={{
                             color:
                               recurrenceUnit === option.value
-                                ? '#FFFFFF'
+                                ? theme.colors.onPrimary
                                 : theme?.colors?.text || '#000000',
                             fontSize: theme?.fontSize?.sm || 14,
                           }}>
@@ -377,10 +376,10 @@ export const AddCountdownModal: React.FC<AddCountdownModalProps> = ({
               disabled={!title.trim()}
               style={{
                 flex: 1,
-                backgroundColor: theme?.gradients?.primary?.colors?.[0] || '#8B5CF6',
+                backgroundColor: theme.colors.primary,
                 opacity: title.trim() ? 1 : 0.5,
               }}>
-              <Text style={{ color: '#FFFFFF' }}>Save</Text>
+              <Text style={{ color: theme.colors.onPrimary }}>Save</Text>
             </Button>
           </Box>
         </Box>

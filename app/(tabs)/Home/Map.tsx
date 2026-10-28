@@ -389,7 +389,7 @@ export default function Map() {
 
   // Combined marker component for when users are together
   const CombinedMarker = () => {
-    const primaryColor = theme?.gradients?.primary?.colors?.[0] || '#8B5CF6';
+    const primaryColor = theme.colors.primary;
     const surfaceColor = theme?.colors?.surface || '#FFFFFF';
     const textColor = theme?.colors?.text || '#000000';
 
@@ -440,8 +440,8 @@ export default function Map() {
     };
 
     // Fallback colors if theme is not loaded
-    const primaryColor = theme?.gradients?.primary?.colors?.[0] || '#8B5CF6';
-    const secondaryColor = theme?.gradients?.secondary?.colors?.[0] || '#EC4899';
+    const primaryColor = theme.colors.primary;
+    const secondaryColor = theme.colors.secondary;
     const surfaceColor = theme?.colors?.surface || '#FFFFFF';
     const textColor = theme?.colors?.text || '#000000';
 
@@ -493,7 +493,13 @@ export default function Map() {
                   backgroundColor: isUser ? primaryColor : secondaryColor,
                 },
               ]}>
-              <Text style={styles.initialsText}>{getInitials(label)}</Text>
+              <Text
+                style={[
+                  styles.initialsText,
+                  { color: isUser ? theme.colors.onPrimary : theme.colors.onPartner },
+                ]}>
+                {getInitials(label)}
+              </Text>
             </View>
           )}
         </View>
@@ -510,7 +516,7 @@ export default function Map() {
     return (
       <View style={[styles.container, { backgroundColor: theme?.colors?.background || '#FFFFFF' }]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme?.colors?.primary || '#8B5CF6'} />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={{ color: theme?.colors?.text || '#000000' }}>Loading map…</Text>
         </View>
       </View>
@@ -618,12 +624,12 @@ export default function Map() {
                   'match',
                   ['get', 'type'],
                   'home',
-                  theme?.colors?.primary || '#8B5CF6',
+                  theme.colors.primary,
                   'work',
-                  theme?.colors?.secondary || '#EC4899',
+                  theme.colors.accentAlt,
                   'custom',
                   '#10B981',
-                  theme?.colors?.primary || '#8B5CF6',
+                  theme.colors.primary,
                 ],
                 fillOpacity: 0.18,
               }}

@@ -4,20 +4,33 @@
  */
 
 import {
-  purple,
-  blue,
   neutral,
   darkBg,
   darkText,
   semantic,
   base,
-  lightColors,
-  darkColors,
   getColors,
   type ColorMode,
   type ThemeColors,
   type ColorKey,
 } from './colors';
+
+import {
+  accentThemes,
+  ACCENT_IDS,
+  DEFAULT_ACCENT,
+  isAccentId,
+  toAccentId,
+  selfPair,
+  partnerPair,
+  altPair,
+  type AccentId,
+  type AccentTheme,
+  type AccentShades,
+  type ColorPair,
+} from './accentThemes';
+
+import { readableTextOn, contrastRatio, mixHex, buildScale } from './colorMath';
 
 import {
   spacing,
@@ -55,18 +68,15 @@ import {
   type DurationKey,
 } from './animations';
 
-import {
-  gradients,
-  getGradient,
-  type GradientKey,
-  type GradientConfig,
-} from './gradients';
+import { buildGradients, type GradientKey, type GradientConfig } from './gradients';
 
 /**
  * Complete Theme Object
  */
 export interface Theme {
   colorMode: ColorMode;
+  accentId: AccentId;
+  partnerAccentId: AccentId;
   colors: ThemeColors;
   spacing: typeof spacing;
   commonSpacing: typeof commonSpacing;
@@ -83,16 +93,27 @@ export interface Theme {
   springConfig: typeof springConfig;
   animationPresets: typeof animationPresets;
   interactionTiming: typeof interactionTiming;
-  gradients: typeof gradients;
+  gradients: Record<GradientKey, GradientConfig>;
 }
 
 /**
- * Create theme object based on color mode
+ * Create theme object based on color mode, my accent theme and my
+ * partner's accent theme
  */
-export const createTheme = (colorMode: ColorMode = 'dark'): Theme => {
+export const createTheme = (
+  colorMode: ColorMode = 'dark',
+  accentId: AccentId = DEFAULT_ACCENT,
+  partnerAccentId: AccentId = DEFAULT_ACCENT,
+): Theme => {
+  const self = selfPair(colorMode, accentId);
+  const partner = partnerPair(colorMode, accentId, partnerAccentId);
+  const alt = altPair(colorMode, accentId);
+
   return {
     colorMode,
-    colors: getColors(colorMode),
+    accentId,
+    partnerAccentId,
+    colors: getColors(colorMode, self, partner, alt),
     spacing,
     commonSpacing,
     radii,
@@ -108,31 +129,35 @@ export const createTheme = (colorMode: ColorMode = 'dark'): Theme => {
     springConfig,
     animationPresets,
     interactionTiming,
-    gradients,
+    gradients: buildGradients(colorMode, self, partner),
   };
 };
-
-/**
- * Default themes
- */
-export const lightTheme = createTheme('light');
-export const darkTheme = createTheme('dark');
 
 /**
  * Export all individual modules
  */
 export {
   // Colors
-  purple,
-  blue,
   neutral,
   darkBg,
   darkText,
   semantic,
   base,
-  lightColors,
-  darkColors,
   getColors,
+
+  // Accent themes
+  accentThemes,
+  ACCENT_IDS,
+  DEFAULT_ACCENT,
+  isAccentId,
+  toAccentId,
+  selfPair,
+  partnerPair,
+  altPair,
+  readableTextOn,
+  contrastRatio,
+  mixHex,
+  buildScale,
 
   // Spacing
   spacing,
@@ -157,9 +182,10 @@ export {
   reducedMotion,
 
   // Gradients
-  gradients,
-  getGradient,
+  buildGradients,
 };
+
+export { createGluestackConfig } from './gluestack';
 
 /**
  * Export all types
@@ -181,6 +207,10 @@ export type {
   DurationKey,
   GradientKey,
   GradientConfig,
+  AccentId,
+  AccentTheme,
+  AccentShades,
+  ColorPair,
 };
 
 /**

@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
 import { useAppTheme } from '../../hooks';
+import { applyOpacity } from '../../config/theme';
 import { Zone } from '../../types';
 import { MapPin } from 'lucide-react-native';
 
@@ -55,7 +56,8 @@ export const ZoneCard: React.FC<ZoneCardProps> = ({ zone, status, onPress }) => 
               : 'transparent',
         },
       ]}>
-      <View style={styles.iconContainer}>
+      <View
+        style={[styles.iconContainer, { backgroundColor: applyOpacity(theme.colors.primary, 0.1) }]}>
         <Text style={styles.icon}>{zone.icon}</Text>
       </View>
       <View style={styles.contentContainer}>
@@ -77,9 +79,9 @@ export const ZoneCard: React.FC<ZoneCardProps> = ({ zone, status, onPress }) => 
               {
                 backgroundColor:
                   zone.type === 'home'
-                    ? 'rgba(139, 92, 246, 0.1)'
+                    ? applyOpacity(theme.colors.primary, 0.1)
                     : zone.type === 'work'
-                    ? 'rgba(59, 130, 246, 0.1)'
+                    ? applyOpacity(theme.colors.accentAlt, 0.1)
                     : 'rgba(107, 114, 128, 0.1)',
               },
             ]}>
@@ -89,9 +91,9 @@ export const ZoneCard: React.FC<ZoneCardProps> = ({ zone, status, onPress }) => 
                 {
                   color:
                     zone.type === 'home'
-                      ? '#8B5CF6'
+                      ? theme.colors.primary
                       : zone.type === 'work'
-                      ? '#3B82F6'
+                      ? theme.colors.accentAlt
                       : '#6B7280',
                   fontSize: theme?.fontSize?.xs || 12,
                 },
@@ -141,7 +143,6 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(139, 92, 246, 0.1)',
   },
   icon: {
     fontSize: 24,

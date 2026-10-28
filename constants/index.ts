@@ -17,17 +17,18 @@ export const TAB_HIDDEN_ROUTES = [
 export const FLOWER_MAP: {
   [key: string]: any;
 } = {
-  daisy: require('../assets/flowers/daisy.png'),
+  amaranth: require('../assets/flowers/amaranth.png'),
+  carnation: require('../assets/flowers/carnation.png'),
   dahlia: require('../assets/flowers/dahlia.png'),
+  daisy: require('../assets/flowers/daisy.png'),
   hydrangea: require('../assets/flowers/hydrangea.jpeg'),
   lily: require('../assets/flowers/lily.png'),
   orchid: require('../assets/flowers/orchid.jpeg'),
+  peony: require('../assets/flowers/peony.png'),
   rose: require('../assets/flowers/rose.png'),
   sunflower: require('../assets/flowers/sunflower.jpeg'),
   tulip: require('../assets/flowers/tulip.jpeg'),
   violet: require('../assets/flowers/violet.png'),
-  amaranth: require('../assets/flowers/amaranth.png'),
-  carnation: require('../assets/flowers/carnation.png'),
 } as const;
 
 export const FEELINGS_MAP: {

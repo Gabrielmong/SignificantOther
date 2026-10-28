@@ -21,6 +21,7 @@ import {
   query,
   orderByKey,
   limitToLast,
+  set,
 } from 'firebase/database';
 import { PathData } from '../components';
 import { useAuth } from './useAuth';
@@ -34,6 +35,8 @@ import {
   FeelingHistoryEntry,
   FeelingHistoryMonth,
   DailyQuestionDay,
+  Milestone,
+  MilestoneObject,
 } from '../types';
 import { monthKey } from '../utils/feelingHistory';
 import { Journal, JournalObject } from '../types/Journal';
@@ -853,6 +856,43 @@ export const useFirebase = () => {
     return unsubscribe;
   };
 
+  // Writes a countdown under a known id (used for milestone anniversaries,
+  // whose id is derived from the milestone so it can't be duplicated)
+  const setCountdown = async (roomId: string, countdown: Countdown & { id: string }) => {
+    await set(databaseRef(db, `rooms/${roomId}/countdowns/${countdown.id}`), countdown);
+  };
+
+  // Milestone Management
+  const newId = () => uuid.v4().toString().substring(0, 12);
+
+  // Whether this device is connected to the Realtime Database right now
+  const isConnected = () =>
+    new Promise<boolean>((resolve) => {
+      onValue(
+        databaseRef(db, '.info/connected'),
+        (snapshot) => resolve(snapshot.val() === true),
+        { onlyOnce: true },
+      );
+    });
+
+  const setMilestone = async (roomId: string, milestone: Milestone) => {
+    await set(databaseRef(db, `rooms/${roomId}/milestones/${milestone.id}`), milestone);
+  };
+
+  const deleteMilestone = async (roomId: string, id: string) => {
+    await remove(databaseRef(db, `rooms/${roomId}/milestones/${id}`));
+  };
+
+  const listenToMilestoneChanges = (
+    milestoneCallback: (milestones: MilestoneObject) => void,
+    roomId: string,
+  ) => {
+    // Report an empty list too, so deleting the last milestone clears it.
+    return onValue(databaseRef(db, `rooms/${roomId}/milestones`), (snapshot) => {
+      milestoneCallback(snapshot.val() || {});
+    });
+  };
+
   // Zone Management Functions
   const getZones = async (uid: string) => {
     const roomRef = databaseRef(db, `rooms/${uid}/zones`);
@@ -996,6 +1036,12 @@ export const useFirebase = () => {
     updateCountdown,
     deleteCountdown,
     listenToCountdownChanges,
+    setCountdown,
+    newId,
+    isConnected,
+    setMilestone,
+    deleteMilestone,
+    listenToMilestoneChanges,
     getZones,
     createZone,
     updateZone,

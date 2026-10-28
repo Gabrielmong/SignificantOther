@@ -1,6 +1,7 @@
 import { FEELING_EMOJIS, FEELINGS_LABELS } from '../constants';
 import { CountdownObject, FeelingHistoryEntry } from '../types';
 import { nthOccurrence, recurrenceStep } from './countdown';
+import { anniversaryInMonth } from './milestones';
 
 const pad = (value: number) => String(value).padStart(2, '0');
 
@@ -153,12 +154,6 @@ export const countdownOccurrencesInMonth = (
       continue;
     }
 
-    const recurrence = countdown.recurrence || 'none';
-    const step =
-      recurrence === 'none'
-        ? null
-        : recurrenceStep(recurrence, countdown.recurrenceInterval, countdown.recurrenceUnit);
-
     const add = (date: number) => {
       const day = new Date(date).getDate();
       (byDay[day] ??= []).push({
@@ -168,6 +163,19 @@ export const countdownOccurrencesInMonth = (
         date,
       });
     };
+
+    // Milestone anniversaries: once a year, never before the milestone itself
+    if (countdown.anniversaryDay) {
+      const date = anniversaryInMonth(countdown.anniversaryDay, year, monthIndex);
+      if (date !== null) add(date);
+      continue;
+    }
+
+    const recurrence = countdown.recurrence || 'none';
+    const step =
+      recurrence === 'none'
+        ? null
+        : recurrenceStep(recurrence, countdown.recurrenceInterval, countdown.recurrenceUnit);
 
     // One-off, or a custom recurrence with no usable interval.
     if (!step) {

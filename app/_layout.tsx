@@ -1,6 +1,5 @@
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GluestackUIProvider, StatusBar } from '@gluestack-ui/themed';
-import { config } from '@gluestack-ui/config';
 import { store } from '../state';
 import { Provider } from 'react-redux';
 import { Slot } from 'expo-router';
@@ -18,10 +17,13 @@ import '../services/locationTask';
 
 // Inner component that consumes theme
 function AppContent() {
-  const { colorMode, theme } = useAppTheme();
+  const { colorMode, theme, gluestackConfig, isLoading } = useAppTheme();
+
+  // Wait for the cached theme so a non-default accent never flashes purple
+  if (isLoading) return null;
 
   return (
-    <GluestackUIProvider config={config} colorMode={colorMode}>
+    <GluestackUIProvider config={gluestackConfig} colorMode={colorMode}>
       <GestureHandlerRootView
         style={{
           flex: 1,

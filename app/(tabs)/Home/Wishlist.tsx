@@ -280,8 +280,9 @@ export default function Wishlist() {
           const isSelected = selectedFilter === category.value;
           const gradientColors =
             category.value === 'all'
-              ? ['#8B5CF6', '#EC4899']
-              : categoryGradients[category.value] || ['#8B5CF6', '#EC4899'];
+              ? theme.gradients.primary.colors
+              : categoryGradients[category.value] || theme.gradients.primary.colors;
+          const chipTextColor = category.value === 'all' ? theme.colors.onPrimary : '#FFFFFF';
 
           return (
             <TouchableOpacity
@@ -301,7 +302,7 @@ export default function Wishlist() {
                   }}>
                   <Text
                     style={{
-                      color: '#FFFFFF',
+                      color: chipTextColor,
                       fontSize: theme.fontSize.sm,
                       fontWeight: theme.fontWeight.semibold,
                     }}>
@@ -398,7 +399,7 @@ export default function Wishlist() {
 
                   {Object.keys(filteredWishlist[categoryKey]).map((activity) => {
                     const item = filteredWishlist[categoryKey][activity];
-                    const gradientColors = categoryGradients[key] || ['#8B5CF6', '#EC4899'];
+                    const gradientColors = categoryGradients[key] || theme.gradients.primary.colors;
 
                     return (
                       <TouchableOpacity
@@ -586,7 +587,7 @@ export default function Wishlist() {
                   marginTop: theme.spacing[4],
                 }}>
                 <LinearGradient
-                  colors={theme?.gradients?.primary?.colors || ['#8B5CF6', '#EC4899']}
+                  colors={theme.gradients.primary.colors}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={{
@@ -597,10 +598,10 @@ export default function Wishlist() {
                     alignItems: 'center',
                     gap: theme.spacing[2],
                   }}>
-                  <Plus size={20} color="#FFFFFF" />
+                  <Plus size={20} color={theme.colors.onPrimary} />
                   <Text
                     style={{
-                      color: '#FFFFFF',
+                      color: theme.colors.onPrimary,
                       fontWeight: theme.fontWeight.semibold,
                       fontSize: theme.fontSize.md,
                     }}>

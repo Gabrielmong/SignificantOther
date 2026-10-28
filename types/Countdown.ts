@@ -12,6 +12,9 @@ export interface Countdown {
   recurrence?: RecurrenceType; // Type of recurrence (optional for backward compatibility)
   recurrenceInterval?: number; // For custom intervals (e.g., 3 for "every 3 months")
   recurrenceUnit?: RecurrenceUnit; // Unit for custom intervals
+  milestoneId?: string; // Set on anniversary countdowns managed from You Two
+  anniversaryTitle?: string | null; // Title to switch to once a future event has passed
+  anniversaryDay?: string; // Milestone day "YYYY-MM-DD"; anniversaries roll from this
 }
 
 export interface CountdownObject {

@@ -13,6 +13,7 @@ import {
   HStack,
 } from '@gluestack-ui/themed';
 import { useAppTheme, useAuth, useFirebase } from '../../../../hooks';
+import { applyOpacity } from '../../../../config/theme';
 import { StatusBar, TouchableOpacity } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -80,7 +81,8 @@ export default function Note() {
   };
 
   const isSelf = user?.uid === note?.authorId;
-  const gradientColors = isSelf ? ['#8B5CF6', '#7C3AED'] : ['#3B82F6', '#2563EB'];
+  const gradientColors = isSelf ? theme.gradients.primary.colors : theme.gradients.partner.colors;
+  const onColor = isSelf ? theme.colors.onPrimary : theme.colors.onPartner;
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -171,7 +173,7 @@ export default function Note() {
                 style={{
                   fontSize: theme.fontSize['3xl'],
                   fontWeight: theme.fontWeight.bold,
-                  color: '#FFFFFF',
+                  color: onColor,
                   lineHeight: theme.lineHeight.tight * theme.fontSize['3xl'],
                   marginBottom: theme.spacing[4],
                 }}>
@@ -198,11 +200,11 @@ export default function Note() {
                     alignItems: 'center',
                     gap: theme.spacing[1],
                   }}>
-                  <User size={14} color="#FFFFFF" />
+                  <User size={14} color={onColor} />
                   <Text
                     style={{
                       fontSize: theme.fontSize.sm,
-                      color: '#FFFFFF',
+                      color: onColor,
                       fontWeight: theme.fontWeight.semibold,
                     }}>
                     {isSelf ? 'You' : note?.author}
@@ -213,7 +215,7 @@ export default function Note() {
               {/* Description */}
               <Text
                 style={{
-                  color: 'rgba(255, 255, 255, 0.95)',
+                  color: applyOpacity(onColor, 0.95),
                   fontSize: theme.fontSize.md,
                   lineHeight: theme.lineHeight.relaxed * theme.fontSize.md,
                 }}>

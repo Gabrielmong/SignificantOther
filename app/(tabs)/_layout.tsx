@@ -1,15 +1,22 @@
 import { Tabs } from 'expo-router';
 import { GluestackUIProvider, View } from '@gluestack-ui/themed';
-import { config } from '@gluestack-ui/config';
 import { Icon } from '@gluestack-ui/themed';
-import { CalendarHeart, CircleUserRound, Home, MessageCircle } from 'lucide-react-native';
+import {
+  CalendarHeart,
+  CircleUserRound,
+  HeartHandshake,
+  Home,
+  MessageCircle,
+} from 'lucide-react-native';
 import { usePathname } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { TAB_HIDDEN_ROUTES } from '../../constants';
 import { AnimatedTabIcon } from '../../components';
+import { useAppTheme } from '../../hooks';
 
 export default function HomeLayout() {
   const pathname = usePathname();
+  const { theme, colorMode, gluestackConfig } = useAppTheme();
   const [tabHidden, setTabHidden] = useState(false);
 
   useEffect(() => {
@@ -21,17 +28,17 @@ export default function HomeLayout() {
   }, [pathname]);
 
   return (
-    <GluestackUIProvider config={config}>
+    <GluestackUIProvider config={gluestackConfig} colorMode={colorMode}>
       <Tabs
         screenOptions={{
-          tabBarActiveBackgroundColor: '#2D3250',
-          tabBarInactiveBackgroundColor: '#2D3250',
-          tabBarActiveTintColor: '#F5E8C7',
-          tabBarInactiveTintColor: '#7077A1',
+          tabBarActiveBackgroundColor: theme.colors.surface,
+          tabBarInactiveBackgroundColor: theme.colors.surface,
+          tabBarActiveTintColor: theme.colors.primary,
+          tabBarInactiveTintColor: theme.colors.textTertiary,
           tabBarStyle: {
             borderTopWidth: 0,
             borderRadius: 20,
-            backgroundColor: '#2D3250',
+            backgroundColor: theme.colors.surface,
             display: tabHidden ? 'none' : 'flex',
             height: 60,
             paddingBottom: 12,
@@ -81,6 +88,26 @@ export default function HomeLayout() {
                 }}>
                 <AnimatedTabIcon focused={focused}>
                   <Icon as={CalendarHeart} color={color} />
+                </AnimatedTabIcon>
+              </View>
+            ),
+            headerShown: false,
+          }}
+        />
+        <Tabs.Screen
+          name="YouTwo"
+          options={{
+            tabBarIcon: ({ color, focused }) => (
+              <View
+                style={{
+                  width: 48,
+                  height: 40,
+                  borderRadius: 14,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <AnimatedTabIcon focused={focused}>
+                  <Icon as={HeartHandshake} color={color} />
                 </AnimatedTabIcon>
               </View>
             ),

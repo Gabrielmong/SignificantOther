@@ -8,6 +8,7 @@ import {
   HStack,
 } from '@gluestack-ui/themed';
 import { useAppTheme, useAuth, useFirebase } from '../../../../hooks';
+import { applyOpacity } from '../../../../config/theme';
 import { useEffect, useState } from 'react';
 import { Journal as JournalEntry, JournalObject } from '../../../../types';
 import { router } from 'expo-router';
@@ -160,8 +161,9 @@ export default function Journal() {
           journal.map(({ id, authorId, title, description, author, createdAt, readAt }) => {
             const isSelf = user?.uid === authorId;
             const gradientColors = isSelf
-              ? ['#8B5CF6', '#7C3AED'] // Purple for self
-              : ['#3B82F6', '#2563EB']; // Blue for partner
+              ? theme.gradients.primary.colors
+              : theme.gradients.partner.colors;
+            const onColor = isSelf ? theme.colors.onPrimary : theme.colors.onPartner;
 
             return (
               <TouchableOpacity
@@ -189,20 +191,20 @@ export default function Journal() {
                       style={{
                         fontSize: theme.fontSize.xl,
                         fontWeight: theme.fontWeight.bold,
-                        color: '#FFFFFF',
+                        color: onColor,
                         flex: 1,
                       }}
                       numberOfLines={2}>
                       {title}
                     </Text>
-                    <ChevronRight size={20} color="rgba(255, 255, 255, 0.6)" />
+                    <ChevronRight size={20} color={applyOpacity(onColor, 0.6)} />
                   </HStack>
 
                   {/* Description */}
                   <Text
                     style={{
                       fontSize: theme.fontSize.sm,
-                      color: 'rgba(255, 255, 255, 0.9)',
+                      color: applyOpacity(onColor, 0.9),
                       lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
                       marginBottom: theme.spacing[3],
                     }}>
@@ -223,11 +225,11 @@ export default function Journal() {
                         alignItems: 'center',
                         gap: theme.spacing[1],
                       }}>
-                      <Calendar size={14} color="rgba(255, 255, 255, 0.8)" />
+                      <Calendar size={14} color={applyOpacity(onColor, 0.8)} />
                       <Text
                         style={{
                           fontSize: theme.fontSize.xs,
-                          color: 'rgba(255, 255, 255, 0.8)',
+                          color: applyOpacity(onColor, 0.8),
                         }}>
                         {formatDate(createdAt)}
                       </Text>
@@ -243,11 +245,11 @@ export default function Journal() {
                           paddingVertical: theme.spacing[1],
                           borderRadius: theme.radii.full,
                         }}>
-                        <User size={12} color="#FFFFFF" />
+                        <User size={12} color={onColor} />
                         <Text
                           style={{
                             fontSize: theme.fontSize.xs,
-                            color: '#FFFFFF',
+                            color: onColor,
                             fontWeight: theme.fontWeight.semibold,
                           }}>
                           {isSelf ? 'You' : author}
@@ -264,11 +266,11 @@ export default function Journal() {
                             paddingVertical: theme.spacing[1],
                             borderRadius: theme.radii.full,
                           }}>
-                          <Eye size={12} color="#FFFFFF" />
+                          <Eye size={12} color={onColor} />
                           <Text
                             style={{
                               fontSize: theme.fontSize.xs,
-                              color: '#FFFFFF',
+                              color: onColor,
                               fontWeight: theme.fontWeight.semibold,
                             }}>
                             Seen
@@ -317,7 +319,7 @@ export default function Journal() {
                 marginTop: theme.spacing[4],
               }}>
               <LinearGradient
-                colors={theme?.gradients?.primary?.colors || ['#8B5CF6', '#EC4899']}
+                colors={theme.gradients.primary.colors}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={{
@@ -328,10 +330,10 @@ export default function Journal() {
                   alignItems: 'center',
                   gap: theme.spacing[2],
                 }}>
-                <Plus size={20} color="#FFFFFF" />
+                <Plus size={20} color={theme.colors.onPrimary} />
                 <Text
                   style={{
-                    color: '#FFFFFF',
+                    color: theme.colors.onPrimary,
                     fontWeight: theme.fontWeight.semibold,
                     fontSize: theme.fontSize.md,
                   }}>

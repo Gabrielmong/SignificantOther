@@ -278,7 +278,7 @@ export default function JournalEditor() {
           disabled={loading || !hasChanges}
           style={{ marginBottom: theme.spacing[4] }}>
           <LinearGradient
-            colors={theme?.gradients?.primary?.colors || ['#8B5CF6', '#EC4899']}
+            colors={theme.gradients.primary.colors}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={{
@@ -289,7 +289,7 @@ export default function JournalEditor() {
             }}>
             <Text
               style={{
-                color: '#FFFFFF',
+                color: theme.colors.onPrimary,
                 fontSize: theme.fontSize.md,
                 fontWeight: theme.fontWeight.semibold,
               }}>

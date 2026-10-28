@@ -1,6 +1,7 @@
 import { Box, Modal, Pressable, Text } from '@gluestack-ui/themed';
 import { useAppSelector } from '../../state';
 import { useAppTheme } from '../../hooks';
+import { applyOpacity } from '../../config/theme';
 import { useMemo } from 'react';
 
 interface MessageType {
@@ -45,6 +46,7 @@ export const Message = ({
   }, [timestamp]);
 
   const isOwnMessage = uid === user?.uid;
+  const onColor = isOwnMessage ? theme.colors.onPrimary : theme.colors.onPartner;
   const isReplyOwnMessage = replyingTo?.uid === user?.uid;
 
   const truncateMessage = (msg: string, maxLength: number = 50) => {
@@ -109,7 +111,7 @@ export const Message = ({
               }}>
               <Text
                 style={{
-                  color: 'rgba(255, 255, 255, 0.7)',
+                  color: applyOpacity(onColor, 0.7),
                   fontSize: theme.fontSize.xs,
                   fontWeight: theme.fontWeight.semibold,
                   marginBottom: theme.spacing[1],
@@ -118,7 +120,7 @@ export const Message = ({
               </Text>
               <Text
                 style={{
-                  color: 'rgba(255, 255, 255, 0.9)',
+                  color: applyOpacity(onColor, 0.9),
                   fontSize: theme.fontSize.sm,
                 }}
                 numberOfLines={1}>
@@ -130,7 +132,7 @@ export const Message = ({
           {/* Main Message */}
           <Text
             style={{
-              color: theme.colors.white,
+              color: onColor,
               fontSize: theme.fontSize.md,
             }}>
             {message}

@@ -235,7 +235,7 @@ export default function Chat() {
           alignItems: 'center',
           backgroundColor: theme.colors.background,
         }}>
-        <Spinner size="large" color={theme?.colors?.primary || '#8B5CF6'} />
+        <Spinner size="large" color={theme.colors.primary} />
         <Text
           style={{
             marginTop: 16,

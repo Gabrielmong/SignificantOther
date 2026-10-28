@@ -68,8 +68,8 @@ export const LocationAndZonesSection: React.FC<LocationAndZonesSectionProps> = (
             <Box style={{ alignItems: 'center', gap: theme?.spacing?.[2] || 8 }}>
               <Heart
                 size={32}
-                color={theme?.gradients?.primary?.colors?.[0] || '#8B5CF6'}
-                fill={theme?.gradients?.primary?.colors?.[0] || '#8B5CF6'}
+                color={theme.colors.primary}
+                fill={theme.colors.primary}
               />
               <Text
                 style={{

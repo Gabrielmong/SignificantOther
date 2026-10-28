@@ -7,3 +7,4 @@ export * from './WhiteboardSnapshot';
 export * from './FavoriteThing';
 export * from './FeelingHistory';
 export * from './DailyQuestion';
+export * from './Milestone';

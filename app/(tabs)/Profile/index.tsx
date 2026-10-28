@@ -1,21 +1,23 @@
 import { StatusBar } from 'expo-status-bar';
-import { Text, View, Button, Image, Box, Switch, HStack, VStack } from '@gluestack-ui/themed';
+import { Text, View, Button, Image, Box, Switch, HStack, VStack, Pressable } from '@gluestack-ui/themed';
 import { useAuth } from '../../../hooks/useAuth';
 import { useAppSelector } from '../../../state';
 import { useAppTheme, useAppToast } from '../../../hooks';
 import { router } from 'expo-router';
-import { IconButton, NotificationsModal } from '../../../components';
-import { Edit, Copy, Moon, Sun } from 'lucide-react-native';
+import { IconButton, NotificationsModal, ThemePickerModal } from '../../../components';
+import { Edit, Copy, Moon, Sun, Palette } from 'lucide-react-native';
+import { accentThemes } from '../../../config/theme';
 import * as Clipboard from 'expo-clipboard';
 import * as Notifications from 'expo-notifications';
 import { useState } from 'react';
 
 export default function Profile() {
   const user = useAppSelector((state) => state.user);
-  const { theme, colorMode, toggleColorMode } = useAppTheme();
+  const { theme, colorMode, toggleColorMode, accentId } = useAppTheme();
   const { logout } = useAuth();
   const { showToast } = useAppToast();
   const [notificationsModalVisible, setNotificationsModalVisible] = useState(false);
+  const [themePickerVisible, setThemePickerVisible] = useState(false);
 
   async function handleLogout() {
     await logout();
@@ -181,6 +183,59 @@ export default function Profile() {
           />
         </HStack>
 
+        {/* Accent Theme */}
+        <Pressable
+          onPress={() => setThemePickerVisible(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Change theme">
+          <HStack
+            style={{
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: theme.spacing[4],
+              backgroundColor: theme.colors.surface,
+              borderRadius: theme.radii.md,
+              ...theme.shadows.sm,
+            }}>
+            <HStack
+              style={{
+                alignItems: 'center',
+                gap: theme.spacing[3],
+              }}>
+              <Palette size={20} color={theme.colors.text} />
+              <Text
+                style={{
+                  fontSize: theme.fontSize.md,
+                  fontWeight: theme.fontWeight.medium,
+                  color: theme.colors.text,
+                }}>
+                Theme
+              </Text>
+            </HStack>
+            <HStack
+              style={{
+                alignItems: 'center',
+                gap: theme.spacing[2],
+              }}>
+              <Text
+                style={{
+                  fontSize: theme.fontSize.sm,
+                  color: theme.colors.textSecondary,
+                }}>
+                {accentThemes[accentId].name}
+              </Text>
+              <Box
+                style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: 10,
+                  backgroundColor: theme.colors.primary,
+                }}
+              />
+            </HStack>
+          </HStack>
+        </Pressable>
+
         <Button
           onPress={handleModalOpen}
           style={{
@@ -221,6 +276,7 @@ export default function Profile() {
         onClose={() => setNotificationsModalVisible(false)}
         onSave={() => setNotificationsModalVisible(false)}
       />
+      <ThemePickerModal isOpen={themePickerVisible} onClose={() => setThemePickerVisible(false)} />
     </View>
   );
 }

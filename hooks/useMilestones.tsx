@@ -1,0 +1,231 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useAppSelector } from '../state';
+import { useFirebase } from './useFirebase';
+import { useAppToast } from './useAppToast';
+import {
+  CountdownObject,
+  Milestone,
+  MilestoneKind,
+  MilestoneObject,
+  MilestonePhoto,
+} from '../types';
+import {
+  ANNIVERSARY_KINDS,
+  buildAnniversaryCountdown,
+  resolveMilestoneId,
+} from '../utils/milestones';
+import { PickedPhoto, uploadResizedPhoto, deletePhoto } from '../services/photoUpload';
+
+export type MilestoneInput = {
+  id?: string; // Missing for a new milestone
+  kind: MilestoneKind;
+  title: string;
+  day: string;
+  emoji: string;
+  note?: string;
+};
+
+export type PhotoChange = { type: 'keep' } | { type: 'remove' } | { type: 'new'; photo: PickedPhoto };
+
+const isAnniversaryKind = (kind: MilestoneKind) =>
+  (ANNIVERSARY_KINDS as readonly MilestoneKind[]).includes(kind);
+
+// Shared milestones for the room, plus the save/delete flows that keep
+// photos and anniversary countdowns in step with them.
+export const useMilestones = () => {
+  const uid = useAppSelector((state) => state.user.uid) || '';
+  const roomId = useAppSelector((state) => state.user.roomId) || '';
+  const {
+    listenToMilestoneChanges,
+    listenToCountdownChanges,
+    setMilestone,
+    deleteMilestone,
+    setCountdown,
+    deleteCountdown,
+    newId,
+    isConnected,
+  } = useFirebase();
+  const { showToast } = useAppToast();
+
+  const [milestoneObject, setMilestoneObject] = useState<MilestoneObject>({});
+  const [countdowns, setCountdowns] = useState<CountdownObject>({});
+  const [loading, setLoading] = useState(true);
+
+  // Latest list for the save flow, without re-creating callbacks on every change
+  const latest = useRef<MilestoneObject>({});
+  latest.current = milestoneObject;
+
+  useEffect(() => {
+    if (!roomId) return;
+
+    const unsubscribeMilestones = listenToMilestoneChanges((data) => {
+      setMilestoneObject(data);
+      setLoading(false);
+    }, roomId);
+    const unsubscribeCountdowns = listenToCountdownChanges(
+      (data) => setCountdowns(data.countdowns),
+      roomId,
+    );
+
+    return () => {
+      unsubscribeMilestones();
+      unsubscribeCountdowns();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomId]);
+
+  // Oldest first, so the list reads as a story
+  const milestones = useMemo(
+    () =>
+      Object.values(milestoneObject).sort(
+        (a, b) => a.day.localeCompare(b.day) || a.createdAt - b.createdAt,
+      ),
+    [milestoneObject],
+  );
+
+  const saveMilestone = useCallback(
+    async (
+      input: MilestoneInput,
+      photo: PhotoChange,
+      options?: { replaceCountdownId?: string },
+    ): Promise<boolean> => {
+      // Offline, Firebase writes wait silently instead of failing; say so up front
+      if (!(await isConnected())) {
+        showToast({
+          title: "You're offline",
+          description: 'Connect to the internet to save this milestone.',
+          status: 'error',
+        });
+        return false;
+      }
+
+      const edited: Milestone | undefined = input.id ? latest.current[input.id] : undefined;
+      // Special kinds live at a fixed id ("dating"), so they can't be duplicated
+      const id = resolveMilestoneId(input.kind, edited, newId);
+      const existing: Milestone | undefined = latest.current[id];
+      const previous: Milestone | undefined = edited ?? existing;
+
+      // 1. Upload a new photo first, so the milestone is written once
+      let uploaded: MilestonePhoto | undefined;
+      if (photo.type === 'new') {
+        try {
+          uploaded = await uploadResizedPhoto(photo.photo, `rooms/${roomId}/milestones/${id}`);
+        } catch (error) {
+          console.error('Error uploading milestone photo:', error);
+          showToast({
+            title: "Couldn't upload the photo",
+            description: 'Your milestone was not saved. Please try again.',
+            status: 'error',
+          });
+          return false;
+        }
+      }
+
+      const nextPhoto =
+        photo.type === 'new' ? uploaded : photo.type === 'keep' ? previous?.photo : undefined;
+      const note = input.note?.trim();
+
+      // RTDB rejects undefined values, so optional keys are only added when set
+      const milestone: Milestone = {
+        id,
+        kind: input.kind,
+        title: input.title.trim(),
+        day: input.day,
+        emoji: input.emoji,
+        createdAt: previous?.createdAt ?? Date.now(),
+        createdBy: previous?.createdBy ?? uid,
+        ...(previous ? { updatedAt: Date.now() } : {}),
+        ...(note ? { note } : {}),
+        ...(nextPhoto ? { photo: nextPhoto } : {}),
+        ...(previous?.placeId ? { placeId: previous.placeId } : {}),
+      };
+
+      // 2. Write the milestone; on failure, don't leave the upload behind
+      try {
+        await setMilestone(roomId, milestone);
+      } catch (error) {
+        console.error('Error saving milestone:', error);
+        if (uploaded) {
+          deletePhoto(uploaded.path).catch((e) => console.error('Error cleaning up photo:', e));
+        }
+        showToast({
+          title: "Couldn't save the milestone",
+          description: 'Please check your connection and try again.',
+          status: 'error',
+        });
+        return false;
+      }
+
+      // 3. Photos no longer referenced (the edited one's, and one it overwrote)
+      for (const old of [previous?.photo, existing !== previous ? existing?.photo : undefined]) {
+        if (old && old.path !== nextPhoto?.path) {
+          deletePhoto(old.path).catch((e) => console.error('Error deleting old milestone photo:', e));
+        }
+      }
+
+      // A type change moved the milestone to a new id; drop the old record
+      if (edited && edited.id !== id) {
+        deleteMilestone(roomId, edited.id).catch((e) =>
+          console.error('Error removing moved milestone:', e),
+        );
+      }
+
+      // 4. Keep the anniversary countdown in step
+      try {
+        if (edited && edited.id !== id && isAnniversaryKind(edited.kind)) {
+          await deleteCountdown(roomId, `ms-${edited.id}`);
+        }
+        if (isAnniversaryKind(milestone.kind)) {
+          await setCountdown(roomId, buildAnniversaryCountdown(milestone, new Date(), uid));
+          if (options?.replaceCountdownId) {
+            await deleteCountdown(roomId, options.replaceCountdownId);
+          }
+        } else if (previous && previous.id === id && isAnniversaryKind(previous.kind)) {
+          await deleteCountdown(roomId, `ms-${id}`);
+        }
+      } catch (error) {
+        console.error('Error syncing anniversary countdown:', error);
+        showToast({
+          title: "Couldn't update the countdown",
+          description: 'The milestone was saved, but its anniversary countdown was not updated.',
+          status: 'error',
+        });
+      }
+
+      return true;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [roomId, uid],
+  );
+
+  const removeMilestone = useCallback(
+    async (m: Milestone): Promise<boolean> => {
+      try {
+        await deleteMilestone(roomId, m.id);
+      } catch (error) {
+        console.error('Error deleting milestone:', error);
+        showToast({
+          title: "Couldn't delete the milestone",
+          description: 'Please check your connection and try again.',
+          status: 'error',
+        });
+        return false;
+      }
+
+      if (m.photo) {
+        deletePhoto(m.photo.path).catch((e) => console.error('Error deleting milestone photo:', e));
+      }
+      if (isAnniversaryKind(m.kind)) {
+        deleteCountdown(roomId, `ms-${m.id}`).catch((e) =>
+          console.error('Error deleting anniversary countdown:', e),
+        );
+      }
+
+      return true;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [roomId],
+  );
+
+  return { milestones, loading, countdowns, saveMilestone, removeMilestone };
+};

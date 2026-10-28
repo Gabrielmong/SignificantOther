@@ -1,7 +1,12 @@
 /**
  * Gradient Configurations
- * Pre-defined gradients for use across the app
+ * Accent gradients are built from the user's (primary) and partner's
+ * (secondary) resolved colors; glass/overlay gradients are fixed.
  */
+
+import { buildScale } from './colorMath';
+import type { ColorPair } from './accentThemes';
+import type { ColorMode } from './colors';
 
 export interface GradientConfig {
   colors: string[];
@@ -10,99 +15,66 @@ export interface GradientConfig {
   locations?: number[];
 }
 
-type GradientsType = { [key: string]: GradientConfig };
+export type GradientKey =
+  | 'primary'
+  | 'primarySubtle'
+  | 'primaryBold'
+  | 'primaryVertical'
+  | 'partner'
+  | 'ocean'
+  | 'secondarySubtle'
+  | 'secondaryBold'
+  | 'sunset'
+  | 'aurora'
+  | 'glassDark'
+  | 'glassLight'
+  | 'overlayDark'
+  | 'overlayLight';
+
+const diagonal = { start: { x: 0, y: 0 }, end: { x: 1, y: 1 } };
+const vertical = { start: { x: 0, y: 0 }, end: { x: 0, y: 1 } };
 
 /**
- * Gradient presets
+ * Build gradient presets for a mode and resolved accent pairs
  */
-export const gradients: GradientsType = {
-  // Primary gradients (Purple)
-  // `primary` aliases `primarySubtle`, the app's default accent gradient,
-  // referenced throughout as `theme.gradients.primary` (header icons, spinners, CTAs).
-  primary: {
-    colors: ['#9d75ff', '#8859ff'],
-    start: { x: 0, y: 0 },
-    end: { x: 1, y: 1 },
-  },
-  primarySubtle: {
-    colors: ['#9d75ff', '#8859ff'],
-    start: { x: 0, y: 0 },
-    end: { x: 1, y: 1 },
-  },
-  primaryBold: {
-    colors: ['#a385ff', '#6e34ff'],
-    start: { x: 0, y: 0 },
-    end: { x: 1, y: 1 },
-  },
-  primaryVertical: {
-    colors: ['#c4a3ff', '#8859ff', '#5a1fff'],
-    start: { x: 0, y: 0 },
-    end: { x: 0, y: 1 },
-    locations: [0, 0.5, 1],
-  },
+export const buildGradients = (
+  _mode: ColorMode,
+  self: ColorPair,
+  partner: ColorPair,
+): Record<GradientKey, GradientConfig> => {
+  const s = buildScale(self.solid);
+  const p = buildScale(partner.solid);
 
-  // Secondary gradients (Blue)
-  // `ocean` aliases `secondaryBold`, referenced as `theme.gradients.ocean`.
-  ocean: {
-    colors: ['#7179f6', '#2a2f9e'],
-    start: { x: 0, y: 0 },
-    end: { x: 1, y: 1 },
-  },
-  secondarySubtle: {
-    colors: ['#5d66e8', '#323aba'],
-    start: { x: 0, y: 0 },
-    end: { x: 1, y: 1 },
-  },
-  secondaryBold: {
-    colors: ['#7179f6', '#2a2f9e'],
-    start: { x: 0, y: 0 },
-    end: { x: 1, y: 1 },
-  },
+  return {
+    // My gradients
+    // `primary` is the app's default accent gradient, referenced throughout
+    // as `theme.gradients.primary` (header icons, spinners, CTAs).
+    primary: { colors: [self.solid, self.deep], ...diagonal },
+    primarySubtle: { colors: [s[400], self.solid], ...diagonal },
+    primaryBold: { colors: [self.solid, self.deep], ...diagonal },
+    primaryVertical: { colors: [s[300], self.solid, self.deep], ...vertical, locations: [0, 0.5, 1] },
 
-  // Combined gradients
-  sunset: {
-    colors: ['#a385ff', '#8859ff', '#5d66e8'],
-    start: { x: 0, y: 0 },
-    end: { x: 1, y: 1 },
-    locations: [0, 0.5, 1],
-  },
-  aurora: {
-    colors: ['#c4a3ff', '#a385ff', '#7179f6', '#5d66e8'],
-    start: { x: 0, y: 0 },
-    end: { x: 1, y: 1 },
-    locations: [0, 0.33, 0.66, 1],
-  },
+    // Partner gradients
+    // `ocean` and `secondaryBold` alias `partner`.
+    partner: { colors: [partner.solid, partner.deep], ...diagonal },
+    ocean: { colors: [partner.solid, partner.deep], ...diagonal },
+    secondarySubtle: { colors: [p[400], partner.solid], ...diagonal },
+    secondaryBold: { colors: [partner.solid, partner.deep], ...diagonal },
 
-  // Neutral gradients with transparency
-  glassDark: {
-    colors: ['rgba(46, 46, 46, 0.7)', 'rgba(26, 26, 26, 0.7)'],
-    start: { x: 0, y: 0 },
-    end: { x: 0, y: 1 },
-  },
-  glassLight: {
-    colors: ['rgba(255, 255, 255, 0.7)', 'rgba(245, 245, 245, 0.7)'],
-    start: { x: 0, y: 0 },
-    end: { x: 0, y: 1 },
-  },
+    // Combined (me + partner) gradients
+    sunset: { colors: [s[400], self.solid, partner.solid], ...diagonal, locations: [0, 0.5, 1] },
+    aurora: {
+      colors: [s[300], s[400], p[400], partner.solid],
+      ...diagonal,
+      locations: [0, 0.33, 0.66, 1],
+    },
 
-  // Overlay gradients
-  overlayDark: {
-    colors: ['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 0.6)'],
-    start: { x: 0, y: 0 },
-    end: { x: 0, y: 1 },
-  },
-  overlayLight: {
-    colors: ['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 0.8)'],
-    start: { x: 0, y: 0 },
-    end: { x: 0, y: 1 },
-  },
-} as const;
+    // Neutral gradients with transparency
+    glassDark: { colors: ['rgba(46, 46, 46, 0.7)', 'rgba(26, 26, 26, 0.7)'], ...vertical },
+    glassLight: { colors: ['rgba(255, 255, 255, 0.7)', 'rgba(245, 245, 245, 0.7)'], ...vertical },
 
-export type GradientKey = keyof typeof gradients;
-
-/**
- * Get gradient configuration
- */
-export const getGradient = (key: GradientKey): GradientConfig => {
-  return gradients[key];
+    // Overlay gradients
+    overlayDark: { colors: ['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 0.6)'], ...vertical },
+    overlayLight: { colors: ['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 0.8)'], ...vertical },
+  };
 };

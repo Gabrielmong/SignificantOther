@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
 import { useAppTheme } from '../../hooks';
+import { applyOpacity } from '../../config/theme';
 import { Countdown } from '../../types';
 
 interface CountdownCardProps {
@@ -89,7 +90,8 @@ export const CountdownCard: React.FC<CountdownCardProps> = ({ countdown, onPress
           ...theme?.shadows?.sm,
         },
       ]}>
-      <View style={styles.iconContainer}>
+      <View
+        style={[styles.iconContainer, { backgroundColor: applyOpacity(theme.colors.primary, 0.1) }]}>
         <Text style={styles.icon}>{countdown.icon}</Text>
       </View>
       <View style={styles.contentContainer}>
@@ -108,7 +110,7 @@ export const CountdownCard: React.FC<CountdownCardProps> = ({ countdown, onPress
           style={[
             styles.timeRemaining,
             {
-              color: theme?.gradients?.primary?.colors?.[0] || '#8B5CF6',
+              color: theme.colors.primary,
               fontSize: theme?.fontSize?.xl || 20,
               fontWeight: theme?.fontWeight?.bold || '700',
             },
@@ -130,7 +132,7 @@ export const CountdownCard: React.FC<CountdownCardProps> = ({ countdown, onPress
             style={[
               styles.recurrence,
               {
-                color: theme?.gradients?.primary?.colors?.[0] || '#8B5CF6',
+                color: theme.colors.primary,
                 fontSize: theme?.fontSize?.xs || 12,
                 fontWeight: theme?.fontWeight?.medium || '500',
               },
@@ -156,7 +158,6 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(139, 92, 246, 0.1)',
   },
   icon: {
     fontSize: 24,

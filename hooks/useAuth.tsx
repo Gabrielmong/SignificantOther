@@ -15,6 +15,7 @@ import {
   RoomPayload,
   setRoom,
   updateRoom,
+  resetRoom,
   store,
 } from '../state';
 import { useFirebase } from './useFirebase';
@@ -30,6 +31,7 @@ import {
   clearLocationTaskUserInfo,
 } from '../services/locationTask';
 import { setWidgetTaskUserInfo, clearWidgetTaskUserInfo } from '../services/widgetTask';
+import { clearAccentStorage } from '../services/accentStorage';
 import { Platform } from 'react-native';
 import { BatteryOptEnabled, RequestDisableOptimization } from 'react-native-battery-optimization-check';
 
@@ -143,8 +145,10 @@ export const useAuth = () => {
 
     return auth.signOut().then(async () => {
       dispatch(stateLogout());
+      dispatch(resetRoom());
       await clearLocationTaskUserInfo();
       await clearWidgetTaskUserInfo();
+      await clearAccentStorage();
 
       showToast({
         title: 'Logout',
@@ -259,6 +263,7 @@ export const useAuth = () => {
         dispatch(setUser(userPayload));
       } else {
         dispatch(stateLogout());
+        dispatch(resetRoom());
       }
     });
   };

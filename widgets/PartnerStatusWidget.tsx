@@ -1,17 +1,25 @@
 import { FlexWidget, TextWidget, ImageWidget } from 'react-native-android-widget';
 import { FLOWER_MAP, FEELING_EMOJIS, FEELINGS_LABELS } from '../constants';
-import { WidgetDisplayData } from '../services/widgetTask';
+import { WidgetAccent, WidgetDisplayData } from '../services/widgetTask';
 import { formatCountdownLabel } from '../utils/countdown';
 
 interface PartnerStatusWidgetProps {
   data: WidgetDisplayData | null;
 }
 
-const CARD_GRADIENT = {
-  from: '#9d75ff' as const,
-  to: '#5a1fff' as const,
-  orientation: 'TL_BR' as const,
-};
+// Twilight light, used until the app has synced the user's accent.
+const DEFAULT_ACCENT: WidgetAccent = { from: '#8859ff', to: '#5a1fff', text: '#ffffff' };
+
+function cardGradient(accent: WidgetAccent) {
+  return { from: accent.from, to: accent.to, orientation: 'TL_BR' as const };
+}
+
+// Accent text color at 90% opacity, for the message and placeholder lines.
+function mutedText(accent: WidgetAccent) {
+  const hex = accent.text.replace('#', '');
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.substring(i, i + 2), 16));
+  return `rgba(${r}, ${g}, ${b}, 0.9)` as const;
+}
 
 function resolvePartnerDisplay(data: WidgetDisplayData) {
   return {
@@ -38,6 +46,7 @@ function CountdownPill({ data, compact }: { data: WidgetDisplayData; compact: bo
 
   const title = shortenTitle(countdown.title, compact ? 24 : 28);
   const text = `${countdown.icon} ${title} · ${compact ? label.short : label.long}`;
+  const accent = data.accent ?? DEFAULT_ACCENT;
 
   return (
     <FlexWidget
@@ -51,7 +60,7 @@ function CountdownPill({ data, compact }: { data: WidgetDisplayData; compact: bo
       }}>
       <TextWidget
         text={text}
-        style={{ fontSize: compact ? 11 : 12, color: '#ffffff', fontWeight: '600' }}
+        style={{ fontSize: compact ? 11 : 12, color: accent.text, fontWeight: '600' }}
         maxLines={1}
         truncate="END"
       />
@@ -59,13 +68,13 @@ function CountdownPill({ data, compact }: { data: WidgetDisplayData; compact: bo
   );
 }
 
-function PlaceholderCard({ padding }: { padding: number }) {
+function PlaceholderCard({ padding, accent }: { padding: number; accent: WidgetAccent }) {
   return (
     <FlexWidget
       style={{
         height: 'match_parent',
         width: 'match_parent',
-        backgroundGradient: CARD_GRADIENT,
+        backgroundGradient: cardGradient(accent),
         borderRadius: 20,
         padding,
         justifyContent: 'center',
@@ -75,15 +84,17 @@ function PlaceholderCard({ padding }: { padding: number }) {
       <TextWidget text="💌" style={{ fontSize: 24, marginBottom: 4 }} />
       <TextWidget
         text="Waiting for an update…"
-        style={{ fontSize: 12, color: '#f3edff', textAlign: 'center', fontWeight: '500' }}
+        style={{ fontSize: 12, color: mutedText(accent), textAlign: 'center', fontWeight: '500' }}
       />
     </FlexWidget>
   );
 }
 
 export function PartnerStatusWidget({ data }: PartnerStatusWidgetProps) {
+  const accent = data?.accent ?? DEFAULT_ACCENT;
+
   if (!data || !data.flower) {
-    return <PlaceholderCard padding={16} />;
+    return <PlaceholderCard padding={16} accent={accent} />;
   }
 
   const { flowerImage, feelingEmoji, feelingLabel } = resolvePartnerDisplay(data);
@@ -93,7 +104,7 @@ export function PartnerStatusWidget({ data }: PartnerStatusWidgetProps) {
       style={{
         height: 'match_parent',
         width: 'match_parent',
-        backgroundGradient: CARD_GRADIENT,
+        backgroundGradient: cardGradient(accent),
         borderRadius: 20,
         padding: 14,
         flexDirection: 'column',
@@ -117,7 +128,7 @@ export function PartnerStatusWidget({ data }: PartnerStatusWidgetProps) {
         <FlexWidget style={{ flexDirection: 'column', flex: 1 }}>
           <TextWidget
             text={data.partnerName || 'Partner'}
-            style={{ fontSize: 16, color: '#ffffff', fontWeight: '700' }}
+            style={{ fontSize: 16, color: accent.text, fontWeight: '700' }}
           />
           {!!data.feeling && (
             <FlexWidget
@@ -131,7 +142,7 @@ export function PartnerStatusWidget({ data }: PartnerStatusWidgetProps) {
               }}>
               <TextWidget
                 text={`${feelingEmoji} ${feelingLabel}`.trim()}
-                style={{ fontSize: 12, color: '#ffffff', fontWeight: '600' }}
+                style={{ fontSize: 12, color: accent.text, fontWeight: '600' }}
               />
             </FlexWidget>
           )}
@@ -141,7 +152,7 @@ export function PartnerStatusWidget({ data }: PartnerStatusWidgetProps) {
       {!!data.message && (
         <TextWidget
           text={data.message}
-          style={{ fontSize: 16, color: '#f0eaff', marginTop: 10, lineHeight: 18 }}
+          style={{ fontSize: 16, color: mutedText(accent), marginTop: 10, lineHeight: 18 }}
         />
       )}
     </FlexWidget>
@@ -155,8 +166,10 @@ export function PartnerStatusWidget({ data }: PartnerStatusWidgetProps) {
 // separate size option in Android's widget picker, rather than relying on
 // resize-driven responsiveness within PartnerStatusWidget.
 export function PartnerStatusCompactWidget({ data }: PartnerStatusWidgetProps) {
+  const accent = data?.accent ?? DEFAULT_ACCENT;
+
   if (!data || !data.flower) {
-    return <PlaceholderCard padding={10} />;
+    return <PlaceholderCard padding={10} accent={accent} />;
   }
 
   const { flowerImage, feelingEmoji, feelingLabel } = resolvePartnerDisplay(data);
@@ -166,7 +179,7 @@ export function PartnerStatusCompactWidget({ data }: PartnerStatusWidgetProps) {
       style={{
         height: 'match_parent',
         width: 'match_parent',
-        backgroundGradient: CARD_GRADIENT,
+        backgroundGradient: cardGradient(accent),
         borderRadius: 16,
         padding: 10,
         flexDirection: 'row',
@@ -191,7 +204,7 @@ export function PartnerStatusCompactWidget({ data }: PartnerStatusWidgetProps) {
         <FlexWidget style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TextWidget
             text={data.partnerName || 'Partner'}
-            style={{ fontSize: 15, color: '#ffffff', fontWeight: '700' }}
+            style={{ fontSize: 15, color: accent.text, fontWeight: '700' }}
             maxLines={1}
             truncate="END"
           />
@@ -207,7 +220,7 @@ export function PartnerStatusCompactWidget({ data }: PartnerStatusWidgetProps) {
               }}>
               <TextWidget
                 text={`${feelingEmoji} ${feelingLabel}`.trim()}
-                style={{ fontSize: 11, color: '#ffffff', fontWeight: '600' }}
+                style={{ fontSize: 11, color: accent.text, fontWeight: '600' }}
               />
             </FlexWidget>
           )}
@@ -215,7 +228,7 @@ export function PartnerStatusCompactWidget({ data }: PartnerStatusWidgetProps) {
         {!!data.message && (
           <TextWidget
             text={data.message}
-            style={{ fontSize: 12, color: '#f0eaff', marginTop: 2, lineHeight: 14 }}
+            style={{ fontSize: 12, color: mutedText(accent), marginTop: 2, lineHeight: 14 }}
             maxLines={2}
             truncate="END"
           />

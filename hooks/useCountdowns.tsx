@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Countdown, CountdownObject, RecurrenceType, RecurrenceUnit } from '../types';
 import { calculateNextRecurrenceDate, shouldUpdateCountdown } from '../utils';
+import { rollAnniversary } from '../utils/milestones';
 import { syncNextCountdownToWidget } from '../widgets/renderWidgets';
+import { router, Href } from 'expo-router';
 
 interface UseCountdownsProps {
   roomId: string | null;
@@ -13,7 +15,11 @@ interface UseCountdownsProps {
     callback: ({ countdowns }: { countdowns: CountdownObject }) => void,
     roomId: string,
   ) => void;
-  showToast: (options: { title: string; description: string; status: 'success' | 'error' }) => void;
+  showToast: (options: {
+    title: string;
+    description: string;
+    status: 'success' | 'error' | 'info';
+  }) => void;
 }
 
 export const useCountdowns = ({
@@ -60,7 +66,21 @@ export const useCountdowns = ({
           recurrence: countdown.recurrence || 'none',
         };
 
-        if (shouldUpdateCountdown(countdownWithRecurrence)) {
+        if (shouldUpdateCountdown(countdownWithRecurrence) && countdown.milestoneId) {
+          // Milestone anniversaries roll from the milestone's own day (so
+          // Feb 29 never drifts), and only their date/title fields change.
+          if (countdown.id) {
+            try {
+              await updateCountdown(
+                roomId,
+                countdown.id,
+                rollAnniversary(countdown, new Date()) as Countdown,
+              );
+            } catch (error) {
+              console.error('Error rolling anniversary countdown:', error);
+            }
+          }
+        } else if (shouldUpdateCountdown(countdownWithRecurrence)) {
           // Calculate the next recurrence date
           let nextDate = calculateNextRecurrenceDate(
             countdownWithRecurrence.date,
@@ -109,10 +129,25 @@ export const useCountdowns = ({
     setShowCountdownModal(true);
   }, []);
 
-  const handleEditCountdown = useCallback((countdown: Countdown) => {
-    setEditingCountdown(countdown);
-    setShowCountdownModal(true);
-  }, []);
+  const handleEditCountdown = useCallback(
+    (countdown: Countdown) => {
+      // Anniversary countdowns follow their milestone; edit them there.
+      if (countdown.milestoneId) {
+        showToast({
+          title: 'Managed in You Two',
+          description: 'Edit this anniversary from the You Two tab.',
+          status: 'info',
+        });
+        // Cast: generated route types can lag behind new tab folders
+        router.push('/(tabs)/YouTwo' as Href);
+        return;
+      }
+
+      setEditingCountdown(countdown);
+      setShowCountdownModal(true);
+    },
+    [showToast],
+  );
 
   const handleSaveCountdown = useCallback(
     async (countdownData: {

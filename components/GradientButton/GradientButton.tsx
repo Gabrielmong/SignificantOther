@@ -30,7 +30,8 @@ export const GradientButton: React.FC<GradientButtonProps> = ({
 }) => {
   const { theme } = useAppTheme();
 
-  const gradient = theme?.gradients?.[gradientKey] || theme?.gradients?.primary;
+  const gradient = theme.gradients[gradientKey];
+  const onColor = gradientKey === 'ocean' ? theme.colors.onPartner : theme.colors.onPrimary;
 
   return (
     <TouchableOpacity
@@ -43,10 +44,10 @@ export const GradientButton: React.FC<GradientButtonProps> = ({
       }}
       activeOpacity={0.8}>
       <LinearGradient
-        colors={gradient?.colors || ['#8B5CF6', '#EC4899']}
-        start={gradient?.start}
-        end={gradient?.end}
-        locations={gradient?.locations}
+        colors={gradient.colors}
+        start={gradient.start}
+        end={gradient.end}
+        locations={gradient.locations}
         style={{
           flex: 1,
           padding: theme?.spacing?.[4] || 16,
@@ -59,7 +60,7 @@ export const GradientButton: React.FC<GradientButtonProps> = ({
           style={{
             fontSize: theme?.fontSize?.md || 16,
             fontWeight: theme?.fontWeight?.semibold || '600',
-            color: '#FFFFFF',
+            color: onColor,
           }}>
           {title}
         </Text>
@@ -67,7 +68,7 @@ export const GradientButton: React.FC<GradientButtonProps> = ({
           <Text
             style={{
               fontSize: theme?.fontSize?.xs || 12,
-              color: '#FFFFFF',
+              color: onColor,
               opacity: 0.9,
             }}>
             {count} {countLabel}

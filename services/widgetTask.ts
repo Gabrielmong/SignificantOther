@@ -7,6 +7,14 @@ const PARTNER_ID_KEY = '@widget_task_partner_id';
 const PARTNER_NAME_KEY = '@widget_task_partner_name';
 const LAST_DATA_KEY = '@widget_task_last_data';
 
+// The user's resolved accent colors, so the headless widget task can draw in
+// the user's theme without React context
+export type WidgetAccent = {
+  from: `#${string}`;
+  to: `#${string}`;
+  text: `#${string}`;
+};
+
 export type WidgetDisplayData = {
   flower: string;
   message: string;
@@ -14,6 +22,7 @@ export type WidgetDisplayData = {
   partnerName: string;
   updatedAt: number;
   nextCountdown?: WidgetCountdown | null;
+  accent?: WidgetAccent;
 };
 
 // Function to set user/room/partner info for the widget task handler

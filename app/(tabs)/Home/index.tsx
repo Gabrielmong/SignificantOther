@@ -460,7 +460,7 @@ export default function Home() {
         }}>
         <Box style={{ alignItems: 'center', gap: theme?.spacing[5] }}>
           <AnimatedHeartLoader />
-          <Spinner size="large" color={theme?.gradients?.primary?.colors?.[0] || '#8B5CF6'} />
+          <Spinner size="large" color={theme.colors.primary} />
           <Box style={{ alignItems: 'center', gap: theme?.spacing[2] }}>
             <Text
               style={{
@@ -564,7 +564,7 @@ export default function Home() {
             <AnimatedHeartLoader />
 
             {/* Spinner */}
-            <Spinner size="large" color={theme?.gradients?.primary?.colors[0] || '#8B5CF6'} />
+            <Spinner size="large" color={theme.colors.primary} />
 
             {/* Loading text */}
             <Box style={{ alignItems: 'center', gap: theme?.spacing?.[2] || 8 }}>

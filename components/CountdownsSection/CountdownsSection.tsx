@@ -41,14 +41,14 @@ export const CountdownsSection: React.FC<CountdownsSectionProps> = ({
         <TouchableOpacity
           onPress={onAddCountdown}
           style={{
-            backgroundColor: theme?.gradients?.primary?.colors?.[0] || '#8B5CF6',
+            backgroundColor: theme.colors.primary,
             width: 36,
             height: 36,
             borderRadius: 18,
             justifyContent: 'center',
             alignItems: 'center',
           }}>
-          <Plus size={20} color="#FFFFFF" />
+          <Plus size={20} color={theme.colors.onPrimary} />
         </TouchableOpacity>
       </Box>
 
@@ -76,12 +76,12 @@ export const CountdownsSection: React.FC<CountdownsSectionProps> = ({
                 padding: theme?.spacing?.[4] || 16,
                 alignItems: 'center',
                 borderWidth: 1,
-                borderColor: theme?.gradients?.primary?.colors?.[0] || '#8B5CF6',
+                borderColor: theme.colors.primary,
               }}>
               <Text
                 style={{
                   fontSize: theme?.fontSize?.md || 16,
-                  color: theme?.gradients?.primary?.colors?.[0] || '#8B5CF6',
+                  color: theme.colors.primary,
                   fontWeight: theme?.fontWeight?.semibold || '600',
                 }}>
                 View All ({Object.keys(countdowns).length})

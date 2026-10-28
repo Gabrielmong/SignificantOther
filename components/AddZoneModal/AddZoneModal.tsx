@@ -345,9 +345,9 @@ export const AddZoneModal: React.FC<AddZoneModalProps> = ({
                                 ],
                               ],
                             ],
-                            circleColor: theme?.gradients?.primary?.colors?.[0] || '#8B5CF6',
+                            circleColor: theme.colors.primary,
                             circleOpacity: 0.2,
-                            circleStrokeColor: theme?.gradients?.primary?.colors?.[0] || '#8B5CF6',
+                            circleStrokeColor: theme.colors.primary,
                             circleStrokeWidth: 2,
                           }}
                         />
@@ -357,7 +357,7 @@ export const AddZoneModal: React.FC<AddZoneModalProps> = ({
                       <MapboxGL.PointAnnotation
                         id="zone-location"
                         coordinate={[selectedLocation.longitude, selectedLocation.latitude]}>
-                        <View style={styles.zoneMarker}>
+                        <View style={[styles.zoneMarker, { borderColor: theme.colors.primary }]}>
                           <Text style={styles.zoneMarkerText}>
                             {ZONE_TYPES.find((t) => t.value === type)?.icon || '📍'}
                           </Text>
@@ -457,7 +457,7 @@ export const AddZoneModal: React.FC<AddZoneModalProps> = ({
                         {
                           backgroundColor:
                             type === zoneType.value
-                              ? theme?.gradients?.primary?.colors?.[0] || '#8B5CF6'
+                              ? theme.colors.primary
                               : theme?.colors?.surface || '#F3F4F6',
                         },
                       ]}>
@@ -519,7 +519,7 @@ export const AddZoneModal: React.FC<AddZoneModalProps> = ({
                         {
                           backgroundColor:
                             radius === r
-                              ? theme?.gradients?.primary?.colors?.[0] || '#8B5CF6'
+                              ? theme.colors.primary
                               : theme?.colors?.surface || '#F3F4F6',
                         },
                       ]}>
@@ -553,7 +553,7 @@ export const AddZoneModal: React.FC<AddZoneModalProps> = ({
                   disabled={!name.trim() || !selectedLocation}
                   style={{
                     flex: 1,
-                    backgroundColor: theme?.gradients?.primary?.colors?.[0] || '#8B5CF6',
+                    backgroundColor: theme.colors.primary,
                     opacity: name.trim() && selectedLocation ? 1 : 0.5,
                   }}>
                   <Text style={{ color: '#FFFFFF' }}>Save</Text>
@@ -640,7 +640,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#8B5CF6',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,

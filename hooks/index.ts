@@ -12,3 +12,4 @@ export * from './useFeelings';
 export * from './useWhiteboard';
 export * from './useZones';
 export * from './useDailyQuestion';
+export * from './useMilestones';
