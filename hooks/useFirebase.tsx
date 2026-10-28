@@ -22,7 +22,16 @@ import {
 import { PathData } from '../components';
 import { useAuth } from './useAuth';
 import uuid from 'react-native-uuid';
-import { Activity, ActivityObject, Wishlist, Countdown, CountdownObject } from '../types';
+import {
+  Activity,
+  ActivityObject,
+  Wishlist,
+  Countdown,
+  CountdownObject,
+  FeelingHistoryEntry,
+  FeelingHistoryMonth,
+} from '../types';
+import { monthKey } from '../utils/feelingHistory';
 import { Journal, JournalObject } from '../types/Journal';
 import { WhiteboardSnapshot } from '../types/WhiteboardSnapshot';
 import { FavoriteThing, FavoriteThings } from '../types/FavoriteThing';
@@ -328,6 +337,35 @@ export const useFirebase = () => {
     await update(roomRef, {
       selectedFeeling: feeling,
     });
+  };
+
+  const logFeelingHistory = async (
+    roomId: string,
+    uid: string,
+    feeling: string,
+    at: number = Date.now(),
+  ) => {
+    const monthRef = databaseRef(db, `rooms/${roomId}/feelingHistory/${uid}/${monthKey(at)}`);
+
+    await push(monthRef, { feeling, at });
+  };
+
+  const getFeelingHistoryMonth = async (
+    roomId: string,
+    uid: string,
+    month: string,
+  ): Promise<FeelingHistoryEntry[]> => {
+    const monthRef = databaseRef(db, `rooms/${roomId}/feelingHistory/${uid}/${month}`);
+    const snapshot = await get(monthRef);
+    const data = (snapshot.val() || {}) as FeelingHistoryMonth;
+
+    // Skip malformed rows rather than letting them break grouping.
+    return Object.values(data)
+      .filter(
+        (entry) =>
+          !!entry && typeof entry.feeling === 'string' && typeof entry.at === 'number',
+      )
+      .sort((a, b) => a.at - b.at);
   };
 
   const listenToFeelingChanges = (
@@ -864,6 +902,8 @@ export const useFirebase = () => {
     getFeeling,
     updateFeeling,
     listenToFeelingChanges,
+    logFeelingHistory,
+    getFeelingHistoryMonth,
     getWishlist,
     updateEntryInWishlist,
     listenToWishlistChanges,

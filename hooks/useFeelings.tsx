@@ -9,6 +9,7 @@ interface UseFeelingsProps {
     userId: string,
   ) => Promise<{ val: () => { selectedFeeling: string } | null }>;
   updateFeeling: (roomId: string, userId: string, feeling: string) => Promise<void>;
+  logFeelingHistory: (roomId: string, userId: string, feeling: string, at?: number) => Promise<void>;
   listenToFeelingChanges: (
     callback: (data: { feeling: string }) => void,
     roomId: string,
@@ -23,6 +24,7 @@ export const useFeelings = ({
   partnerId,
   getFeeling,
   updateFeeling,
+  logFeelingHistory,
   listenToFeelingChanges,
   showToast,
 }: UseFeelingsProps) => {
@@ -98,7 +100,19 @@ export const useFeelings = ({
       if (!roomId || !userId) return;
 
       try {
+        const savedAt = Date.now();
         setOwnFeeling(selectedFeeling);
+
+        // Only log actual changes. The history write is started before the
+        // feeling update and not awaited: update() resolves only on server
+        // confirmation, so this queues it locally right away with the
+        // save-time timestamp, and a failure never blocks or toasts.
+        if (selectedFeeling !== oldFeeling) {
+          logFeelingHistory(roomId, userId, selectedFeeling, savedAt).catch((error) =>
+            console.error('Error logging feeling history:', error),
+          );
+        }
+
         await updateFeeling(roomId, userId, selectedFeeling);
 
         setShowFeelingModal(false);
@@ -112,7 +126,7 @@ export const useFeelings = ({
         console.error('Error updating feeling:', error);
       }
     },
-    [roomId, userId, updateFeeling, showToast],
+    [roomId, userId, oldFeeling, updateFeeling, logFeelingHistory, showToast],
   );
 
   const loadFeelingData = useCallback(

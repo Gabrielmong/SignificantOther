@@ -92,6 +92,7 @@ export default function Home() {
     listenToFlowerChanges,
     getFeeling,
     updateFeeling,
+    logFeelingHistory,
     listenToFeelingChanges,
     getNumberOfItemsInWishlist,
     listentoNumberOfItemsInWishlist,
@@ -167,6 +168,7 @@ export default function Home() {
     partnerId: partnerId || null,
     getFeeling,
     updateFeeling,
+    logFeelingHistory,
     listenToFeelingChanges,
     showToast,
   });
@@ -408,6 +410,10 @@ export default function Home() {
     router.push('/(tabs)/Home/Countdowns');
   }, []);
 
+  const handleMoodHistoryPress = useCallback(() => {
+    router.push('/(tabs)/Home/MoodHistory');
+  }, []);
+
   // Handle case where theme is not yet loaded
   if (!theme) {
     return (
@@ -598,6 +604,18 @@ export default function Home() {
                     onPress={handleFeelingPress}
                     loading={loading}
                   />
+                  <TouchableOpacity
+                    onPress={handleMoodHistoryPress}
+                    style={{ alignSelf: 'flex-end', marginTop: theme?.spacing?.[2] || 8 }}>
+                    <Text
+                      style={{
+                        fontSize: theme?.fontSize?.sm,
+                        fontWeight: theme?.fontWeight?.semibold,
+                        color: theme?.colors?.primary,
+                      }}>
+                      Mood history →
+                    </Text>
+                  </TouchableOpacity>
                 </Box>
 
                 {/* <Divider my={4} />

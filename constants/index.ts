@@ -9,6 +9,7 @@ export const TAB_HIDDEN_ROUTES = [
   '/Home/Map',
   '/Home/Zones',
   '/Home/Countdowns',
+  '/Home/MoodHistory',
   '/Home/Journal',
   '/Home/Journal/[id]',
 ];

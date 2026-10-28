@@ -21,6 +21,12 @@ function resolvePartnerDisplay(data: WidgetDisplayData) {
   };
 }
 
+// Shortens a countdown title in JS so the day count after it is never the
+// part that gets cut off by the widget's own truncation.
+function shortenTitle(title: string, maxLength: number) {
+  return title.length > maxLength ? `${title.slice(0, maxLength - 1).trimEnd()}…` : title;
+}
+
 // Pill for the room's nearest countdown. The label is worked out at
 // render time so the day count stays right without new data.
 function CountdownPill({ data, compact }: { data: WidgetDisplayData; compact: boolean }) {
@@ -30,9 +36,8 @@ function CountdownPill({ data, compact }: { data: WidgetDisplayData; compact: bo
   const label = formatCountdownLabel(countdown.date);
   if (!label) return null;
 
-  const text = compact
-    ? `${countdown.icon} ${label.short}`
-    : `${countdown.icon} ${countdown.title} · ${label.long}`;
+  const title = shortenTitle(countdown.title, compact ? 24 : 28);
+  const text = `${countdown.icon} ${title} · ${compact ? label.short : label.long}`;
 
   return (
     <FlexWidget
@@ -42,8 +47,7 @@ function CountdownPill({ data, compact }: { data: WidgetDisplayData; compact: bo
         borderRadius: 999,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
         width: 'wrap_content',
-        marginLeft: compact ? 8 : 0,
-        marginTop: compact ? 0 : 6,
+        marginTop: 6,
       }}>
       <TextWidget
         text={text}
@@ -91,7 +95,7 @@ export function PartnerStatusWidget({ data }: PartnerStatusWidgetProps) {
         width: 'match_parent',
         backgroundGradient: CARD_GRADIENT,
         borderRadius: 20,
-        padding: 6,
+        padding: 14,
         flexDirection: 'column',
       }}
       clickAction="OPEN_APP">
@@ -137,7 +141,7 @@ export function PartnerStatusWidget({ data }: PartnerStatusWidgetProps) {
       {!!data.message && (
         <TextWidget
           text={data.message}
-          style={{ fontSize: 16, color: '#f0eaff', marginTop: 8, lineHeight: 18 }}
+          style={{ fontSize: 16, color: '#f0eaff', marginTop: 10, lineHeight: 18 }}
         />
       )}
     </FlexWidget>
@@ -145,7 +149,8 @@ export function PartnerStatusWidget({ data }: PartnerStatusWidgetProps) {
 }
 
 // A short, wide variant (~5 cells x 1 cell): flower on the left, partner name
-// + feeling on a single line on the right, with the message right below it.
+// + feeling on a single line on the right, with the message (up to two lines)
+// and the countdown pill below it.
 // Registered as its own widget ("PartnerStatusCompact") so it appears as a
 // separate size option in Android's widget picker, rather than relying on
 // resize-driven responsiveness within PartnerStatusWidget.
@@ -211,12 +216,12 @@ export function PartnerStatusCompactWidget({ data }: PartnerStatusWidgetProps) {
           <TextWidget
             text={data.message}
             style={{ fontSize: 12, color: '#f0eaff', marginTop: 2, lineHeight: 14 }}
-            maxLines={1}
+            maxLines={2}
             truncate="END"
           />
         )}
+        <CountdownPill data={data} compact />
       </FlexWidget>
-      <CountdownPill data={data} compact />
     </FlexWidget>
   );
 }
