@@ -9,3 +9,4 @@ export * from './FeelingHistory';
 export * from './DailyQuestion';
 export * from './Milestone';
 export * from './Photo';
+export * from './Place';

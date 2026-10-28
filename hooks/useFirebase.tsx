@@ -39,6 +39,8 @@ import {
   MilestoneObject,
   Photo,
   PhotoObject,
+  Place,
+  PlaceObject,
 } from '../types';
 import { monthKey } from '../utils/feelingHistory';
 import { Journal, JournalObject } from '../types/Journal';
@@ -916,6 +918,27 @@ export const useFirebase = () => {
     await remove(databaseRef(db, `rooms/${roomId}/photos/${id}`));
   };
 
+  // Places
+  const listenToPlaceChanges = (placeCallback: (places: PlaceObject) => void, roomId: string) => {
+    // Report an empty list too, so deleting the last place clears it.
+    return onValue(databaseRef(db, `rooms/${roomId}/places`), (snapshot) => {
+      placeCallback(snapshot.val() || {});
+    });
+  };
+
+  const setPlace = async (roomId: string, place: Place) => {
+    await set(databaseRef(db, `rooms/${roomId}/places/${place.id}`), place);
+  };
+
+  const deletePlaceRecord = async (roomId: string, id: string) => {
+    await remove(databaseRef(db, `rooms/${roomId}/places/${id}`));
+  };
+
+  // Writes several paths at once (all or nothing)
+  const applyUpdates = async (updates: Record<string, unknown>) => {
+    await update(databaseRef(db), updates);
+  };
+
   const getPhoto = async (roomId: string, id: string): Promise<Photo | null> => {
     const snapshot = await get(databaseRef(db, `rooms/${roomId}/photos/${id}`));
     return snapshot.exists() ? snapshot.val() : null;
@@ -1075,6 +1098,10 @@ export const useFirebase = () => {
     updatePhoto,
     deletePhotoRecord,
     getPhoto,
+    listenToPlaceChanges,
+    setPlace,
+    deletePlaceRecord,
+    applyUpdates,
     getZones,
     createZone,
     updateZone,

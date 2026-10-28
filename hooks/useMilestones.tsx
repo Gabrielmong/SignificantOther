@@ -25,6 +25,7 @@ export type MilestoneInput = {
   day: string;
   emoji: string;
   note?: string;
+  placeId?: string | null; // undefined keeps the current place, null clears it
 };
 
 export type PhotoChange = { type: 'keep' } | { type: 'remove' } | { type: 'new'; photo: PickedPhoto };
@@ -133,6 +134,7 @@ export const useMilestones = () => {
         }
       }
 
+      const placeId = input.placeId === undefined ? previous?.placeId : input.placeId || undefined;
       const nextPhoto =
         photo.type === 'new' ? uploaded : photo.type === 'keep' ? previous?.photo : undefined;
       const note = input.note?.trim();
@@ -149,7 +151,7 @@ export const useMilestones = () => {
         ...(previous ? { updatedAt: Date.now() } : {}),
         ...(note ? { note } : {}),
         ...(nextPhoto ? { photo: nextPhoto } : {}),
-        ...(previous?.placeId ? { placeId: previous.placeId } : {}),
+        ...(placeId ? { placeId } : {}),
       };
 
       // 2. Write the milestone; on failure, don't leave the upload behind
@@ -219,6 +221,8 @@ export const useMilestones = () => {
           const current = await getPhoto(roomId, `ms-${id}`);
           await updatePhoto(roomId, `ms-${id}`, {
             ...milestoneMirrorFields(milestone, Date.now()),
+            // The mirror's place follows the milestone, including clearing it
+            placeId: milestone.placeId ?? null,
             ...carried,
             createdAt: current?.createdAt ?? Date.now(),
             createdBy: current?.createdBy ?? uid,

@@ -18,7 +18,9 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import { useAppTheme } from '../../hooks';
 import type { MilestoneInput, PhotoChange } from '../../hooks/useMilestones';
-import { CountdownObject, Milestone, MilestoneKind, SpecialKind } from '../../types';
+import { CountdownObject, Milestone, MilestoneKind, Place, SpecialKind } from '../../types';
+import type { PlaceInput } from '../../hooks/usePlaces';
+import { PlacePicker, PlaceRow } from '../PlacePicker';
 import {
   ANNIVERSARY_KINDS,
   SPECIAL_DEFAULTS,
@@ -52,6 +54,8 @@ interface MilestoneModalProps {
     options?: { replaceCountdownId?: string },
   ) => Promise<boolean>;
   onDelete: (m: Milestone) => Promise<boolean>;
+  places: Place[];
+  savePlace: (input: PlaceInput) => Promise<Place | null>;
 }
 
 // Resolves with the chosen button, so the save flow can wait on it
@@ -72,6 +76,8 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
   countdowns,
   onSave,
   onDelete,
+  places,
+  savePlace,
 }) => {
   const { theme } = useAppTheme();
 
@@ -84,6 +90,8 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
   const [photo, setPhoto] = useState<PhotoChange>({ type: 'keep' });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [placeId, setPlaceId] = useState<string | null>(null);
+  const [pickingPlace, setPickingPlace] = useState(false);
 
   const applyKind = (next: MilestoneKind, keepTitle: boolean) => {
     setKind(next);
@@ -104,12 +112,14 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
       setDate(parseDay(milestone.day));
       setEmoji(milestone.emoji);
       setNote(milestone.note || '');
+      setPlaceId(milestone.placeId ?? null);
     } else {
       setTitle('');
       setTitleTouched(false);
       setDate(new Date());
       setEmoji(EMOJIS[0]);
       setNote('');
+      setPlaceId(null);
       applyKind(presetKind ?? 'custom', false);
     }
     setPhoto({ type: 'keep' });
@@ -164,7 +174,7 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
 
     setSaving(true);
     const ok = await onSave(
-      { id: milestone?.id, kind, title, day, emoji, note },
+      { id: milestone?.id, kind, title, day, emoji, note, placeId },
       photo,
       replaceCountdownId ? { replaceCountdownId } : undefined,
     );
@@ -288,6 +298,23 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
                   }}
                 />
               )}
+            </Box>
+
+            {/* Place */}
+            <Box>
+              {label('Place (optional)')}
+              <PlaceRow
+                place={places.find((p) => p.id === placeId)}
+                onPress={() => setPickingPlace(true)}
+              />
+              <PlacePicker
+                isOpen={pickingPlace}
+                places={places}
+                selectedId={placeId}
+                savePlace={savePlace}
+                onSelect={setPlaceId}
+                onClose={() => setPickingPlace(false)}
+              />
             </Box>
 
             {/* Emoji */}

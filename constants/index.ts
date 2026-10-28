@@ -13,6 +13,7 @@ export const TAB_HIDDEN_ROUTES = [
   '/Home/Journal',
   '/Home/Journal/[id]',
   '/YouTwo/Photos',
+  '/YouTwo/Places',
 ];
 
 export const FLOWER_MAP: {

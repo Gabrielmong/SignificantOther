@@ -17,6 +17,9 @@ import type { PendingPhoto } from '../../hooks/useGallery';
 import { exifDay } from '../../utils/photos';
 import { parseDay, toDay } from '../../utils/milestones';
 import { TagPicker } from '../TagPicker';
+import { PlacePicker, PlaceRow } from '../PlacePicker';
+import type { PlaceInput } from '../../hooks/usePlaces';
+import { Place } from '../../types';
 
 // Opens the system picker (up to 30 photos) and turns each pick into a
 // pending upload dated from its EXIF data. Cancel gives []. Throws on
@@ -46,9 +49,11 @@ interface PhotoAddSheetProps {
   onClose: () => void;
   onUpload: (
     items: PendingPhoto[],
-    shared: { tags: string[]; label?: string },
+    shared: { tags: string[]; label?: string; placeId?: string },
     onProgress: (done: number, total: number) => void,
   ) => Promise<PendingPhoto[]>;
+  places: Place[];
+  savePlace: (input: PlaceInput) => Promise<Place | null>;
 }
 
 export const PhotoAddSheet: React.FC<PhotoAddSheetProps> = ({
@@ -57,6 +62,8 @@ export const PhotoAddSheet: React.FC<PhotoAddSheetProps> = ({
   suggestions,
   onClose,
   onUpload,
+  places,
+  savePlace,
 }) => {
   const { theme } = useAppTheme();
   const [items, setItems] = useState<PendingPhoto[]>([]);
@@ -66,6 +73,9 @@ export const PhotoAddSheet: React.FC<PhotoAddSheetProps> = ({
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [retrying, setRetrying] = useState(false);
+  const [sharedPlaceId, setSharedPlaceId] = useState<string | null>(null);
+  // Which place field the picker is filling: the batch's, or one photo's
+  const [pickingPlace, setPickingPlace] = useState<'shared' | 'item' | null>(null);
 
   // Fresh form each time it opens
   useEffect(() => {
@@ -74,6 +84,7 @@ export const PhotoAddSheet: React.FC<PhotoAddSheetProps> = ({
     setSelectedKey(initialItems.length === 1 ? initialItems[0].key : null);
     setTags([]);
     setSharedLabel('');
+    setSharedPlaceId(null);
     setProgress(null);
     setRetrying(false);
   }, [isOpen, initialItems]);
@@ -90,7 +101,7 @@ export const PhotoAddSheet: React.FC<PhotoAddSheetProps> = ({
     setProgress({ done: 0, total: items.length });
     const failed = await onUpload(
       items,
-      { tags, label: sharedLabel.trim() || undefined },
+      { tags, label: sharedLabel.trim() || undefined, placeId: sharedPlaceId || undefined },
       (done, total) => setProgress({ done, total }),
     );
     setProgress(null);
@@ -172,6 +183,13 @@ export const PhotoAddSheet: React.FC<PhotoAddSheetProps> = ({
         {label('Description (optional)')}
         {input(item.description ?? '', (text) => updateSelected({ description: text }), 'What happened here?', true)}
       </Box>
+      <Box>
+        {label(single ? 'Place (optional)' : 'Place for this photo')}
+        <PlaceRow
+          place={places.find((p) => p.id === item.placeId)}
+          onPress={() => setPickingPlace('item')}
+        />
+      </Box>
     </Box>
   );
 
@@ -244,8 +262,28 @@ export const PhotoAddSheet: React.FC<PhotoAddSheetProps> = ({
                   {label('Label for all (optional)')}
                   {input(sharedLabel, setSharedLabel, 'Costa Rica 2025')}
                 </Box>
+                <Box>
+                  {label('Place for all (optional)')}
+                  <PlaceRow
+                    place={places.find((p) => p.id === sharedPlaceId)}
+                    onPress={() => setPickingPlace('shared')}
+                  />
+                </Box>
               </>
             )}
+
+            <PlacePicker
+              isOpen={pickingPlace !== null}
+              places={places}
+              selectedId={pickingPlace === 'shared' ? sharedPlaceId : selected?.placeId}
+              savePlace={savePlace}
+              onSelect={(id) =>
+                pickingPlace === 'shared'
+                  ? setSharedPlaceId(id)
+                  : updateSelected({ placeId: id ?? undefined })
+              }
+              onClose={() => setPickingPlace(null)}
+            />
 
             <Box>
               {label(single ? 'Tags' : 'Tags for all')}

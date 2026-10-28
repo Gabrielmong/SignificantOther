@@ -132,6 +132,7 @@ export const milestoneMirrorFields = (
     day: m.day,
     label: m.title,
     milestoneId: m.id,
+    ...(m.placeId ? { placeId: m.placeId } : {}),
     updatedAt: now,
   };
 };

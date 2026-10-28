@@ -19,6 +19,9 @@ import { Photo } from '../../types';
 import { parseDay, toDay } from '../../utils/milestones';
 import { followPhoto } from '../../utils/photos';
 import { TagPicker } from '../TagPicker';
+import { PlacePicker, PlaceRow } from '../PlacePicker';
+import type { PlaceInput } from '../../hooks/usePlaces';
+import { Place } from '../../types';
 
 interface PhotoViewerProps {
   isOpen: boolean;
@@ -30,6 +33,9 @@ interface PhotoViewerProps {
   onSave: (id: string, details: PhotoDetails) => Promise<boolean>;
   onDelete: (photo: Photo) => Promise<boolean>;
   onMilestonePress?: () => void; // Shown on milestone photos: go to the milestone
+  places: Place[];
+  savePlace: (input: PlaceInput) => Promise<Place | null>;
+  onPlacePress?: (placeId: string) => void; // "📍 place": open it on the map
 }
 
 const formatDay = (day: string) =>
@@ -46,7 +52,11 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
   onSave,
   onDelete,
   onMilestonePress,
+  places,
+  savePlace,
+  onPlacePress,
 }) => {
+  const [pickingPlace, setPickingPlace] = useState(false);
   const { theme } = useAppTheme();
   const { width, height } = useWindowDimensions();
   const listRef = useRef<FlatList<Photo>>(null);
@@ -95,6 +105,8 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
       description: photo.description ?? '',
       day: photo.day,
       tags: Object.keys(photo.tags ?? {}),
+      // A milestone photo's place follows the milestone, so it isn't sent
+      ...(photo.milestoneId ? {} : { placeId: photo.placeId ?? null }),
     });
   };
 
@@ -241,6 +253,21 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
                 suggestions={suggestions}
                 onChange={(tags) => setDraft({ ...draft, tags })}
               />
+              <PlaceRow
+                place={places.find(
+                  (p) => p.id === (photo.milestoneId ? photo.placeId : draft.placeId),
+                )}
+                disabled={!!photo.milestoneId}
+                onPress={() => setPickingPlace(true)}
+              />
+              <PlacePicker
+                isOpen={pickingPlace}
+                places={places}
+                selectedId={draft.placeId}
+                savePlace={savePlace}
+                onSelect={(placeId) => setDraft({ ...draft, placeId })}
+                onClose={() => setPickingPlace(false)}
+              />
               <View style={{ flexDirection: 'row', gap: 10 }}>
                 <TouchableOpacity
                   onPress={() => setEditing(null)}
@@ -278,6 +305,19 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
                 </Text>
               )}
               <Text style={{ color: '#d4d4d4', fontSize: theme.fontSize.sm }}>{formatDay(photo.day)}</Text>
+              {(() => {
+                const place = photo.placeId ? places.find((p) => p.id === photo.placeId) : undefined;
+                return place ? (
+                  <TouchableOpacity
+                    onPress={() => onPlacePress?.(place.id)}
+                    disabled={!onPlacePress}
+                    accessibilityRole="link">
+                    <Text style={{ color: '#ffffff', fontSize: theme.fontSize.sm }}>
+                      📍 {place.name}
+                    </Text>
+                  </TouchableOpacity>
+                ) : null;
+              })()}
               {!!photo.description && (
                 <Text style={{ color: '#ffffff', fontSize: theme.fontSize.md }}>{photo.description}</Text>
               )}

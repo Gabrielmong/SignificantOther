@@ -11,6 +11,7 @@ export interface Photo {
   description?: string;
   tags?: Record<string, true>; // Normalized tag → true
   milestoneId?: string; // Set on photos that belong to a milestone
+  placeId?: string; // Where it was taken, if the couple linked a place
   createdAt: number;
   createdBy: string; // User ID who added it
   updatedAt?: number;

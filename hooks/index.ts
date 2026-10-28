@@ -14,3 +14,4 @@ export * from './useZones';
 export * from './useDailyQuestion';
 export * from './useMilestones';
 export * from './useGallery';
+export * from './usePlaces';

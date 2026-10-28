@@ -23,9 +23,16 @@ export type PendingPhoto = {
   day: string;
   label?: string;
   description?: string;
+  placeId?: string; // Wins over the batch's shared place
 };
 
-export type PhotoDetails = { label?: string; description?: string; day: string; tags: string[] };
+export type PhotoDetails = {
+  label?: string;
+  description?: string;
+  day: string;
+  tags: string[];
+  placeId?: string | null;
+};
 
 // The room's shared gallery: listening, batch upload with retry, edits,
 // deletes, and gallery entries for milestone photos saved before the gallery.
@@ -107,7 +114,7 @@ export const useGallery = () => {
   const addPhotos = useCallback(
     async (
       items: PendingPhoto[],
-      shared: { tags: string[]; label?: string },
+      shared: { tags: string[]; label?: string; placeId?: string },
       onProgress?: (done: number, total: number) => void,
     ): Promise<PendingPhoto[]> => {
       if (!(await isConnected())) {
@@ -130,6 +137,7 @@ export const useGallery = () => {
           const uploaded = await uploadPhotoWithThumb(item.picked, `rooms/${roomId}/photos/${id}`);
           const label = item.label?.trim() || sharedLabel;
           const description = item.description?.trim();
+          const placeId = item.placeId || shared.placeId;
 
           // RTDB rejects undefined values, so optional keys are only added when set
           const photo: Photo = {
@@ -141,6 +149,7 @@ export const useGallery = () => {
             ...(label ? { label } : {}),
             ...(description ? { description } : {}),
             ...(tagMap ? { tags: tagMap } : {}),
+            ...(placeId ? { placeId } : {}),
           };
 
           try {
@@ -188,6 +197,7 @@ export const useGallery = () => {
           description: description || null,
           day: details.day,
           tags: tagsFromList(details.tags) ?? null,
+          ...(details.placeId !== undefined ? { placeId: details.placeId || null } : {}),
           updatedAt: Date.now(),
         });
         return true;

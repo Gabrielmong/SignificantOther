@@ -4,3 +4,4 @@ export * from './countdown';
 export * from './geofencing';
 export * from './milestones';
 export * from './photos';
+export * from './places';

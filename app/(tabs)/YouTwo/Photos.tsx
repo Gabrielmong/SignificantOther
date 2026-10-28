@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, Href } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Text } from '@gluestack-ui/themed';
 import { ArrowLeft, Plus } from 'lucide-react-native';
-import { useAppTheme, useAppToast, useGallery } from '../../../hooks';
+import { useAppTheme, useAppToast, useGallery, usePlaces } from '../../../hooks';
 import type { PendingPhoto } from '../../../hooks/useGallery';
 import { PhotoAddSheet, PhotoGrid, PhotoViewer, pickPhotosForGallery } from '../../../components';
 import { Photo } from '../../../types';
@@ -14,6 +14,7 @@ export default function Photos() {
   const { theme, colorMode } = useAppTheme();
   const { photos, tags, loading, columns, setColumns, addPhotos, updateDetails, removePhoto } =
     useGallery();
+  const { places, savePlace } = usePlaces();
   const { showToast } = useAppToast();
   // Opened from a tag on the You Two tab: start filtered by it
   const params = useLocalSearchParams<{ tag?: string }>();
@@ -141,6 +142,8 @@ export default function Photos() {
         suggestions={tags.map((t) => t.tag)}
         onClose={() => setPending([])}
         onUpload={addPhotos}
+        places={places}
+        savePlace={savePlace}
       />
 
       <PhotoViewer
@@ -155,6 +158,12 @@ export default function Photos() {
         }}
         onSave={updateDetails}
         onDelete={removePhoto}
+        places={places}
+        savePlace={savePlace}
+        onPlacePress={(placeId) => {
+          setViewing(null);
+          router.push({ pathname: '/(tabs)/YouTwo/Places', params: { focus: placeId } } as unknown as Href);
+        }}
         onMilestonePress={() => {
           setViewing(null);
           router.back();

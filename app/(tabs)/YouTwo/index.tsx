@@ -1,10 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AppState, ScrollView, TouchableOpacity, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { router, Href } from 'expo-router';
+import { router, Href, useLocalSearchParams } from 'expo-router';
 import { Text } from '@gluestack-ui/themed';
 import { Plus } from 'lucide-react-native';
-import { useAppTheme, useAppToast, useFirebase, useGallery, useMilestones } from '../../../hooks';
+import {
+  useAppTheme,
+  useAppToast,
+  useFirebase,
+  useGallery,
+  useMilestones,
+  usePlaces,
+} from '../../../hooks';
 import type { PendingPhoto } from '../../../hooks/useGallery';
 import { useAppSelector } from '../../../state';
 import {
@@ -13,6 +20,7 @@ import {
   PhotoAddSheet,
   PhotoStrip,
   PhotoViewer,
+  PlacesPreview,
   YouTwoHeader,
   pickPhotosForGallery,
 } from '../../../components';
@@ -54,7 +62,17 @@ export default function YouTwo() {
   const { getUserProfile } = useFirebase();
   const user = useAppSelector((state) => state.user);
   const room = useAppSelector((state) => state.room);
-  const { milestones, countdowns, saveMilestone, removeMilestone } = useMilestones();
+  const {
+    milestones,
+    loading: milestonesLoading,
+    countdowns,
+    saveMilestone,
+    removeMilestone,
+  } = useMilestones();
+  const { places, savePlace } = usePlaces();
+  const openPlace = (placeId: string) =>
+    router.push({ pathname: '/(tabs)/YouTwo/Places', params: { focus: placeId } } as unknown as Href);
+  const params = useLocalSearchParams<{ milestone?: string }>();
   const gallery = useGallery();
   const { showToast } = useAppToast();
   const [pending, setPending] = useState<PendingPhoto[]>([]);
@@ -79,6 +97,15 @@ export default function YouTwo() {
   const [modal, setModal] = useState<
     { open: false } | { open: true; milestone: Milestone | null; presetKind?: MilestoneKind }
   >({ open: false });
+
+  // Opened from a milestone link (e.g. on a place's card): open that milestone
+  useEffect(() => {
+    if (milestonesLoading || !params.milestone) return;
+    const target = milestones.find((m) => m.id === params.milestone);
+    if (target) setModal({ open: true, milestone: target });
+    router.setParams({ milestone: undefined });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [milestonesLoading, params.milestone]);
 
   const usedKinds = useMemo(
     () => milestones.map((m) => m.kind).filter((k): k is SpecialKind => k !== 'custom'),
@@ -136,6 +163,13 @@ export default function YouTwo() {
             onSeeAll={() => router.push('/(tabs)/YouTwo/Photos' as Href)}
             onPhotoPress={setViewingIndex}
             onAdd={handleAddPhotos}
+          />
+        </View>
+
+        <View style={{ paddingHorizontal: 16, marginBottom: 20 }}>
+          <PlacesPreview
+            places={places}
+            onOpen={() => router.push('/(tabs)/YouTwo/Places' as Href)}
           />
         </View>
 
@@ -212,6 +246,8 @@ export default function YouTwo() {
         countdowns={countdowns}
         onSave={saveMilestone}
         onDelete={removeMilestone}
+        places={places}
+        savePlace={savePlace}
       />
 
       <PhotoAddSheet
@@ -220,6 +256,8 @@ export default function YouTwo() {
         suggestions={gallery.tags.map((t) => t.tag)}
         onClose={() => setPending([])}
         onUpload={gallery.addPhotos}
+        places={places}
+        savePlace={savePlace}
       />
 
       <PhotoViewer
@@ -235,6 +273,12 @@ export default function YouTwo() {
         onSave={gallery.updateDetails}
         onDelete={gallery.removePhoto}
         onMilestonePress={() => setViewingIndex(null)}
+        places={places}
+        savePlace={savePlace}
+        onPlacePress={(id) => {
+          setViewingIndex(null);
+          openPlace(id);
+        }}
       />
     </View>
   );
