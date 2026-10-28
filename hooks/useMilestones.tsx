@@ -8,13 +8,15 @@ import {
   MilestoneKind,
   MilestoneObject,
   MilestonePhoto,
+  Photo,
 } from '../types';
 import {
   ANNIVERSARY_KINDS,
   buildAnniversaryCountdown,
   resolveMilestoneId,
 } from '../utils/milestones';
-import { PickedPhoto, uploadResizedPhoto, deletePhoto } from '../services/photoUpload';
+import { milestoneMirrorFields } from '../utils/photos';
+import { PickedPhoto, uploadPhotoWithThumb, deletePhoto } from '../services/photoUpload';
 
 export type MilestoneInput = {
   id?: string; // Missing for a new milestone
@@ -30,6 +32,13 @@ export type PhotoChange = { type: 'keep' } | { type: 'remove' } | { type: 'new';
 const isAnniversaryKind = (kind: MilestoneKind) =>
   (ANNIVERSARY_KINDS as readonly MilestoneKind[]).includes(kind);
 
+// A milestone photo is two files: the image and its gallery thumbnail
+const deletePhotoFiles = (photo: MilestonePhoto) => {
+  for (const path of [photo.path, photo.thumbPath]) {
+    if (path) deletePhoto(path).catch((e) => console.error('Error deleting milestone photo:', e));
+  }
+};
+
 // Shared milestones for the room, plus the save/delete flows that keep
 // photos and anniversary countdowns in step with them.
 export const useMilestones = () => {
@@ -44,6 +53,9 @@ export const useMilestones = () => {
     deleteCountdown,
     newId,
     isConnected,
+    getPhoto,
+    updatePhoto,
+    deletePhotoRecord,
   } = useFirebase();
   const { showToast } = useAppToast();
 
@@ -109,7 +121,7 @@ export const useMilestones = () => {
       let uploaded: MilestonePhoto | undefined;
       if (photo.type === 'new') {
         try {
-          uploaded = await uploadResizedPhoto(photo.photo, `rooms/${roomId}/milestones/${id}`);
+          uploaded = await uploadPhotoWithThumb(photo.photo, `rooms/${roomId}/milestones/${id}`);
         } catch (error) {
           console.error('Error uploading milestone photo:', error);
           showToast({
@@ -145,9 +157,7 @@ export const useMilestones = () => {
         await setMilestone(roomId, milestone);
       } catch (error) {
         console.error('Error saving milestone:', error);
-        if (uploaded) {
-          deletePhoto(uploaded.path).catch((e) => console.error('Error cleaning up photo:', e));
-        }
+        if (uploaded) deletePhotoFiles(uploaded);
         showToast({
           title: "Couldn't save the milestone",
           description: 'Please check your connection and try again.',
@@ -158,9 +168,7 @@ export const useMilestones = () => {
 
       // 3. Photos no longer referenced (the edited one's, and one it overwrote)
       for (const old of [previous?.photo, existing !== previous ? existing?.photo : undefined]) {
-        if (old && old.path !== nextPhoto?.path) {
-          deletePhoto(old.path).catch((e) => console.error('Error deleting old milestone photo:', e));
-        }
+        if (old && old.path !== nextPhoto?.path) deletePhotoFiles(old);
       }
 
       // A type change moved the milestone to a new id; drop the old record
@@ -192,6 +200,41 @@ export const useMilestones = () => {
         });
       }
 
+      // 5. Keep the milestone's gallery entry in step. Written with update, so
+      //    tags and a description added in the gallery are kept.
+      try {
+        let carried: Partial<Photo> = {};
+        if (edited && edited.id !== id) {
+          const old = await getPhoto(roomId, `ms-${edited.id}`);
+          if (old) {
+            carried = {
+              ...(old.tags ? { tags: old.tags } : {}),
+              ...(old.description ? { description: old.description } : {}),
+            };
+            await deletePhotoRecord(roomId, `ms-${edited.id}`);
+          }
+        }
+
+        if (milestone.photo) {
+          const current = await getPhoto(roomId, `ms-${id}`);
+          await updatePhoto(roomId, `ms-${id}`, {
+            ...milestoneMirrorFields(milestone, Date.now()),
+            ...carried,
+            createdAt: current?.createdAt ?? Date.now(),
+            createdBy: current?.createdBy ?? uid,
+          });
+        } else if (previous?.photo) {
+          await deletePhotoRecord(roomId, `ms-${id}`);
+        }
+      } catch (error) {
+        console.error('Error syncing milestone gallery photo:', error);
+        showToast({
+          title: "Couldn't update the gallery",
+          description: 'The milestone was saved, but its photo was not updated in the gallery.',
+          status: 'error',
+        });
+      }
+
       return true;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -213,7 +256,10 @@ export const useMilestones = () => {
       }
 
       if (m.photo) {
-        deletePhoto(m.photo.path).catch((e) => console.error('Error deleting milestone photo:', e));
+        deletePhotoFiles(m.photo);
+        deletePhotoRecord(roomId, `ms-${m.id}`).catch((e) =>
+          console.error('Error removing milestone gallery photo:', e),
+        );
       }
       if (isAnniversaryKind(m.kind)) {
         deleteCountdown(roomId, `ms-${m.id}`).catch((e) =>

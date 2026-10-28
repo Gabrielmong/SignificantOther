@@ -6,6 +6,10 @@ export type SpecialKind = Exclude<MilestoneKind, 'custom'>;
 export interface MilestonePhoto {
   url: string;
   path: string; // Storage path, used to delete the file
+  thumbUrl?: string; // Small copy for the gallery grid
+  thumbPath?: string;
+  width?: number;
+  height?: number;
 }
 
 export interface Milestone {

@@ -37,6 +37,8 @@ import {
   DailyQuestionDay,
   Milestone,
   MilestoneObject,
+  Photo,
+  PhotoObject,
 } from '../types';
 import { monthKey } from '../utils/feelingHistory';
 import { Journal, JournalObject } from '../types/Journal';
@@ -893,6 +895,32 @@ export const useFirebase = () => {
     });
   };
 
+  // Gallery Photos
+  const listenToPhotoChanges = (photoCallback: (photos: PhotoObject) => void, roomId: string) => {
+    // Report an empty list too, so deleting the last photo clears it.
+    return onValue(databaseRef(db, `rooms/${roomId}/photos`), (snapshot) => {
+      photoCallback(snapshot.val() || {});
+    });
+  };
+
+  const setPhoto = async (roomId: string, photo: Photo) => {
+    await set(databaseRef(db, `rooms/${roomId}/photos/${photo.id}`), photo);
+  };
+
+  // Merges fields into a photo (null deletes a field)
+  const updatePhoto = async (roomId: string, id: string, fields: Record<string, unknown>) => {
+    await update(databaseRef(db, `rooms/${roomId}/photos/${id}`), fields);
+  };
+
+  const deletePhotoRecord = async (roomId: string, id: string) => {
+    await remove(databaseRef(db, `rooms/${roomId}/photos/${id}`));
+  };
+
+  const getPhoto = async (roomId: string, id: string): Promise<Photo | null> => {
+    const snapshot = await get(databaseRef(db, `rooms/${roomId}/photos/${id}`));
+    return snapshot.exists() ? snapshot.val() : null;
+  };
+
   // Zone Management Functions
   const getZones = async (uid: string) => {
     const roomRef = databaseRef(db, `rooms/${uid}/zones`);
@@ -1042,6 +1070,11 @@ export const useFirebase = () => {
     setMilestone,
     deleteMilestone,
     listenToMilestoneChanges,
+    listenToPhotoChanges,
+    setPhoto,
+    updatePhoto,
+    deletePhotoRecord,
+    getPhoto,
     getZones,
     createZone,
     updateZone,

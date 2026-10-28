@@ -1,11 +1,21 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AppState, ScrollView, TouchableOpacity, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { router, Href } from 'expo-router';
 import { Text } from '@gluestack-ui/themed';
 import { Plus } from 'lucide-react-native';
-import { useAppTheme, useFirebase, useMilestones } from '../../../hooks';
+import { useAppTheme, useAppToast, useFirebase, useGallery, useMilestones } from '../../../hooks';
+import type { PendingPhoto } from '../../../hooks/useGallery';
 import { useAppSelector } from '../../../state';
-import { MilestoneModal, MilestoneRow, YouTwoHeader } from '../../../components';
+import {
+  MilestoneModal,
+  MilestoneRow,
+  PhotoAddSheet,
+  PhotoStrip,
+  PhotoViewer,
+  YouTwoHeader,
+  pickPhotosForGallery,
+} from '../../../components';
 import { Milestone, MilestoneKind, SpecialKind } from '../../../types';
 import { formatCounter, pickCounterMilestone } from '../../../utils/milestones';
 
@@ -45,6 +55,24 @@ export default function YouTwo() {
   const user = useAppSelector((state) => state.user);
   const room = useAppSelector((state) => state.room);
   const { milestones, countdowns, saveMilestone, removeMilestone } = useMilestones();
+  const gallery = useGallery();
+  const { showToast } = useAppToast();
+  const [pending, setPending] = useState<PendingPhoto[]>([]);
+  const [viewingIndex, setViewingIndex] = useState<number | null>(null);
+
+  const handleAddPhotos = async () => {
+    try {
+      const picked = await pickPhotosForGallery();
+      if (picked.length) setPending(picked);
+    } catch (error) {
+      console.error('Error picking photos:', error);
+      showToast({
+        title: "Couldn't open your photos",
+        description: 'Please check the app has permission to access photos.',
+        status: 'error',
+      });
+    }
+  };
   const today = useToday();
 
   // Modal: closed, adding (optionally preset to a kind), or editing a milestone
@@ -100,6 +128,16 @@ export default function YouTwo() {
           counter={counter}
           onAddDatingPress={() => setModal({ open: true, milestone: null, presetKind: 'dating' })}
         />
+
+        <View style={{ paddingHorizontal: 16, marginBottom: 20 }}>
+          <PhotoStrip
+            photos={gallery.photos}
+            total={gallery.photos.length}
+            onSeeAll={() => router.push('/(tabs)/YouTwo/Photos' as Href)}
+            onPhotoPress={setViewingIndex}
+            onAdd={handleAddPhotos}
+          />
+        </View>
 
         <View style={{ paddingHorizontal: 16, gap: 12 }}>
           <View
@@ -174,6 +212,29 @@ export default function YouTwo() {
         countdowns={countdowns}
         onSave={saveMilestone}
         onDelete={removeMilestone}
+      />
+
+      <PhotoAddSheet
+        isOpen={pending.length > 0}
+        items={pending}
+        suggestions={gallery.tags.map((t) => t.tag)}
+        onClose={() => setPending([])}
+        onUpload={gallery.addPhotos}
+      />
+
+      <PhotoViewer
+        isOpen={viewingIndex !== null}
+        photos={gallery.photos}
+        startIndex={viewingIndex ?? 0}
+        suggestions={gallery.tags.map((t) => t.tag)}
+        onClose={() => setViewingIndex(null)}
+        onTagPress={(tag) => {
+          setViewingIndex(null);
+          router.push({ pathname: '/(tabs)/YouTwo/Photos', params: { tag } } as unknown as Href);
+        }}
+        onSave={gallery.updateDetails}
+        onDelete={gallery.removePhoto}
+        onMilestonePress={() => setViewingIndex(null)}
       />
     </View>
   );

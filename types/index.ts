@@ -8,3 +8,4 @@ export * from './FavoriteThing';
 export * from './FeelingHistory';
 export * from './DailyQuestion';
 export * from './Milestone';
+export * from './Photo';
