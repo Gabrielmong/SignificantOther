@@ -1,0 +1,45 @@
+import { Platform } from 'react-native';
+import { requestWidgetUpdate } from 'react-native-android-widget';
+import { PartnerStatusWidget, PartnerStatusCompactWidget } from './PartnerStatusWidget';
+import { CountdownObject } from '../types';
+import { getWidgetLastData, mergeWidgetLastData, WidgetDisplayData } from '../services/widgetTask';
+import { getNextCountdown, isSameWidgetCountdown } from '../utils/countdown';
+
+// Redraws every widget size placed on the home screen with the same data.
+export async function renderAllWidgets(data: WidgetDisplayData) {
+  if (Platform.OS !== 'android') return;
+
+  await requestWidgetUpdate({
+    widgetName: 'PartnerStatus',
+    renderWidget: () => <PartnerStatusWidget data={data} />,
+    widgetNotFound: () => {
+      console.log('PartnerStatus widget not found on home screen, skipping render');
+    },
+  });
+
+  await requestWidgetUpdate({
+    widgetName: 'PartnerStatusCompact',
+    renderWidget: () => <PartnerStatusCompactWidget data={data} />,
+    widgetNotFound: () => {
+      console.log('PartnerStatusCompact widget not found on home screen, skipping render');
+    },
+  });
+}
+
+// Pushes the room's nearest countdown to the widgets when it has changed.
+// Several screens listen to countdowns, so compare with the cache to avoid
+// redrawing for every listener.
+export async function syncNextCountdownToWidget(countdowns: CountdownObject) {
+  if (Platform.OS !== 'android') return;
+
+  try {
+    const next = getNextCountdown(countdowns);
+    const cached = await getWidgetLastData();
+    if (cached && isSameWidgetCountdown(cached.nextCountdown, next)) return;
+
+    const data = await mergeWidgetLastData({ nextCountdown: next });
+    await renderAllWidgets(data);
+  } catch (error) {
+    console.error('Error syncing countdown to widget:', error);
+  }
+}

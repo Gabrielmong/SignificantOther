@@ -1,6 +1,7 @@
 import { FlexWidget, TextWidget, ImageWidget } from 'react-native-android-widget';
 import { FLOWER_MAP, FEELING_EMOJIS, FEELINGS_LABELS } from '../constants';
 import { WidgetDisplayData } from '../services/widgetTask';
+import { formatCountdownLabel } from '../utils/countdown';
 
 interface PartnerStatusWidgetProps {
   data: WidgetDisplayData | null;
@@ -18,6 +19,40 @@ function resolvePartnerDisplay(data: WidgetDisplayData) {
     feelingEmoji: FEELING_EMOJIS[data.feeling] || '',
     feelingLabel: FEELINGS_LABELS[data.feeling] || data.feeling,
   };
+}
+
+// Pill for the room's nearest countdown. The label is worked out at
+// render time so the day count stays right without new data.
+function CountdownPill({ data, compact }: { data: WidgetDisplayData; compact: boolean }) {
+  const countdown = data.nextCountdown;
+  if (!countdown) return null;
+
+  const label = formatCountdownLabel(countdown.date);
+  if (!label) return null;
+
+  const text = compact
+    ? `${countdown.icon} ${label.short}`
+    : `${countdown.icon} ${countdown.title} · ${label.long}`;
+
+  return (
+    <FlexWidget
+      style={{
+        paddingHorizontal: compact ? 8 : 10,
+        paddingVertical: compact ? 2 : 4,
+        borderRadius: 999,
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        width: 'wrap_content',
+        marginLeft: compact ? 8 : 0,
+        marginTop: compact ? 0 : 6,
+      }}>
+      <TextWidget
+        text={text}
+        style={{ fontSize: compact ? 11 : 12, color: '#ffffff', fontWeight: '600' }}
+        maxLines={1}
+        truncate="END"
+      />
+    </FlexWidget>
+  );
 }
 
 function PlaceholderCard({ padding }: { padding: number }) {
@@ -96,6 +131,7 @@ export function PartnerStatusWidget({ data }: PartnerStatusWidgetProps) {
               />
             </FlexWidget>
           )}
+          <CountdownPill data={data} compact={false} />
         </FlexWidget>
       </FlexWidget>
       {!!data.message && (
@@ -175,9 +211,12 @@ export function PartnerStatusCompactWidget({ data }: PartnerStatusWidgetProps) {
           <TextWidget
             text={data.message}
             style={{ fontSize: 12, color: '#f0eaff', marginTop: 2, lineHeight: 14 }}
+            maxLines={1}
+            truncate="END"
           />
         )}
       </FlexWidget>
+      <CountdownPill data={data} compact />
     </FlexWidget>
   );
 }

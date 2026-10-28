@@ -17,3 +17,11 @@ export interface Countdown {
 export interface CountdownObject {
   [key: string]: Countdown;
 }
+
+// The single countdown shown on the home-screen widgets. `date` is the next
+// occurrence (recurring countdowns already rolled forward).
+export interface WidgetCountdown {
+  title: string;
+  icon: string;
+  date: number;
+}

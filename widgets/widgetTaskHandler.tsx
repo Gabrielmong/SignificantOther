@@ -5,9 +5,10 @@ import { PartnerStatusWidget, PartnerStatusCompactWidget } from './PartnerStatus
 import {
   getWidgetTaskUserInfo,
   getWidgetLastData,
-  setWidgetLastData,
+  mergeWidgetLastData,
   WidgetDisplayData,
 } from '../services/widgetTask';
+import { getNextCountdown } from '../utils/countdown';
 
 const NAME_TO_WIDGET: Record<
   string,
@@ -26,24 +27,36 @@ async function refreshFromFirebase(): Promise<WidgetDisplayData | null> {
 
   try {
     const db = getDatabase();
-    const partnerRef = databaseRef(db, `rooms/${roomId}/users/${partnerId}`);
-    const snapshot = await get(partnerRef);
+    const [partnerResult, countdownsResult] = await Promise.allSettled([
+      get(databaseRef(db, `rooms/${roomId}/users/${partnerId}`)),
+      get(databaseRef(db, `rooms/${roomId}/countdowns`)),
+    ]);
 
+    if (partnerResult.status === 'rejected') {
+      throw partnerResult.reason;
+    }
+
+    const snapshot = partnerResult.value;
     if (!snapshot.exists()) {
       return null;
     }
 
     const partnerData = snapshot.val();
-    const data: WidgetDisplayData = {
+    const update: Partial<WidgetDisplayData> = {
       flower: partnerData.selectedFlower || '',
       message: partnerData.message || '',
       feeling: partnerData.selectedFeeling || '',
       partnerName: partnerName || '',
-      updatedAt: Date.now(),
     };
 
-    await setWidgetLastData(data);
-    return data;
+    // If the countdowns read failed, leave the cached countdown as it is.
+    if (countdownsResult.status === 'fulfilled') {
+      update.nextCountdown = getNextCountdown(countdownsResult.value.val());
+    } else {
+      console.error('Widget task: error reading countdowns:', countdownsResult.reason);
+    }
+
+    return await mergeWidgetLastData(update);
   } catch (error) {
     console.error('Widget task: error refreshing from Firebase:', error);
     return null;

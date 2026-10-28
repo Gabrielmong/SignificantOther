@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Countdown, CountdownObject, RecurrenceType, RecurrenceUnit } from '../types';
 import { calculateNextRecurrenceDate, shouldUpdateCountdown } from '../utils';
+import { syncNextCountdownToWidget } from '../widgets/renderWidgets';
 
 interface UseCountdownsProps {
   roomId: string | null;
@@ -34,6 +35,7 @@ export const useCountdowns = ({
 
     const unsubscribe = listenToCountdownChanges((data) => {
       setCountdowns(data.countdowns);
+      syncNextCountdownToWidget(data.countdowns);
     }, roomId);
 
     return () => {

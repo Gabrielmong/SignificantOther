@@ -749,10 +749,8 @@ export const useFirebase = () => {
     const roomRef = databaseRef(db, `rooms/${uid}/countdowns`);
 
     const unsubscribe = onValue(roomRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        countdownCallback({ countdowns: data });
-      }
+      // Report an empty list too, so deleting the last countdown clears it.
+      countdownCallback({ countdowns: snapshot.val() || {} });
     });
 
     return unsubscribe;

@@ -11,9 +11,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppRegistry, Platform, KeyboardAvoidingView } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 import * as Notifications from 'expo-notifications';
-import { requestWidgetUpdate } from 'react-native-android-widget';
-import { PartnerStatusWidget, PartnerStatusCompactWidget } from '../widgets/PartnerStatusWidget';
-import { setWidgetLastData, WidgetDisplayData } from '../services/widgetTask';
+import { renderAllWidgets } from '../widgets/renderWidgets';
+import { mergeWidgetLastData } from '../services/widgetTask';
 // Import location task to register it
 import '../services/locationTask';
 
@@ -64,31 +63,16 @@ async function handleWidgetRefreshMessage(remoteMessage: {
     return false;
   }
 
-  const data: WidgetDisplayData = {
+  // Merge rather than overwrite, so the cached countdown survives a
+  // flower/feeling push.
+  const data = await mergeWidgetLastData({
     flower: String(remoteMessage.data.flower || ''),
     message: String(remoteMessage.data.message || ''),
     feeling: String(remoteMessage.data.feeling || ''),
     partnerName: String(remoteMessage.data.partnerName || ''),
-    updatedAt: Date.now(),
-  };
-
-  await setWidgetLastData(data);
-
-  await requestWidgetUpdate({
-    widgetName: 'PartnerStatus',
-    renderWidget: () => <PartnerStatusWidget data={data} />,
-    widgetNotFound: () => {
-      console.log('PartnerStatus widget not found on home screen, skipping render');
-    },
   });
 
-  await requestWidgetUpdate({
-    widgetName: 'PartnerStatusCompact',
-    renderWidget: () => <PartnerStatusCompactWidget data={data} />,
-    widgetNotFound: () => {
-      console.log('PartnerStatusCompact widget not found on home screen, skipping render');
-    },
-  });
+  await renderAllWidgets(data);
 
   return true;
 }

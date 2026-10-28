@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { WidgetCountdown } from '../types';
 
 const USER_ID_KEY = '@widget_task_user_id';
 const ROOM_ID_KEY = '@widget_task_room_id';
@@ -12,6 +13,7 @@ export type WidgetDisplayData = {
   feeling: string;
   partnerName: string;
   updatedAt: number;
+  nextCountdown?: WidgetCountdown | null;
 };
 
 // Function to set user/room/partner info for the widget task handler
@@ -89,4 +91,24 @@ export const getWidgetLastData = async (): Promise<WidgetDisplayData | null> => 
     console.error('Error getting widget last data:', error);
     return null;
   }
+};
+
+// Function to merge a partial update into the last-known widget display data.
+// Every writer uses this, so a flower/feeling push doesn't wipe the cached
+// countdown and a countdown change doesn't wipe the partner fields.
+export const mergeWidgetLastData = async (
+  partial: Partial<WidgetDisplayData>,
+): Promise<WidgetDisplayData> => {
+  const cached = await getWidgetLastData();
+  const merged: WidgetDisplayData = {
+    flower: '',
+    message: '',
+    feeling: '',
+    partnerName: '',
+    ...cached,
+    ...partial,
+    updatedAt: Date.now(),
+  };
+  await setWidgetLastData(merged);
+  return merged;
 };
