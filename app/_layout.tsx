@@ -8,7 +8,12 @@ import { useAppTheme } from '../hooks/';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppRegistry, Platform, KeyboardAvoidingView } from 'react-native';
-import messaging from '@react-native-firebase/messaging';
+import {
+  getMessaging,
+  onMessage,
+  onNotificationOpenedApp,
+  setBackgroundMessageHandler,
+} from '@react-native-firebase/messaging';
 import * as Notifications from 'expo-notifications';
 import { renderAllWidgets } from '../widgets/renderWidgets';
 import { mergeWidgetLastData } from '../services/widgetTask';
@@ -28,7 +33,9 @@ function AppContent() {
         style={{
           flex: 1,
         }}>
+        {/* Bottom inset is applied by the tab and auth layouts so the tab bar can sit low */}
         <SafeAreaView
+          edges={['top', 'left', 'right']}
           style={{
             flex: 1,
             backgroundColor: theme.colors.background,
@@ -79,21 +86,21 @@ async function handleWidgetRefreshMessage(remoteMessage: {
   return true;
 }
 
-messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+setBackgroundMessageHandler(getMessaging(), async (remoteMessage) => {
   const handled = await handleWidgetRefreshMessage(remoteMessage);
   if (!handled) {
     console.log('Message handled in the background!', remoteMessage);
   }
 });
 
-messaging().onMessage(async (remoteMessage) => {
+onMessage(getMessaging(), async (remoteMessage) => {
   const handled = await handleWidgetRefreshMessage(remoteMessage);
   if (!handled) {
     console.log('Message handled in the foreground!', remoteMessage);
   }
 });
 
-messaging().onNotificationOpenedApp(async (remoteMessage) => {
+onNotificationOpenedApp(getMessaging(), async (remoteMessage) => {
   console.log('Notification opened in the foreground!', remoteMessage);
 });
 

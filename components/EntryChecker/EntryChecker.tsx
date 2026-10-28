@@ -4,7 +4,7 @@ import { useAppSelector } from '../../state';
 import { router } from 'expo-router';
 import { useAuth } from '../../hooks';
 import { PermissionsAndroid, Alert } from 'react-native';
-import messaging from '@react-native-firebase/messaging';
+import { getMessaging, onMessage } from '@react-native-firebase/messaging';
 
 export const EntryCheckerWrapper = ({ children }: { children: React.ReactNode }) => {
   const isLogged = useAppSelector((state) => state.user.loggedIn);
@@ -12,9 +12,8 @@ export const EntryCheckerWrapper = ({ children }: { children: React.ReactNode })
   const segments = useSegments();
   const [currentRoute, setCurrentRoute] = useState<string | null>(null);
 
-  useEffect(() => {
-    initialize();
-  }, [currentRoute]);
+  // Returns the auth listener's unsubscribe, so route changes don't stack listeners
+  useEffect(() => initialize(), [currentRoute]);
 
   useEffect(() => {
     if (segments) {
@@ -39,7 +38,7 @@ export const EntryCheckerWrapper = ({ children }: { children: React.ReactNode })
   }, [isLogged]);
 
   useEffect(() => {
-    const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+    const unsubscribe = onMessage(getMessaging(), async (remoteMessage) => {
       console.log(remoteMessage);
     });
 

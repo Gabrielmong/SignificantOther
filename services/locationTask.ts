@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LOCATION_TASK_NAME } from '../hooks/useLocation';
 import { checkAllZones } from '../utils/geofencing';
 import { Zone } from '../types';
+import { ensureSignedIn } from './firebaseApp';
 
 const USER_ID_KEY = '@location_task_user_id';
 const ROOM_ID_KEY = '@location_task_room_id';
@@ -67,7 +68,8 @@ TaskManager.defineTask(
           // Get user info from AsyncStorage
           const { userId, roomId } = await getLocationTaskUserInfo();
 
-          if (userId && roomId) {
+          // The task can wake the app headless, before Firebase is initialized
+          if (userId && roomId && (await ensureSignedIn())) {
             const db = getDatabase();
 
             // Update location in Firebase
@@ -144,7 +146,7 @@ TaskManager.defineTask(
               // Don't fail the location update if zone checking fails
             }
           } else {
-            console.warn('Background location update skipped: user info not found');
+            console.warn('Background location update skipped: user info or session not found');
           }
         } catch (error) {
           console.error('Error updating location in background:', error);

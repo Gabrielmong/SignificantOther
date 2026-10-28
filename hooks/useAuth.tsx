@@ -22,7 +22,15 @@ import { useFirebase } from './useFirebase';
 import { useAppToast } from './useAppToast';
 import { FirebaseError } from '@firebase/util';
 import { get, getDatabase, onValue, ref, update } from 'firebase/database';
-import messaging from '@react-native-firebase/messaging';
+import {
+  AuthorizationStatus,
+  getMessaging,
+  getToken,
+  hasPermission,
+  onTokenRefresh,
+  requestPermission,
+  unregisterDeviceForRemoteMessages,
+} from '@react-native-firebase/messaging';
 import { useEffect } from 'react';
 import { PermissionsAndroid } from 'react-native';
 import { Linking } from 'react-native';
@@ -36,7 +44,7 @@ import { clearOnThisDay } from '../services/onThisDay';
 import { Platform } from 'react-native';
 import { BatteryOptEnabled, RequestDisableOptimization } from 'react-native-battery-optimization-check';
 
-// Guards against re-registering messaging().onTokenRefresh() every time
+// Guards against re-registering onTokenRefresh() every time
 // initialize() runs (it's called on every route change via EntryChecker,
 // the same way auth.onAuthStateChanged is already re-registered there).
 let tokenRefreshListenerRegistered = false;
@@ -75,27 +83,29 @@ export const useAuth = () => {
   const db = getDatabase();
 
   const checkToken = async () => {
-    const permission = await messaging().hasPermission();
+    const permission = await hasPermission(getMessaging());
 
     const enabled =
-      permission === messaging.AuthorizationStatus.AUTHORIZED ||
-      permission === messaging.AuthorizationStatus.PROVISIONAL;
+      permission === AuthorizationStatus.AUTHORIZED ||
+      permission === AuthorizationStatus.PROVISIONAL;
 
     if (!enabled) {
-      await messaging().requestPermission();
+      await requestPermission(getMessaging());
       requestUserPermission();
     }
 
-    const fcmToken = await messaging().getToken();
+    const fcmToken = await getToken(getMessaging());
 
-    if (fcmToken && user?.uid) {
+    const uid = auth?.currentUser?.uid;
+
+    if (fcmToken && uid) {
       dispatch(
         updateUser({
           thisDeviceToken: fcmToken,
         }),
       );
 
-      await persistFcmToken(db, dispatch, user.uid, fcmToken);
+      await persistFcmToken(db, dispatch, uid, fcmToken);
     }
   };
 
@@ -107,7 +117,7 @@ export const useAuth = () => {
     if (tokenRefreshListenerRegistered) return;
     tokenRefreshListenerRegistered = true;
 
-    messaging().onTokenRefresh(async (fcmToken) => {
+    onTokenRefresh(getMessaging(), async (fcmToken) => {
       // This listener is registered once and lives for the app's lifetime,
       // so it must read the current uid fresh from the store rather than
       // close over whichever `user` was in scope at registration time.
@@ -246,7 +256,7 @@ export const useAuth = () => {
 
     registerTokenRefreshListener();
 
-    auth.onAuthStateChanged(async (user) => {
+    return auth.onAuthStateChanged(async (user) => {
       if (user) {
         user?.getIdTokenResult().then((idTokenResult) => {});
 
@@ -360,9 +370,12 @@ export const useAuth = () => {
   const getExtraProfile = () => {
     if (!auth?.currentUser) return;
 
-    const userDocRef = ref(db, `users/${user?.uid}`);
+    // Read the uid from auth, not Redux: this runs right after sign-in, before
+    // setUser has landed, and a stale `users/undefined` read is denied by the rules
+    const uid = auth.currentUser.uid;
+    const userDocRef = ref(db, `users/${uid}`);
 
-    get(userDocRef).then((snapshot) => {
+    return get(userDocRef).then((snapshot) => {
       const data = snapshot.val();
 
       if (data) {
@@ -372,18 +385,23 @@ export const useAuth = () => {
           notifications: data.notifications,
         };
 
+        // Not in a room yet: there's nothing to read, and rooms/undefined is denied
+        if (!data.roomId) {
+          dispatch(updateUser(updatedFields));
+          return;
+        }
+
         const roomDocRef = ref(db, `rooms/${data.roomId}`);
 
-        get(roomDocRef).then((snapshot) => {
+        return get(roomDocRef).then((snapshot) => {
           const roomData = snapshot.val();
 
           if (roomData) {
+            const partnerId = Object.keys(roomData.users || {}).find((id) => id !== uid) || '';
             const roomFields: RoomPayload = {
-              partnerId: Object.keys(roomData.users).find((id) => id !== user?.uid) || '',
+              partnerId,
               roomId: data.roomId,
-              partnerName:
-                roomData.users[Object.keys(roomData.users).find((id) => id !== user?.uid) || '']
-                  .name,
+              partnerName: roomData.users?.[partnerId]?.name,
             };
 
             dispatch(setRoom(roomFields));
@@ -391,23 +409,18 @@ export const useAuth = () => {
             dispatch(updateUser(updatedFields));
 
             // Set location task user info for background tracking
-            if (user?.uid && data.roomId) {
-              setLocationTaskUserInfo(user.uid, data.roomId);
-            }
+            setLocationTaskUserInfo(uid, data.roomId);
 
             // Set widget task user info so the home-screen widget's
             // background handler/task can resolve the right partner
-            if (user?.uid && data.roomId && roomFields.partnerId) {
-              setWidgetTaskUserInfo(
-                user.uid,
-                data.roomId,
-                roomFields.partnerId,
-                roomFields.partnerName,
-              );
+            if (roomFields.partnerId) {
+              setWidgetTaskUserInfo(uid, data.roomId, roomFields.partnerId, roomFields.partnerName);
             }
           }
         });
       }
+    }).catch((error) => {
+      console.error('Error loading extra profile:', error);
     });
   };
 
@@ -416,26 +429,26 @@ export const useAuth = () => {
   };
 
   const revokeUserPermission = async () => {
-    messaging().unregisterDeviceForRemoteMessages();
+    unregisterDeviceForRemoteMessages(getMessaging());
   };
 
   const getPermission = async () => {
-    const authStatus = await messaging().requestPermission();
+    const authStatus = await requestPermission(getMessaging());
     const enabled =
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+      authStatus === AuthorizationStatus.AUTHORIZED ||
+      authStatus === AuthorizationStatus.PROVISIONAL;
 
     return enabled;
   };
 
   const checkPermission = async () => {
-    const authStatus = await messaging().requestPermission();
+    const authStatus = await requestPermission(getMessaging());
     const enabled =
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+      authStatus === AuthorizationStatus.AUTHORIZED ||
+      authStatus === AuthorizationStatus.PROVISIONAL;
 
     if (enabled) {
-      const fcmToken = await messaging().getToken();
+      const fcmToken = await getToken(getMessaging());
 
       if (fcmToken) {
         if (!user?.fcmtokens?.includes(fcmToken)) {

@@ -1,7 +1,4 @@
-import { getApp, getApps, initializeApp } from 'firebase/app';
-import { firebaseConfig } from '../config';
-import { initializeAuth, getReactNativePersistence, getAuth } from 'firebase/auth';
-import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+import { ensureFirebaseApp } from '../services/firebaseApp';
 import {
   getStorage,
   uploadBytesResumable,
@@ -50,22 +47,14 @@ import { FavoriteThing, FavoriteThings } from '../types/FavoriteThing';
 export const useFirebase = () => {
   let app, auth;
   const { showToast } = useAppToast();
-  if (!getApps().length) {
-    try {
-      app = initializeApp(firebaseConfig);
-      auth = initializeAuth(app, {
-        persistence: getReactNativePersistence(ReactNativeAsyncStorage),
-      });
-    } catch (error) {
-      showToast({
-        title: 'Firebase',
-        description: 'Firebase initialization failed',
-        status: 'error',
-      });
-    }
-  } else {
-    app = getApp();
-    auth = getAuth(app);
+  try {
+    ({ app, auth } = ensureFirebaseApp());
+  } catch (error) {
+    showToast({
+      title: 'Firebase',
+      description: 'Firebase initialization failed',
+      status: 'error',
+    });
   }
 
   const db = getDatabase();

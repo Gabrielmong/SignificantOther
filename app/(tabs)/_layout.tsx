@@ -10,6 +10,7 @@ import {
 } from 'lucide-react-native';
 import { usePathname } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TAB_HIDDEN_ROUTES } from '../../constants';
 import { AnimatedTabIcon } from '../../components';
 import { useAppTheme, useOnThisDayNotifications } from '../../hooks';
@@ -19,6 +20,9 @@ export default function HomeLayout() {
   const { theme, colorMode, gluestackConfig } = useAppTheme();
   useOnThisDayNotifications();
   const [tabHidden, setTabHidden] = useState(false);
+  const insets = useSafeAreaInsets();
+  // Gesture nav has a small inset the bar can overlap; 3-button nav needs clearing
+  const tabBarBottom = insets.bottom > 30 ? insets.bottom + 4 : 22;
 
   useEffect(() => {
     if (TAB_HIDDEN_ROUTES.includes(pathname)) {
@@ -36,6 +40,8 @@ export default function HomeLayout() {
           tabBarInactiveBackgroundColor: theme.colors.surface,
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.textTertiary,
+          // Screens without the tab bar still need to clear the system nav
+          sceneStyle: { paddingBottom: tabHidden ? insets.bottom : 0 },
           tabBarStyle: {
             borderTopWidth: 0,
             borderRadius: 20,
@@ -44,7 +50,7 @@ export default function HomeLayout() {
             height: 60,
             paddingBottom: 12,
             paddingTop: 10,
-            marginBottom: 12,
+            marginBottom: tabBarBottom,
             marginHorizontal: 8,
             elevation: 8,
             shadowColor: '#2b2222ff',

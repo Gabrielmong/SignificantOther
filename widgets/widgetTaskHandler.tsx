@@ -9,6 +9,7 @@ import {
   WidgetDisplayData,
 } from '../services/widgetTask';
 import { getNextCountdown } from '../utils/countdown';
+import { ensureSignedIn } from '../services/firebaseApp';
 
 const NAME_TO_WIDGET: Record<
   string,
@@ -26,6 +27,11 @@ async function refreshFromFirebase(): Promise<WidgetDisplayData | null> {
   }
 
   try {
+    // Widget updates can run headless, before the app has initialized Firebase
+    if (!(await ensureSignedIn())) {
+      return null;
+    }
+
     const db = getDatabase();
     const [partnerResult, countdownsResult] = await Promise.allSettled([
       get(databaseRef(db, `rooms/${roomId}/users/${partnerId}`)),
