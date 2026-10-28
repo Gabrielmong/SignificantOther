@@ -18,9 +18,9 @@ import { Minus, Plus } from 'lucide-react-native';
 import { useAppSelector } from '../../state';
 import {
   isOnThisDayEnabled,
-  requestOnThisDayReschedule,
   setOnThisDayEnabled,
 } from '../../services/onThisDay';
+import { CHECKIN_ID, CHECKIN_TITLE, checkinIdsToCancel } from '../../utils/checkin';
 
 const formatTimeLabel = (time: number) => {
   return time < 10 ? `0${time}` : time;
@@ -90,9 +90,10 @@ export const NotificationsModal = ({
   };
 
   const addNotification = async () => {
-    Notifications.scheduleNotificationAsync({
+    await Notifications.scheduleNotificationAsync({
+      identifier: CHECKIN_ID,
       content: {
-        title: 'Time to check in!',
+        title: CHECKIN_TITLE,
         body: 'Let your significant other know how you feel today.',
       },
       trigger: {
@@ -102,6 +103,15 @@ export const NotificationsModal = ({
         repeats: true,
       },
     });
+  };
+
+  // Replaces only the check-in reminder. Unlike turning notifications off,
+  // this keeps push registration and every other scheduled notification.
+  const cancelCheckinReminder = async () => {
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    await Promise.all(
+      checkinIdsToCancel(scheduled).map((id) => Notifications.cancelScheduledNotificationAsync(id)),
+    );
   };
 
   const cancelAllNotifications = async () => {
@@ -156,12 +166,13 @@ export const NotificationsModal = ({
     onSave();
 
     if (checkingChanged) {
-      cancelAllNotifications();
-      addNotification();
+      try {
+        await cancelCheckinReminder();
+        await addNotification();
+      } catch (error) {
+        console.error('Error updating check-in reminder:', error);
+      }
     }
-
-    // The check-in path above cancels every notification; put ours back
-    requestOnThisDayReschedule();
   };
 
   return (
