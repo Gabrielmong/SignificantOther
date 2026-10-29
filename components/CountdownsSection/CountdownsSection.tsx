@@ -1,10 +1,11 @@
-import React from 'react';
-import { TouchableOpacity } from 'react-native';
 import { Box, Text } from '@gluestack-ui/themed';
 import { Plus } from 'lucide-react-native';
+import React from 'react';
+import { TouchableOpacity } from 'react-native';
+
 import { useAppTheme } from '../../hooks';
-import { CountdownCard } from '../CountdownCard';
 import { Countdown, CountdownObject } from '../../types';
+import { CountdownCard } from '../CountdownCard';
 
 interface CountdownsSectionProps {
   countdowns: CountdownObject;

@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -9,7 +8,9 @@ import {
   ModalHeader,
   Text,
 } from '@gluestack-ui/themed';
+import React, { useEffect, useState } from 'react';
 import { TextInput, TouchableOpacity } from 'react-native';
+
 import { useAppTheme } from '../../hooks';
 import { DailyQuestionStatus } from '../../hooks/useDailyQuestion';
 import { DailyAnswer } from '../../types';

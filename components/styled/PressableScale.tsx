@@ -5,13 +5,20 @@
  */
 
 import React from 'react';
-import { GestureResponderEvent, Pressable, PressableProps, StyleProp, ViewStyle } from 'react-native';
+import {
+  GestureResponderEvent,
+  Pressable,
+  PressableProps,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
+
 import { springConfig } from '../../config/theme/animations';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);

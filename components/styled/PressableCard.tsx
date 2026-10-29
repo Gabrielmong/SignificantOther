@@ -4,10 +4,11 @@
  * Consolidates FeelingPressable and FlowerPressable patterns
  */
 
+import { Box, Text, Image } from '@gluestack-ui/themed';
 import React, { useEffect, useRef } from 'react';
 import { ViewStyle } from 'react-native';
-import { Box, Text, Image } from '@gluestack-ui/themed';
 import Animated from 'react-native-reanimated';
+
 import { useAppTheme } from '../../hooks';
 import { fadeEntering } from '../../utils/motion';
 import { Skeleton } from '../Skeleton';
@@ -74,7 +75,7 @@ export const PressableCard: React.FC<PressableCardProps> = ({
   }, []);
   const entering = mounted.current ? fadeEntering : undefined;
   // Loading → loaded also counts as a change, so the content fades in
-  const fadeKey = loading ? 'loading' : contentKey ?? content ?? '';
+  const fadeKey = loading ? 'loading' : (contentKey ?? content ?? '');
 
   // Image component (100x100 with loading state)
   const imageComponent = (

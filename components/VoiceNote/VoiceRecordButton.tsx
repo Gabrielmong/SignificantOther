@@ -1,3 +1,4 @@
+import { Mic } from 'lucide-react-native';
 import { useEffect, useRef } from 'react';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -6,9 +7,9 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { Mic } from 'lucide-react-native';
-import { useAppTheme } from '../../hooks/useAppTheme';
+
 import { springConfig } from '../../config/theme/animations';
+import { useAppTheme } from '../../hooks/useAppTheme';
 import { selectionFeedback } from '../../utils/haptics';
 
 // Drag this far left while holding to throw the recording away

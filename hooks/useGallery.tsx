@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
 import { useAppSelector } from '../state';
-import { useFirebase } from './useFirebase';
 import { useAppToast } from './useAppToast';
+import { useFirebase } from './useFirebase';
+import { PickedPhoto, deletePhoto, uploadPhotoWithThumb } from '../services/photoUpload';
 import { MilestoneObject, Photo, PhotoObject } from '../types';
 import {
   Columns,
@@ -12,7 +14,6 @@ import {
   tagCounts,
   tagsFromList,
 } from '../utils/photos';
-import { PickedPhoto, deletePhoto, uploadPhotoWithThumb } from '../services/photoUpload';
 
 const COLUMNS_KEY = '@SignificantOther:galleryColumns';
 
@@ -156,7 +157,9 @@ export const useGallery = () => {
             await setPhoto(roomId, photo);
           } catch (error) {
             deletePhoto(uploaded.path).catch((e) => console.error('Error cleaning up photo:', e));
-            deletePhoto(uploaded.thumbPath).catch((e) => console.error('Error cleaning up photo:', e));
+            deletePhoto(uploaded.thumbPath).catch((e) =>
+              console.error('Error cleaning up photo:', e),
+            );
             throw error;
           }
         } catch (error) {

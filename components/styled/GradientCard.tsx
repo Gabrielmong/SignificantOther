@@ -1,10 +1,11 @@
+import { Box } from '@gluestack-ui/themed';
+import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { ViewStyle } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useAppTheme } from '../../hooks';
-import { Box } from '@gluestack-ui/themed';
-import { GradientKey } from '../../config/theme';
+
 import { PressableScale } from './PressableScale';
+import { GradientKey } from '../../config/theme';
+import { useAppTheme } from '../../hooks';
 
 interface GradientCardProps {
   children: React.ReactNode;

@@ -4,8 +4,8 @@
  * (secondary) resolved colors; glass/overlay gradients are fixed.
  */
 
-import { buildScale } from './colorMath';
 import type { ColorPair } from './accentThemes';
+import { buildScale } from './colorMath';
 import type { ColorMode } from './colors';
 
 /**
@@ -59,7 +59,11 @@ export const buildGradients = (
     primary: { colors: [self.solid, self.deep], ...diagonal },
     primarySubtle: { colors: [s[400], self.solid], ...diagonal },
     primaryBold: { colors: [self.solid, self.deep], ...diagonal },
-    primaryVertical: { colors: [s[300], self.solid, self.deep], ...vertical, locations: [0, 0.5, 1] },
+    primaryVertical: {
+      colors: [s[300], self.solid, self.deep],
+      ...vertical,
+      locations: [0, 0.5, 1],
+    },
 
     // Partner gradients
     // `ocean` and `secondaryBold` alias `partner`.

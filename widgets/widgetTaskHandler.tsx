@@ -1,7 +1,9 @@
+import { getDatabase, ref as databaseRef, get } from 'firebase/database';
 import type React from 'react';
 import type { WidgetTaskHandlerProps } from 'react-native-android-widget';
-import { getDatabase, ref as databaseRef, get } from 'firebase/database';
+
 import { PartnerStatusWidget, PartnerStatusCompactWidget } from './PartnerStatusWidget';
+import { ensureSignedIn } from '../services/firebaseApp';
 import {
   getWidgetTaskUserInfo,
   getWidgetLastData,
@@ -9,7 +11,6 @@ import {
   WidgetDisplayData,
 } from '../services/widgetTask';
 import { getNextCountdown } from '../utils/countdown';
-import { ensureSignedIn } from '../services/firebaseApp';
 
 const NAME_TO_WIDGET: Record<
   string,

@@ -1,9 +1,10 @@
-import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useAppTheme } from '../../hooks';
+import React from 'react';
+import { Image, TouchableOpacity, View } from 'react-native';
+
 import { applyOpacity, type GradientColors } from '../../config/theme';
+import { useAppTheme } from '../../hooks';
 
 export type Person = { name: string; photoURL?: string | null };
 
@@ -95,7 +96,8 @@ export const YouTwoHeader: React.FC<YouTwoHeaderProps> = ({
           fontWeight: theme.fontWeight.bold,
           color: theme.colors.text,
         }}>
-        {partner.name} <Text style={{ color: theme.colors.primary, fontSize: theme.fontSize['2xl'] }}>&amp;</Text>{' '}
+        {partner.name}{' '}
+        <Text style={{ color: theme.colors.primary, fontSize: theme.fontSize['2xl'] }}>&amp;</Text>{' '}
         {me.name}
       </Text>
 
@@ -113,7 +115,8 @@ export const YouTwoHeader: React.FC<YouTwoHeaderProps> = ({
           <Text style={{ fontSize: theme.fontSize.sm, color: theme.colors.textSecondary }}>
             {counter.detail}
           </Text>
-          <Text style={{ fontSize: theme.fontSize.xs, color: theme.colors.textTertiary, marginTop: 4 }}>
+          <Text
+            style={{ fontSize: theme.fontSize.xs, color: theme.colors.textTertiary, marginTop: 4 }}>
             {counter.since}
           </Text>
         </View>

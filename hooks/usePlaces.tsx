@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
 import { useAppSelector } from '../state';
-import { useFirebase } from './useFirebase';
 import { useAppToast } from './useAppToast';
+import { useFirebase } from './useFirebase';
 import { MilestoneObject, PhotoObject, Place, PlaceObject } from '../types';
 import { unlinkUpdates } from '../utils/places';
 

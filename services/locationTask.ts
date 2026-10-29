@@ -1,11 +1,12 @@
-import * as TaskManager from 'expo-task-manager';
-import * as Location from 'expo-location';
-import { getDatabase, ref as databaseRef, update, get } from 'firebase/database';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
+import * as TaskManager from 'expo-task-manager';
+import { getDatabase, ref as databaseRef, update, get } from 'firebase/database';
+
 import { LOCATION_TASK_NAME } from '../hooks/useLocation';
-import { checkAllZones } from '../utils/geofencing';
 import { Zone } from '../types';
 import { ensureSignedIn } from './firebaseApp';
+import { checkAllZones } from '../utils/geofencing';
 
 const USER_ID_KEY = '@location_task_user_id';
 const ROOM_ID_KEY = '@location_task_room_id';
@@ -53,7 +54,10 @@ export const clearLocationTaskUserInfo = async () => {
 // Define the background location task
 TaskManager.defineTask(
   LOCATION_TASK_NAME,
-  async ({ data, error }: TaskManager.TaskManagerTaskBody<{ locations: Location.LocationObject[] }>) => {
+  async ({
+    data,
+    error,
+  }: TaskManager.TaskManagerTaskBody<{ locations: Location.LocationObject[] }>) => {
     if (error) {
       console.error('Background location error:', error);
       return;
@@ -139,7 +143,11 @@ TaskManager.defineTask(
 
                 await update(zoneStatusRef, statusUpdates);
 
-                console.log('Zone status updated:', Object.keys(zoneResults).length, 'zones checked');
+                console.log(
+                  'Zone status updated:',
+                  Object.keys(zoneResults).length,
+                  'zones checked',
+                );
               }
             } catch (zoneError) {
               console.error('Error checking zones:', zoneError);

@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
+
 import { UserReducer, RoomReducer } from './slices';
 
 export const store = configureStore({

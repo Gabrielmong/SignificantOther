@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -14,15 +13,17 @@ import {
   ModalContent,
   ScrollView,
 } from '@gluestack-ui/themed';
-import { StatusBar } from 'expo-status-bar';
-import { useAppTheme, useAuth, useFirebase } from '../../../hooks';
-import { IconButton, PathData, Whiteboard, KeyboardAwareModal } from '../../../components';
 import { router } from 'expo-router';
-import { Alert, Dimensions, TouchableOpacity } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { ArrowLeft, Bookmark, Clock, Edit, Eye, X } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, Dimensions, TouchableOpacity } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
-import { WhiteboardSnapshot } from '../../../types';
+
+import { IconButton, PathData, Whiteboard, KeyboardAwareModal } from '../../../components';
+import { useAppTheme, useAuth, useFirebase } from '../../../hooks';
 import { useAppSelector } from '../../../state';
+import { WhiteboardSnapshot } from '../../../types';
 
 export default function WhiteBoard() {
   const { colorMode } = useAppTheme();

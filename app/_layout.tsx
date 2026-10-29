@@ -1,18 +1,21 @@
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { GluestackUIProvider, StatusBar } from '@gluestack-ui/themed';
-import { store } from '../state';
-import { Provider } from 'react-redux';
-import { Slot } from 'expo-router';
-import { EntryCheckerWrapper } from '../components';
-import { useAppTheme } from '../hooks/';
-import { ThemeProvider } from '../contexts/ThemeContext';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { AppRegistry, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
-import { useEffect, useState } from 'react';
 import { getMessaging, onMessage, onNotificationOpenedApp } from '@react-native-firebase/messaging';
 import * as Notifications from 'expo-notifications';
-import { handlePushMessage } from '../services/pushMessages';
+import { Slot } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { AppRegistry, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Provider } from 'react-redux';
+
+import { EntryCheckerWrapper } from '../components';
+import { ThemeProvider } from '../contexts/ThemeContext';
+import { useAppTheme } from '../hooks/';
+
+
 import { useChatNotificationTaps } from '../services/chatNotifications';
+import { handlePushMessage } from '../services/pushMessages';
+import { store } from '../state';
 // Import location task to register it
 import '../services/locationTask';
 

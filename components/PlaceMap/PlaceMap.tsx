@@ -1,11 +1,12 @@
-import React, { useMemo, useRef } from 'react';
-import { Pressable, View, ViewStyle } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import MapboxGL from '@rnmapbox/maps';
+import React, { useMemo, useRef } from 'react';
+import { Pressable, View, ViewStyle } from 'react-native';
+
+import { MAPBOX_ACCESS_TOKEN } from '../../config/mapboxConfig';
 import { useAppTheme } from '../../hooks';
 import { Place } from '../../types';
 import { cameraFor } from '../../utils/places';
-import { MAPBOX_ACCESS_TOKEN } from '../../config/mapboxConfig';
 
 MapboxGL.setAccessToken(MAPBOX_ACCESS_TOKEN);
 
@@ -98,10 +99,7 @@ export const PlaceMap: React.FC<PlaceMapProps> = ({
       <MapboxGL.Camera {...camera} animationDuration={600} />
 
       {places.map((p) => (
-        <MapboxGL.MarkerView
-          key={p.id}
-          coordinate={[p.longitude, p.latitude]}
-          allowOverlap>
+        <MapboxGL.MarkerView key={p.id} coordinate={[p.longitude, p.latitude]} allowOverlap>
           {/* Pressable cancels when the touch turns into a pan, unlike a raw touch end */}
           <Pressable
             onPress={() => onPinPress?.(p)}

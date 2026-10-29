@@ -1,6 +1,7 @@
+import { Text } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 import { TextInput, TouchableOpacity, View } from 'react-native';
-import { Text } from '@gluestack-ui/themed';
+
 import { useAppTheme } from '../../hooks';
 import { normalizeTag } from '../../utils/photos';
 

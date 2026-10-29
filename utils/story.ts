@@ -4,11 +4,16 @@
  * photos into the couple's story, and find what happened "on this day".
  */
 
+import { toDay } from './milestones';
 import type { Milestone, SpecialKind } from '../types/Milestone';
 import type { Photo } from '../types/Photo';
-import { toDay } from './milestones';
 
-const SPECIAL_KINDS: readonly string[] = ['met', 'dating', 'engaged', 'married'] satisfies SpecialKind[];
+const SPECIAL_KINDS: readonly string[] = [
+  'met',
+  'dating',
+  'engaged',
+  'married',
+] satisfies SpecialKind[];
 const NOTIFY_HOUR = 9;
 
 export type StoryDay = {
@@ -136,7 +141,10 @@ export const pickHighlight = (
       opts?.excludeSpecial
         ? {
             ...m,
-            day: { ...m.day, milestones: m.day.milestones.filter((x) => !SPECIAL_KINDS.includes(x.kind)) },
+            day: {
+              ...m.day,
+              milestones: m.day.milestones.filter((x) => !SPECIAL_KINDS.includes(x.kind)),
+            },
           }
         : m,
     )
@@ -187,7 +195,7 @@ export const notificationSchedule = (
 /**
  * The first `max` thumbnails, and how many more there are (shown as "+N")
  */
-export const capThumbs = <T,>(items: T[], max = 12): { shown: T[]; extra: number } => ({
+export const capThumbs = <T>(items: T[], max = 12): { shown: T[]; extra: number } => ({
   shown: items.slice(0, max),
   extra: Math.max(items.length - max, 0),
 });

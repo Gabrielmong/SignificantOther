@@ -1,4 +1,5 @@
 import { Box, Text } from '@gluestack-ui/themed';
+
 import { APP_VERSION } from '../../constants';
 import { useAppTheme } from '../../hooks';
 

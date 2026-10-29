@@ -4,18 +4,6 @@
  */
 
 import {
-  neutral,
-  darkBg,
-  darkText,
-  semantic,
-  base,
-  getColors,
-  type ColorMode,
-  type ThemeColors,
-  type ColorKey,
-} from './colors';
-
-import {
   accentThemes,
   ACCENT_IDS,
   DEFAULT_ACCENT,
@@ -29,9 +17,36 @@ import {
   type AccentShades,
   type ColorPair,
 } from './accentThemes';
-
+import {
+  duration,
+  easing,
+  springConfig,
+  animationPresets,
+  interactionTiming,
+  reducedMotion,
+  type AnimationPreset,
+  type SpringConfigKey,
+  type DurationKey,
+} from './animations';
 import { readableTextOn, contrastRatio, mixHex, buildScale } from './colorMath';
-
+import {
+  neutral,
+  darkBg,
+  darkText,
+  semantic,
+  base,
+  getColors,
+  type ColorMode,
+  type ThemeColors,
+  type ColorKey,
+} from './colors';
+import {
+  buildGradients,
+  type GradientKey,
+  type GradientConfig,
+  type GradientColors,
+  type GradientLocations,
+} from './gradients';
 import {
   spacing,
   commonSpacing,
@@ -41,7 +56,6 @@ import {
   type RadiiKey,
   type ShadowKey,
 } from './spacing';
-
 import {
   fontSize,
   fontWeight,
@@ -55,26 +69,6 @@ import {
   type TextStyleKey,
   type ComponentTypographyKey,
 } from './typography';
-
-import {
-  duration,
-  easing,
-  springConfig,
-  animationPresets,
-  interactionTiming,
-  reducedMotion,
-  type AnimationPreset,
-  type SpringConfigKey,
-  type DurationKey,
-} from './animations';
-
-import {
-  buildGradients,
-  type GradientKey,
-  type GradientConfig,
-  type GradientColors,
-  type GradientLocations,
-} from './gradients';
 
 /**
  * Complete Theme Object

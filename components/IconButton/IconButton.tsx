@@ -1,7 +1,8 @@
 import { Icon } from '@gluestack-ui/themed';
 import { TouchableOpacity } from 'react-native';
-import { useAppTheme } from '../../hooks';
+
 import { applyOpacity } from '../../config/theme';
+import { useAppTheme } from '../../hooks';
 
 export interface IconButtonProps {
   icon: any;

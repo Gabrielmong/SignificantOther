@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from 'react';
 import {
   ModalBackdrop,
   ModalContent,
@@ -12,14 +11,15 @@ import {
   Textarea,
   TextareaInput,
 } from '@gluestack-ui/themed';
-import { ActivityIndicator, Alert, Image, ScrollView, TouchableOpacity } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Image, ScrollView, TouchableOpacity } from 'react-native';
+
 import { useAppTheme, useShareToChat } from '../../hooks';
 import type { MilestoneInput, PhotoChange } from '../../hooks/useMilestones';
-import { CountdownObject, Milestone, MilestoneKind, Place, SpecialKind } from '../../types';
 import type { PlaceInput } from '../../hooks/usePlaces';
-import { PlacePicker, PlaceRow } from '../PlacePicker';
+import { CountdownObject, Milestone, MilestoneKind, Place, SpecialKind } from '../../types';
 import {
   ANNIVERSARY_KINDS,
   SPECIAL_DEFAULTS,
@@ -28,6 +28,7 @@ import {
   toDay,
 } from '../../utils/milestones';
 import { KeyboardAwareModal } from '../KeyboardAwareModal';
+import { PlacePicker, PlaceRow } from '../PlacePicker';
 
 const EMOJIS = ['👋', '💕', '💍', '💒', '✈️', '🏠', '🎉', '🍽️', '🌅', '🎂', '🐶', '⭐'];
 
@@ -61,10 +62,15 @@ interface MilestoneModalProps {
 // Resolves with the chosen button, so the save flow can wait on it
 const ask = (title: string, message: string, cancel: string, confirm: string) =>
   new Promise<boolean>((resolve) =>
-    Alert.alert(title, message, [
-      { text: cancel, style: 'cancel', onPress: () => resolve(false) },
-      { text: confirm, onPress: () => resolve(true) },
-    ], { cancelable: true, onDismiss: () => resolve(false) }),
+    Alert.alert(
+      title,
+      message,
+      [
+        { text: cancel, style: 'cancel', onPress: () => resolve(false) },
+        { text: confirm, onPress: () => resolve(true) },
+      ],
+      { cancelable: true, onDismiss: () => resolve(false) },
+    ),
   );
 
 export const MilestoneModal: React.FC<MilestoneModalProps> = ({
@@ -386,7 +392,9 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
                     <TouchableOpacity onPress={pickPhoto} style={chip(false)}>
                       <Text style={{ color: theme.colors.text }}>Replace</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => setPhoto({ type: 'remove' })} style={chip(false)}>
+                    <TouchableOpacity
+                      onPress={() => setPhoto({ type: 'remove' })}
+                      style={chip(false)}>
                       <Text style={{ color: theme.colors.error }}>Remove</Text>
                     </TouchableOpacity>
                   </Box>
@@ -411,7 +419,8 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
                     alignItems: 'center',
                     backgroundColor: theme.colors.surfaceElevated,
                   }}>
-                  <Text style={{ color: theme.colors.error, fontWeight: theme.fontWeight.semibold }}>
+                  <Text
+                    style={{ color: theme.colors.error, fontWeight: theme.fontWeight.semibold }}>
                     Delete
                   </Text>
                 </TouchableOpacity>
@@ -431,7 +440,10 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
                   <ActivityIndicator color={theme.colors.onPrimary} />
                 ) : (
                   <Text
-                    style={{ color: theme.colors.onPrimary, fontWeight: theme.fontWeight.semibold }}>
+                    style={{
+                      color: theme.colors.onPrimary,
+                      fontWeight: theme.fontWeight.semibold,
+                    }}>
                     Save
                   </Text>
                 )}
@@ -445,7 +457,8 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
                 accessibilityRole="button"
                 accessibilityLabel="Share milestone to chat"
                 style={{ alignItems: 'center', paddingVertical: 4 }}>
-                <Text style={{ color: theme.colors.primary, fontWeight: theme.fontWeight.semibold }}>
+                <Text
+                  style={{ color: theme.colors.primary, fontWeight: theme.fontWeight.semibold }}>
                   Share to chat
                 </Text>
               </TouchableOpacity>

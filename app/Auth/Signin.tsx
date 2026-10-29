@@ -1,4 +1,3 @@
-import { StatusBar } from 'expo-status-bar';
 import {
   Input,
   InputField,
@@ -10,13 +9,15 @@ import {
   HStack,
   Icon,
 } from '@gluestack-ui/themed';
-import { useEffect, useState } from 'react';
 import { Link, router } from 'expo-router';
-import { useAuth } from '../../hooks/useAuth';
-import { AuthFooter } from '../../components';
+import { StatusBar } from 'expo-status-bar';
 import { Eye, EyeOff } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
 import { TouchableOpacity } from 'react-native';
+
+import { AuthFooter } from '../../components';
 import { useAppTheme } from '../../hooks';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function Home() {
   const [email, setEmail] = useState('');
@@ -52,7 +53,8 @@ export default function Home() {
       <Box
         style={{
           width: '100%',
-        }}></Box>
+        }}
+      />
 
       <Box
         style={{

@@ -10,12 +10,13 @@ import {
   set,
   Card,
 } from '@gluestack-ui/themed';
-import { useAppTheme, useAuth, useFirebase, useImageUpload } from '../../../hooks';
-import { useEffect, useState } from 'react';
-import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { ArrowLeft, Save } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
+
 import { IconButton } from '../../../components';
+import { useAppTheme, useAuth, useFirebase, useImageUpload } from '../../../hooks';
 
 export default function EditProfile() {
   const { theme } = useAppTheme();

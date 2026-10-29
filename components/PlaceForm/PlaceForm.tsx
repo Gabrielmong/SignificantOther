@@ -1,12 +1,26 @@
-import React, { useState } from 'react';
-import { ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import React, { useState } from 'react';
+import { ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
+
 import { useAppTheme } from '../../hooks';
 import type { PlaceInput } from '../../hooks/usePlaces';
 import { parseDay, toDay } from '../../utils/milestones';
 
-export const PLACE_EMOJIS = ['📍', '👋', '💕', '🍽️', '☕', '🏠', '✈️', '🏖️', '🎉', '💍', '🌳', '⭐'];
+export const PLACE_EMOJIS = [
+  '📍',
+  '👋',
+  '💕',
+  '🍽️',
+  '☕',
+  '🏠',
+  '✈️',
+  '🏖️',
+  '🎉',
+  '💍',
+  '🌳',
+  '⭐',
+];
 
 interface PlaceFormProps {
   value: PlaceInput;

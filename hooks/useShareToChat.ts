@@ -1,8 +1,8 @@
 import { useAppSelector } from '../state';
 import { MessageAttachment } from '../types';
-import { tapFeedback } from '../utils/haptics';
 import { useAppToast } from './useAppToast';
 import { useFirebase } from './useFirebase';
+import { tapFeedback } from '../utils/haptics';
 
 /**
  * Sends an item (countdown, wish, place…) into the chat as a tappable card.

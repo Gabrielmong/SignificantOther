@@ -5,6 +5,7 @@
  */
 
 import { config } from '@gluestack-ui/config';
+
 import { buildScale, mixHex } from './colorMath';
 import type { Theme } from './index';
 

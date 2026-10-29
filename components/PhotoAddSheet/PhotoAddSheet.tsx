@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from 'react';
 import {
   ModalBackdrop,
   ModalContent,
@@ -8,18 +7,20 @@ import {
   Box,
   Text,
 } from '@gluestack-ui/themed';
-import { ActivityIndicator, Image, ScrollView, TextInput, TouchableOpacity } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Image, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+
 import { useAppTheme } from '../../hooks';
 import type { PendingPhoto } from '../../hooks/useGallery';
-import { exifDay } from '../../utils/photos';
-import { parseDay, toDay } from '../../utils/milestones';
-import { TagPicker } from '../TagPicker';
-import { PlacePicker, PlaceRow } from '../PlacePicker';
 import type { PlaceInput } from '../../hooks/usePlaces';
 import { Place } from '../../types';
+import { parseDay, toDay } from '../../utils/milestones';
+import { exifDay } from '../../utils/photos';
 import { KeyboardAwareModal } from '../KeyboardAwareModal';
+import { PlacePicker, PlaceRow } from '../PlacePicker';
+import { TagPicker } from '../TagPicker';
 
 // Opens the system picker (up to 30 photos) and turns each pick into a
 // pending upload dated from its EXIF data. Cancel gives []. Throws on
@@ -128,7 +129,12 @@ export const PhotoAddSheet: React.FC<PhotoAddSheetProps> = ({
     </Text>
   );
 
-  const input = (value: string, onChange: (text: string) => void, placeholder: string, multiline = false) => (
+  const input = (
+    value: string,
+    onChange: (text: string) => void,
+    placeholder: string,
+    multiline = false,
+  ) => (
     <TextInput
       value={value}
       onChangeText={onChange}
@@ -152,7 +158,11 @@ export const PhotoAddSheet: React.FC<PhotoAddSheetProps> = ({
     <Box style={{ gap: 14 }}>
       <Box>
         {label(single ? 'Label' : 'Label for this photo')}
-        {input(item.label ?? '', (text) => updateSelected({ label: text }), 'Beach day, First apartment…')}
+        {input(
+          item.label ?? '',
+          (text) => updateSelected({ label: text }),
+          'Beach day, First apartment…',
+        )}
       </Box>
       <Box>
         {label('Date')}
@@ -181,7 +191,12 @@ export const PhotoAddSheet: React.FC<PhotoAddSheetProps> = ({
       </Box>
       <Box>
         {label('Description (optional)')}
-        {input(item.description ?? '', (text) => updateSelected({ description: text }), 'What happened here?', true)}
+        {input(
+          item.description ?? '',
+          (text) => updateSelected({ description: text }),
+          'What happened here?',
+          true,
+        )}
       </Box>
       <Box>
         {label(single ? 'Place (optional)' : 'Place for this photo')}
@@ -303,7 +318,8 @@ export const PhotoAddSheet: React.FC<PhotoAddSheetProps> = ({
                 backgroundColor: theme.colors.primary,
               }}>
               {uploading && <ActivityIndicator color={theme.colors.onPrimary} />}
-              <Text style={{ color: theme.colors.onPrimary, fontWeight: theme.fontWeight.semibold }}>
+              <Text
+                style={{ color: theme.colors.onPrimary, fontWeight: theme.fontWeight.semibold }}>
                 {buttonText}
               </Text>
             </TouchableOpacity>

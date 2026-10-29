@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
 import { Box } from '@gluestack-ui/themed';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Heart } from 'lucide-react-native';
+import React, { useEffect } from 'react';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -10,6 +10,7 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
+
 import { useAppTheme } from '../../hooks';
 
 export const AnimatedHeartLoader: React.FC = () => {

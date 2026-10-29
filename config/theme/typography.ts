@@ -9,15 +9,15 @@
  * Standardized into a proper scale
  */
 export const fontSize = {
-  xs: 12,     // Caption, helper text, timestamps
-  sm: 14,     // Small body, labels, secondary text
-  md: 16,     // Default body text
-  lg: 18,     // Large body, subtitles
-  xl: 20,     // H3 headings, board names
-  '2xl': 24,  // H2 headings, screen titles
-  '3xl': 30,  // H1 headings
-  '4xl': 36,  // Display text, hero headings
-  '5xl': 48,  // Extra large display
+  xs: 12, // Caption, helper text, timestamps
+  sm: 14, // Small body, labels, secondary text
+  md: 16, // Default body text
+  lg: 18, // Large body, subtitles
+  xl: 20, // H3 headings, board names
+  '2xl': 24, // H2 headings, screen titles
+  '3xl': 30, // H1 headings
+  '4xl': 36, // Display text, hero headings
+  '5xl': 48, // Extra large display
 } as const;
 
 /**
@@ -26,10 +26,10 @@ export const fontSize = {
  * Extended with medium and semibold for better hierarchy
  */
 export const fontWeight = {
-  normal: '400',    // Regular text
-  medium: '500',    // Slightly emphasized text
-  semibold: '600',  // Section headers, important labels
-  bold: '700',      // Headings, strong emphasis (current bold)
+  normal: '400', // Regular text
+  medium: '500', // Slightly emphasized text
+  semibold: '600', // Section headers, important labels
+  bold: '700', // Headings, strong emphasis (current bold)
 } as const;
 
 /**
@@ -37,9 +37,9 @@ export const fontWeight = {
  * Relative to font size for better readability
  */
 export const lineHeight = {
-  tight: 1.2,     // For headings (tight spacing)
-  normal: 1.5,    // For body text (comfortable reading)
-  relaxed: 1.75,  // For large body text (extra breathing room)
+  tight: 1.2, // For headings (tight spacing)
+  normal: 1.5, // For body text (comfortable reading)
+  relaxed: 1.75, // For large body text (extra breathing room)
 } as const;
 
 /**
@@ -47,9 +47,9 @@ export const lineHeight = {
  * Subtle adjustments for different font sizes
  */
 export const letterSpacing = {
-  tight: -0.02,   // Large headings (slightly condensed)
-  normal: 0,      // Body text (default)
-  wide: 0.02,     // Small caps, buttons (slightly expanded)
+  tight: -0.02, // Large headings (slightly condensed)
+  normal: 0, // Body text (default)
+  wide: 0.02, // Small caps, buttons (slightly expanded)
 } as const;
 
 /**
@@ -159,7 +159,7 @@ export const componentTypography = {
 
   // Board Name (Home screen)
   boardName: {
-    fontSize: fontSize['2xl'],  // Upgraded from 20px
+    fontSize: fontSize['2xl'], // Upgraded from 20px
     fontWeight: fontWeight.bold,
     lineHeight: lineHeight.tight,
   },

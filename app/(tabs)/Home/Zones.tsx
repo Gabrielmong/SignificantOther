@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { Box, Button, HStack, Text, Heading } from '@gluestack-ui/themed';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useAppTheme, useAuth, useFirebase, useAppToast, useLocation } from '../../../hooks';
-import { ZoneCard, AddZoneModal } from '../../../components';
-import { Zone, ZoneObject, ZoneType } from '../../../types';
-import { Box, Button, HStack, Text, Heading } from '@gluestack-ui/themed';
-import { ScrollView, TouchableOpacity } from 'react-native';
 import { ArrowLeft, Plus } from 'lucide-react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, TouchableOpacity } from 'react-native';
+
+import { ZoneCard, AddZoneModal } from '../../../components';
+import { useAppTheme, useAuth, useFirebase, useAppToast, useLocation } from '../../../hooks';
+import { Zone, ZoneObject, ZoneType } from '../../../types';
 
 export default function Zones() {
   const { theme } = useAppTheme();

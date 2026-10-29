@@ -1,10 +1,11 @@
+import { Text } from '@gluestack-ui/themed';
+import type { AudioPlayer } from 'expo-audio';
+import { Pause, Play } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
-import { Text } from '@gluestack-ui/themed';
-import { Pause, Play } from 'lucide-react-native';
-import type { AudioPlayer } from 'expo-audio';
-import { useAppTheme } from '../../hooks/useAppTheme';
+
 import { applyOpacity } from '../../config/theme';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 // Only one voice note plays at a time: starting one pauses whichever was playing
 let pauseActive: (() => void) | null = null;

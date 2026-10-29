@@ -17,17 +17,8 @@ export interface ZoneCheckResult {
  * @param zone Zone to check against
  * @returns Zone status (inside, outside, or approaching)
  */
-export const checkZoneStatus = (
-  userLat: number,
-  userLon: number,
-  zone: Zone,
-): ZoneCheckResult => {
-  const distance = calculateDistance(
-    userLat,
-    userLon,
-    zone.latitude,
-    zone.longitude,
-  );
+export const checkZoneStatus = (userLat: number, userLon: number, zone: Zone): ZoneCheckResult => {
+  const distance = calculateDistance(userLat, userLon, zone.latitude, zone.longitude);
 
   let status: ZoneStatusType;
   const radius = zone.radius;
@@ -106,10 +97,7 @@ export const getNearestRelevantZone = (
  * @param speed Current speed in meters per second (optional)
  * @returns ETA in minutes, or null if cannot calculate
  */
-export const calculateZoneETA = (
-  distance: number,
-  speed?: number,
-): number | null => {
+export const calculateZoneETA = (distance: number, speed?: number): number | null => {
   if (!speed || speed < 0.5) {
     // If not moving or moving very slowly, can't calculate ETA
     return null;

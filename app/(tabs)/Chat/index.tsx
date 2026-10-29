@@ -1,4 +1,3 @@
-import { StatusBar } from 'expo-status-bar';
 import {
   Text,
   View,
@@ -11,17 +10,33 @@ import {
   AvatarImage,
   AvatarFallbackText,
 } from '@gluestack-ui/themed';
-import { useAppSelector } from '../../../state';
-import {
-  useAppTheme,
-  useAppToast,
-  useChatMessages,
-  useChatStars,
-  useFirebase,
-} from '../../../hooks';
+
 // Not in the hooks index: expo-audio is a native module, and importing it
 // everywhere would crash a build made before it was added at startup
-import { useVoiceRecorder } from '../../../hooks/useVoiceRecorder';
+import { FlashList, type FlashListRef } from '@shopify/flash-list';
+import * as Clipboard from 'expo-clipboard';
+import * as ImagePicker from 'expo-image-picker';
+import { router, useFocusEffect } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { ArrowDown, Check, ImagePlus, Send, Star, X } from 'lucide-react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  AppState,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  Pressable,
+  TextInput,
+} from 'react-native';
+
+import Animated, {
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
+
 import {
   ChatImageViewer,
   IconButton,
@@ -31,33 +46,21 @@ import {
   VoiceRecordButton,
   VoiceRecordingBar,
 } from '../../../components';
-import { ArrowDown, Check, ImagePlus, Send, Star, X } from 'lucide-react-native';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { FlashList, type FlashListRef } from '@shopify/flash-list';
+import { duration, springConfig } from '../../../config/theme/animations';
 import {
-  AppState,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  Pressable,
-  TextInput,
-} from 'react-native';
-import { router, useFocusEffect } from 'expo-router';
-import * as Clipboard from 'expo-clipboard';
-import * as ImagePicker from 'expo-image-picker';
+  useAppTheme,
+  useAppToast,
+  useChatMessages,
+  useChatStars,
+  useFirebase,
+} from '../../../hooks';
+import { useVoiceRecorder } from '../../../hooks/useVoiceRecorder';
+import { setChatOnScreen } from '../../../services/chatPresence';
+import { useAppSelector } from '../../../state';
 import { MessageReply, MessageType } from '../../../types';
 import { isEditableMessage, messagePreview } from '../../../utils/chat';
-import { setChatOnScreen } from '../../../services/chatPresence';
-import Animated, {
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withSequence,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
-import { fadeEntering, listItemEntering, listItemExiting } from '../../../utils/motion';
 import { tapFeedback } from '../../../utils/haptics';
-import { duration, springConfig } from '../../../config/theme/animations';
+import { fadeEntering, listItemEntering, listItemExiting } from '../../../utils/motion';
 
 // How long after a new message first renders it may still play its entrance.
 // FlashList recycles cells, so without this a new message would fade in again

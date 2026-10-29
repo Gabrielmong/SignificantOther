@@ -5,38 +5,38 @@
  * Supports both light and dark modes.
  */
 
-import { buildScale, readableTextOn, type Scale } from './colorMath';
 import type { ColorPair } from './accentThemes';
+import { buildScale, readableTextOn, type Scale } from './colorMath';
 
 // Neutral Grays (for text, borders, backgrounds)
 export const neutral = {
-  50: '#fafafa',    // Lightest backgrounds
-  100: '#f5f5f5',   // Card backgrounds (current light mode)
-  200: '#e5e5e5',   // Borders
-  300: '#d4d4d4',   // Disabled text
-  400: '#a3a3a3',   // Placeholder text
-  500: '#737373',   // Secondary text
-  600: '#525252',   // Body text
-  700: '#404040',   // Headings (light mode)
-  800: '#262626',   // Dark text
-  900: '#171717',   // Darkest text
+  50: '#fafafa', // Lightest backgrounds
+  100: '#f5f5f5', // Card backgrounds (current light mode)
+  200: '#e5e5e5', // Borders
+  300: '#d4d4d4', // Disabled text
+  400: '#a3a3a3', // Placeholder text
+  500: '#737373', // Secondary text
+  600: '#525252', // Body text
+  700: '#404040', // Headings (light mode)
+  800: '#262626', // Dark text
+  900: '#171717', // Darkest text
 } as const;
 
 // Dark Mode Specific Backgrounds
 export const darkBg = {
-  50: '#1a1a1a',    // Elevated surfaces
-  100: '#121212',   // Main background (current dark mode bg)
-  200: '#0a0a0a',   // Deepest backgrounds
-  300: '#2e2e2e',   // Cards/elevated (current chat header)
-  400: '#3a3a3a',   // Hover states on dark
+  50: '#1a1a1a', // Elevated surfaces
+  100: '#121212', // Main background (current dark mode bg)
+  200: '#0a0a0a', // Deepest backgrounds
+  300: '#2e2e2e', // Cards/elevated (current chat header)
+  400: '#3a3a3a', // Hover states on dark
 } as const;
 
 // Dark Mode Specific Text Colors
 export const darkText = {
-  50: '#ffffff',    // Primary text
-  100: '#e5e5e5',   // Secondary text
-  200: '#a3a3a3',   // Tertiary text (placeholder)
-  300: '#737373',   // Disabled text
+  50: '#ffffff', // Primary text
+  100: '#e5e5e5', // Secondary text
+  200: '#a3a3a3', // Tertiary text (placeholder)
+  300: '#737373', // Disabled text
 } as const;
 
 // Semantic Colors
@@ -62,19 +62,19 @@ export type ColorMode = 'light' | 'dark';
 const neutralColors = {
   light: {
     // Backgrounds
-    background: neutral[50],        // Main app background
-    surface: base.white,            // Card/surface background
-    surfaceElevated: neutral[100],  // Elevated surfaces
-    overlay: 'rgba(0, 0, 0, 0.5)',  // Modal overlay
+    background: neutral[50], // Main app background
+    surface: base.white, // Card/surface background
+    surfaceElevated: neutral[100], // Elevated surfaces
+    overlay: 'rgba(0, 0, 0, 0.5)', // Modal overlay
 
     // Text
-    text: neutral[700],             // Primary text
-    textSecondary: neutral[500],    // Secondary text
-    textTertiary: neutral[400],     // Tertiary/placeholder text
-    textInverse: base.white,        // Text on dark backgrounds
+    text: neutral[700], // Primary text
+    textSecondary: neutral[500], // Secondary text
+    textTertiary: neutral[400], // Tertiary/placeholder text
+    textInverse: base.white, // Text on dark backgrounds
 
     // Borders
-    border: neutral[200],           // Default border color
+    border: neutral[200], // Default border color
 
     // Semantic
     success: semantic.success,
@@ -88,19 +88,19 @@ const neutralColors = {
   },
   dark: {
     // Backgrounds
-    background: darkBg[100],        // Main app background (#121212)
-    surface: darkBg[50],            // Card/surface background
-    surfaceElevated: darkBg[300],   // Elevated surfaces (#2e2e2e)
-    overlay: 'rgba(0, 0, 0, 0.7)',  // Modal overlay
+    background: darkBg[100], // Main app background (#121212)
+    surface: darkBg[50], // Card/surface background
+    surfaceElevated: darkBg[300], // Elevated surfaces (#2e2e2e)
+    overlay: 'rgba(0, 0, 0, 0.7)', // Modal overlay
 
     // Text
-    text: darkText[50],             // Primary text (white)
-    textSecondary: darkText[100],   // Secondary text
-    textTertiary: darkText[200],    // Tertiary/placeholder text
-    textInverse: neutral[700],      // Text on light backgrounds
+    text: darkText[50], // Primary text (white)
+    textSecondary: darkText[100], // Secondary text
+    textTertiary: darkText[200], // Tertiary/placeholder text
+    textInverse: neutral[700], // Text on light backgrounds
 
     // Borders
-    border: darkText[300],          // Default border color
+    border: darkText[300], // Default border color
 
     // Semantic - lighter for dark mode
     success: '#34d399',
@@ -163,7 +163,7 @@ export const getColors = (mode: ColorMode, self: ColorPair, partner: ColorPair, 
 
     ...neutralColors[mode],
 
-    borderFocus: self.solid,        // Focused input border
+    borderFocus: self.solid, // Focused input border
 
     // Primary (me)
     primary: self.solid,
@@ -173,8 +173,8 @@ export const getColors = (mode: ColorMode, self: ColorPair, partner: ColorPair, 
     primary300: p[300],
     primary400: p[400],
     primary500: p[500],
-    primary600: p[600],             // Hover/pressed
-    primary700: p[700],             // Active/own entries
+    primary600: p[600], // Hover/pressed
+    primary700: p[700], // Active/own entries
     primary800: p[800],
     primary900: p[900],
 
@@ -186,8 +186,8 @@ export const getColors = (mode: ColorMode, self: ColorPair, partner: ColorPair, 
     secondary300: s[300],
     secondary400: s[400],
     secondary500: s[500],
-    secondary600: s[600],           // Hover/pressed
-    secondary700: s[700],           // Active/partner entries
+    secondary600: s[600], // Hover/pressed
+    secondary700: s[700], // Active/partner entries
     secondary800: s[800],
     secondary900: s[900],
 
@@ -203,12 +203,12 @@ export const getColors = (mode: ColorMode, self: ColorPair, partner: ColorPair, 
     buttonSecondary: partner.solid,
 
     // Message bubbles (chat)
-    messageSelf: self.solid,        // User's messages
-    messagePartner: partner.solid,  // Partner's messages
+    messageSelf: self.solid, // User's messages
+    messagePartner: partner.solid, // Partner's messages
 
     // Journal entries
-    journalSelf: self.deep,         // User's journal entries
-    journalPartner: partner.deep,   // Partner's journal entries
+    journalSelf: self.deep, // User's journal entries
+    journalPartner: partner.deep, // Partner's journal entries
   };
 };
 

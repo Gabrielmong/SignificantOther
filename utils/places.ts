@@ -4,9 +4,9 @@
  * outside the app.
  */
 
-import type { Place } from '../types/Place';
-import type { Photo } from '../types/Photo';
 import type { Milestone } from '../types/Milestone';
+import type { Photo } from '../types/Photo';
+import type { Place } from '../types/Place';
 
 export type CameraView =
   | { kind: 'world' }
@@ -66,7 +66,12 @@ export const unlinkUpdates = (
   return updates;
 };
 
-export type PlaceSuggestion = { name: string; address: string; latitude: number; longitude: number };
+export type PlaceSuggestion = {
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+};
 
 /**
  * Mapbox forward geocoding. `proximity` prefers results near a point (or

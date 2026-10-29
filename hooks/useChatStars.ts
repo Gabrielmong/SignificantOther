@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import {
   get,
   getDatabase,
@@ -8,6 +7,8 @@ import {
   serverTimestamp,
   set,
 } from 'firebase/database';
+import { useEffect, useState } from 'react';
+
 import { ensureFirebaseApp } from '../services/firebaseApp';
 import { MessageType } from '../types';
 import { useAppToast } from './useAppToast';

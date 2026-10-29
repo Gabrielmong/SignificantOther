@@ -1,6 +1,7 @@
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import { getApp, getApps, initializeApp } from 'firebase/app';
 import { getAuth, getReactNativePersistence, initializeAuth } from 'firebase/auth';
-import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+
 import { firebaseConfig } from '../config';
 
 // Initializes the Firebase JS SDK once, wherever it's first needed. Background

@@ -1,3 +1,6 @@
+import { Text } from '@gluestack-ui/themed';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Pencil, Trash2, X } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
@@ -10,18 +13,15 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { Text } from '@gluestack-ui/themed';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { Pencil, Trash2, X } from 'lucide-react-native';
+
 import { useAppTheme } from '../../hooks';
 import type { PhotoDetails } from '../../hooks/useGallery';
-import { Photo } from '../../types';
+import type { PlaceInput } from '../../hooks/usePlaces';
+import { Photo, Place } from '../../types';
 import { parseDay, toDay } from '../../utils/milestones';
 import { followPhoto } from '../../utils/photos';
-import { TagPicker } from '../TagPicker';
 import { PlacePicker, PlaceRow } from '../PlacePicker';
-import type { PlaceInput } from '../../hooks/usePlaces';
-import { Place } from '../../types';
+import { TagPicker } from '../TagPicker';
 
 interface PhotoViewerProps {
   isOpen: boolean;
@@ -131,7 +131,12 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
     </TouchableOpacity>
   );
 
-  const field = (value: string, onChange: (t: string) => void, placeholder: string, multiline = false) => (
+  const field = (
+    value: string,
+    onChange: (t: string) => void,
+    placeholder: string,
+    multiline = false,
+  ) => (
     <TextInput
       value={value}
       onChangeText={onChange}
@@ -169,11 +174,7 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
             currentId.current = photos[next]?.id ?? null;
           }}
           renderItem={({ item }) => (
-            <Image
-              source={{ uri: item.url }}
-              resizeMode="contain"
-              style={{ width, height }}
-            />
+            <Image source={{ uri: item.url }} resizeMode="contain" style={{ width, height }} />
           )}
         />
 
@@ -227,7 +228,11 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
               {!photo.milestoneId && (
                 <TouchableOpacity
                   onPress={() => setShowDatePicker(true)}
-                  style={{ backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 10 }}>
+                  style={{
+                    backgroundColor: 'rgba(255,255,255,0.1)',
+                    borderRadius: 8,
+                    padding: 10,
+                  }}>
                   <Text style={{ color: '#ffffff' }}>{formatDay(draft.day)}</Text>
                 </TouchableOpacity>
               )}
@@ -291,7 +296,11 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
                     alignItems: 'center',
                     backgroundColor: theme.colors.primary,
                   }}>
-                  <Text style={{ color: theme.colors.onPrimary, fontWeight: theme.fontWeight.semibold }}>
+                  <Text
+                    style={{
+                      color: theme.colors.onPrimary,
+                      fontWeight: theme.fontWeight.semibold,
+                    }}>
                     {saving ? 'Saving…' : 'Save'}
                   </Text>
                 </TouchableOpacity>
@@ -300,13 +309,22 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
           ) : (
             <View style={{ gap: 6 }}>
               {!!photo.label && (
-                <Text style={{ color: '#ffffff', fontSize: theme.fontSize.lg, fontWeight: theme.fontWeight.bold }}>
+                <Text
+                  style={{
+                    color: '#ffffff',
+                    fontSize: theme.fontSize.lg,
+                    fontWeight: theme.fontWeight.bold,
+                  }}>
                   {photo.label}
                 </Text>
               )}
-              <Text style={{ color: '#d4d4d4', fontSize: theme.fontSize.sm }}>{formatDay(photo.day)}</Text>
+              <Text style={{ color: '#d4d4d4', fontSize: theme.fontSize.sm }}>
+                {formatDay(photo.day)}
+              </Text>
               {(() => {
-                const place = photo.placeId ? places.find((p) => p.id === photo.placeId) : undefined;
+                const place = photo.placeId
+                  ? places.find((p) => p.id === photo.placeId)
+                  : undefined;
                 return place ? (
                   <TouchableOpacity
                     onPress={() => onPlacePress?.(place.id)}
@@ -319,7 +337,9 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
                 ) : null;
               })()}
               {!!photo.description && (
-                <Text style={{ color: '#ffffff', fontSize: theme.fontSize.md }}>{photo.description}</Text>
+                <Text style={{ color: '#ffffff', fontSize: theme.fontSize.md }}>
+                  {photo.description}
+                </Text>
               )}
               {!!photo.tags && (
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>

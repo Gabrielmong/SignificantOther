@@ -1,17 +1,18 @@
+import { Text } from '@gluestack-ui/themed';
+import { router, useLocalSearchParams, Href } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { ArrowLeft, Plus } from 'lucide-react-native';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { router, useLocalSearchParams, Href } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { Text } from '@gluestack-ui/themed';
-import { ArrowLeft, Plus } from 'lucide-react-native';
+
+import { PlaceCard, PlaceEditor, PlaceMap, PlaceSearch, PhotoViewer } from '../../../components';
 import { useAppTheme, useGallery, useMilestones, usePlaces, useShareToChat } from '../../../hooks';
 import type { PlaceInput } from '../../../hooks/usePlaces';
-import { PlaceCard, PlaceEditor, PlaceMap, PlaceSearch, PhotoViewer } from '../../../components';
 import { Milestone, Place } from '../../../types';
-import { addDraftAt, linkedTo } from '../../../utils/places';
 import { parseDay } from '../../../utils/milestones';
 import { listItemEntering, listItemExiting } from '../../../utils/motion';
+import { addDraftAt, linkedTo } from '../../../utils/places';
 
 export default function Places() {
   const { theme, colorMode } = useAppTheme();
@@ -42,7 +43,8 @@ export default function Places() {
 
   const selected: Place | undefined = selectedId ? byId[selectedId] : undefined;
   const linked = useMemo(
-    () => (selected ? linkedTo(selected.id, milestones, gallery.photos) : { milestones: [], photos: [] }),
+    () =>
+      selected ? linkedTo(selected.id, milestones, gallery.photos) : { milestones: [], photos: [] },
     [selected, milestones, gallery.photos],
   );
 
@@ -66,7 +68,11 @@ export default function Places() {
   // Same venue · date line the card shows
   const handleShare = (p: Place) => {
     const date = p.day
-      ? parseDay(p.day).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      ? parseDay(p.day).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        })
       : null;
     shareToChat({
       kind: 'place',
@@ -101,7 +107,12 @@ export default function Places() {
         <TouchableOpacity onPress={() => router.back()} accessibilityLabel="Back">
           <ArrowLeft size={24} color={theme.colors.text} />
         </TouchableOpacity>
-        <Text style={{ fontSize: theme.fontSize.xl, fontWeight: theme.fontWeight.bold, color: theme.colors.text }}>
+        <Text
+          style={{
+            fontSize: theme.fontSize.xl,
+            fontWeight: theme.fontWeight.bold,
+            color: theme.colors.text,
+          }}>
           Our places
         </Text>
         <TouchableOpacity
@@ -115,7 +126,12 @@ export default function Places() {
         <PlaceSearch
           proximity={proximity}
           onPick={(s) =>
-            openEditor({ latitude: s.latitude, longitude: s.longitude, venue: s.name, name: s.name })
+            openEditor({
+              latitude: s.latitude,
+              longitude: s.longitude,
+              venue: s.name,
+              name: s.name,
+            })
           }
         />
       </View>
@@ -180,7 +196,10 @@ export default function Places() {
       </View>
 
       {/* Add / edit */}
-      <Modal visible={editing !== null} animationType="slide" onRequestClose={() => setEditing(null)}>
+      <Modal
+        visible={editing !== null}
+        animationType="slide"
+        onRequestClose={() => setEditing(null)}>
         <ScrollView
           style={{ flex: 1, backgroundColor: theme.colors.background }}
           contentContainerStyle={{ padding: 16, paddingTop: 40 }}

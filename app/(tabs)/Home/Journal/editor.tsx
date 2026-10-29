@@ -3,22 +3,16 @@
  * Supports both creating new entries and editing existing ones
  */
 
-import {
-  View,
-  Text,
-  Box,
-  Input,
-  InputField,
-  HStack,
-} from '@gluestack-ui/themed';
-import { useAppTheme, useAuth, useFirebase, useAppToast } from '../../../../hooks';
-import { Alert, StatusBar, TouchableOpacity, ScrollView, TextInput } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState, useRef } from 'react';
-import { Journal } from '../../../../types';
-import { ArrowLeft, Save } from 'lucide-react-native';
+import { View, Text, Box, Input, InputField, HStack } from '@gluestack-ui/themed';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router, useLocalSearchParams } from 'expo-router';
+import { ArrowLeft, Save } from 'lucide-react-native';
+import { useEffect, useState, useRef } from 'react';
+import { Alert, StatusBar, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+
+import { useAppTheme, useAuth, useFirebase, useAppToast } from '../../../../hooks';
 import { useAppSelector } from '../../../../state';
+import { Journal } from '../../../../types';
 
 export default function JournalEditor() {
   const { theme } = useAppTheme();

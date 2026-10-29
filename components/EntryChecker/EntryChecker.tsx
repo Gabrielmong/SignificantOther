@@ -1,10 +1,10 @@
-import { Slot, useLocalSearchParams, useSegments } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { useAppSelector } from '../../state';
-import { router } from 'expo-router';
-import { useAuth } from '../../hooks';
-import { PermissionsAndroid, Alert } from 'react-native';
 import { getMessaging, onMessage } from '@react-native-firebase/messaging';
+import { Slot, useLocalSearchParams, useSegments, router } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { PermissionsAndroid, Alert } from 'react-native';
+
+import { useAuth } from '../../hooks';
+import { useAppSelector } from '../../state';
 
 export const EntryCheckerWrapper = ({ children }: { children: React.ReactNode }) => {
   const isLogged = useAppSelector((state) => state.user.loggedIn);

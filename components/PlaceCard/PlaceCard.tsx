@@ -1,7 +1,8 @@
-import React from 'react';
-import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { Pencil, Send, Trash2, X } from 'lucide-react-native';
+import React from 'react';
+import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
+
 import { useAppTheme } from '../../hooks';
 import { Milestone, Photo, Place } from '../../types';
 import { parseDay } from '../../utils/milestones';
@@ -32,7 +33,11 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({
 }) => {
   const { theme } = useAppTheme();
   const date = place.day
-    ? parseDay(place.day).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    ? parseDay(place.day).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
     : null;
   const subtitle = [place.venue, date].filter(Boolean).join(' · ');
 
@@ -65,14 +70,20 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({
           {place.name}
         </Text>
         {onShare && (
-          <TouchableOpacity onPress={onShare} accessibilityLabel="Share place to chat" style={{ padding: 6 }}>
+          <TouchableOpacity
+            onPress={onShare}
+            accessibilityLabel="Share place to chat"
+            style={{ padding: 6 }}>
             <Send size={18} color={theme.colors.textSecondary} />
           </TouchableOpacity>
         )}
         <TouchableOpacity onPress={onEdit} accessibilityLabel="Edit place" style={{ padding: 6 }}>
           <Pencil size={18} color={theme.colors.textSecondary} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={onDelete} accessibilityLabel="Delete place" style={{ padding: 6 }}>
+        <TouchableOpacity
+          onPress={onDelete}
+          accessibilityLabel="Delete place"
+          style={{ padding: 6 }}>
           <Trash2 size={18} color={theme.colors.error} />
         </TouchableOpacity>
         <TouchableOpacity onPress={onClose} accessibilityLabel="Close" style={{ padding: 6 }}>
@@ -82,7 +93,9 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({
 
       <ScrollView contentContainerStyle={{ gap: 8 }}>
         {!!subtitle && (
-          <Text style={{ color: theme.colors.textSecondary, fontSize: theme.fontSize.sm }}>{subtitle}</Text>
+          <Text style={{ color: theme.colors.textSecondary, fontSize: theme.fontSize.sm }}>
+            {subtitle}
+          </Text>
         )}
         {!!place.note && <Text style={{ color: theme.colors.text }}>{place.note}</Text>}
 

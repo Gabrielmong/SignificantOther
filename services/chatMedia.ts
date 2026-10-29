@@ -7,10 +7,11 @@ import {
   update,
 } from 'firebase/database';
 import { getDownloadURL, getStorage, ref as storageRef, uploadBytes } from 'firebase/storage';
+
 import { firebaseConfig } from '../config';
 import { MessageAudio, MessageImage, MessageReply, MessageType } from '../types';
-import { deletePhoto, PickedPhoto, uploadPhotoWithThumb } from './photoUpload';
 import { ensureFirebaseApp } from './firebaseApp';
+import { deletePhoto, PickedPhoto, uploadPhotoWithThumb } from './photoUpload';
 
 // Photos and voice notes in the chat: their Storage files and the messages
 // that carry them. Lives outside useFirebase so the media flow (reserve a key,

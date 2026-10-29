@@ -1,6 +1,7 @@
+import { Text } from '@gluestack-ui/themed';
+import { ChevronLeft } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { View } from 'react-native';
-import { Text } from '@gluestack-ui/themed';
 import Animated, {
   cancelAnimation,
   useAnimatedStyle,
@@ -9,9 +10,9 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
-import { ChevronLeft } from 'lucide-react-native';
-import { useAppTheme } from '../../hooks/useAppTheme';
+
 import { formatDuration } from './VoiceNotePlayer';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 interface VoiceRecordingBarProps {
   elapsedMs: number;

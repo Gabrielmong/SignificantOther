@@ -3,9 +3,10 @@
  * A reusable button with gradient background and icon
  */
 
-import React from 'react';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Text } from '@gluestack-ui/themed';
+import { LinearGradient } from 'expo-linear-gradient';
+import React from 'react';
+
 import { useAppTheme } from '../../hooks';
 import { PressableScale } from '../styled/PressableScale';
 

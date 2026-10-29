@@ -1,4 +1,3 @@
-import { StatusBar } from 'expo-status-bar';
 import {
   Input,
   InputField,
@@ -9,15 +8,16 @@ import {
   Box,
   Icon,
 } from '@gluestack-ui/themed';
-import { useState } from 'react';
-
 import { Link, router } from 'expo-router';
-import { useAuth } from '../../hooks/useAuth';
-import { AuthFooter } from '../../components/AuthFooter/AuthFooter';
+import { StatusBar } from 'expo-status-bar';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
+import { useState } from 'react';
 import { TouchableOpacity } from 'react-native';
-import { useAppTheme } from '../../hooks';
+
 import { IconButton } from '../../components';
+import { AuthFooter } from '../../components/AuthFooter/AuthFooter';
+import { useAppTheme } from '../../hooks';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function Signup() {
   const [email, setEmail] = useState('');

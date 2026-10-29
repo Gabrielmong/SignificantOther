@@ -1,6 +1,7 @@
+import { Modal } from '@gluestack-ui/themed';
 import { ComponentProps } from 'react';
 import { View } from 'react-native';
-import { Modal } from '@gluestack-ui/themed';
+
 import { useKeyboardHeight } from '../../hooks/useKeyboardHeight';
 
 // Gap between the dialog and the top of the keyboard

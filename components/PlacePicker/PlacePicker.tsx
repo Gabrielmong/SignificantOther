@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Modal, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { MapPin, Plus, X } from 'lucide-react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Modal, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
+
 import { useAppTheme } from '../../hooks';
 import type { PlaceInput } from '../../hooks/usePlaces';
 import { Place } from '../../types';
@@ -72,8 +73,14 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
         style={{ flex: 1, backgroundColor: theme.colors.background }}
         contentContainerStyle={{ padding: 16, paddingTop: 40, gap: 8 }}
         keyboardShouldPersistTaps="handled">
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Text style={{ fontSize: theme.fontSize.xl, fontWeight: theme.fontWeight.bold, color: theme.colors.text }}>
+        <View
+          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Text
+            style={{
+              fontSize: theme.fontSize.xl,
+              fontWeight: theme.fontWeight.bold,
+              color: theme.colors.text,
+            }}>
             {adding ? 'New place' : 'Choose a place'}
           </Text>
           <TouchableOpacity onPress={onClose} accessibilityLabel="Close" style={{ padding: 6 }}>
@@ -109,7 +116,8 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
               'new',
               <>
                 <Plus size={18} color={theme.colors.primary} />
-                <Text style={{ color: theme.colors.primary, fontWeight: theme.fontWeight.semibold }}>
+                <Text
+                  style={{ color: theme.colors.primary, fontWeight: theme.fontWeight.semibold }}>
                   New place
                 </Text>
               </>,
@@ -130,11 +138,14 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
                 <>
                   <Text style={{ fontSize: 20 }}>{p.emoji}</Text>
                   <View style={{ flex: 1 }}>
-                    <Text style={{ color: theme.colors.text, fontWeight: theme.fontWeight.semibold }}>
+                    <Text
+                      style={{ color: theme.colors.text, fontWeight: theme.fontWeight.semibold }}>
                       {p.name}
                     </Text>
                     {!!p.venue && (
-                      <Text numberOfLines={1} style={{ color: theme.colors.textSecondary, fontSize: theme.fontSize.xs }}>
+                      <Text
+                        numberOfLines={1}
+                        style={{ color: theme.colors.textSecondary, fontSize: theme.fontSize.xs }}>
                         {p.venue}
                       </Text>
                     )}

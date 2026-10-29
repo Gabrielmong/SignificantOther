@@ -12,14 +12,15 @@ import {
   Spinner,
   HStack,
 } from '@gluestack-ui/themed';
-import { useAppTheme, useAuth, useFirebase, useShareToChat } from '../../../../hooks';
-import { applyOpacity } from '../../../../config/theme';
-import { StatusBar, TouchableOpacity } from 'react-native';
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Journal } from '../../../../types';
-import { ArrowLeft, Edit, Trash, Calendar, User, Clock, Eye, Send } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { ArrowLeft, Edit, Trash, Calendar, User, Clock, Eye, Send } from 'lucide-react-native';
+import { useCallback, useState } from 'react';
+import { StatusBar, TouchableOpacity } from 'react-native';
+
+import { applyOpacity } from '../../../../config/theme';
+import { useAppTheme, useAuth, useFirebase, useShareToChat } from '../../../../hooks';
+import { Journal } from '../../../../types';
 
 export default function Note() {
   const { theme } = useAppTheme();

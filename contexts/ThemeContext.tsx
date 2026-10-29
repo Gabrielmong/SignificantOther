@@ -5,10 +5,11 @@
  * theme through Firebase so each partner sees the other's pick
  */
 
-import React, { createContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getDatabase, onValue, ref, set } from 'firebase/database';
+import React, { createContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useColorScheme } from 'react-native';
+
 import {
   createTheme,
   createGluestackConfig,
@@ -19,12 +20,8 @@ import {
   type Theme,
   type ColorMode,
 } from '../config/theme';
+import { loadCachedAccents, cacheAccent, cachePartnerAccent } from '../services/accentStorage';
 import { useAppSelector } from '../state';
-import {
-  loadCachedAccents,
-  cacheAccent,
-  cachePartnerAccent,
-} from '../services/accentStorage';
 import { syncAccentToWidget } from '../widgets/renderWidgets';
 
 const THEME_STORAGE_KEY = '@SignificantOther:theme';
@@ -51,7 +48,7 @@ interface ThemeProviderProps {
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, defaultMode }) => {
   const systemColorScheme = useColorScheme();
   const [colorMode, setColorModeState] = useState<ColorMode>(
-    defaultMode || (systemColorScheme === 'dark' ? 'dark' : 'light')
+    defaultMode || (systemColorScheme === 'dark' ? 'dark' : 'light'),
   );
   const [accentId, setAccentIdState] = useState<AccentId>(DEFAULT_ACCENT);
   const [partnerAccentId, setPartnerAccentId] = useState<AccentId>(DEFAULT_ACCENT);
@@ -63,9 +60,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, defaultM
 
   // Load saved theme preference on mount
   useEffect(() => {
-    Promise.all([loadThemePreference(), loadAccentPreference()]).finally(() =>
-      setIsLoading(false)
-    );
+    Promise.all([loadThemePreference(), loadAccentPreference()]).finally(() => setIsLoading(false));
   }, []);
 
   const loadThemePreference = async () => {
@@ -154,12 +149,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, defaultM
         });
       }
     },
-    [uid]
+    [uid],
   );
 
   const theme = useMemo(
     () => createTheme(colorMode, accentId, partnerAccentId),
-    [colorMode, accentId, partnerAccentId]
+    [colorMode, accentId, partnerAccentId],
   );
 
   const gluestackConfig = useMemo(() => createGluestackConfig(theme), [theme]);
@@ -199,7 +194,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, defaultM
       setAccentId,
       gluestackConfig,
       isLoading,
-    ]
+    ],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { TextInput, TouchableOpacity, View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { Search } from 'lucide-react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { TextInput, TouchableOpacity, View } from 'react-native';
+
+import { MAPBOX_ACCESS_TOKEN } from '../../config/mapboxConfig';
 import { useAppTheme } from '../../hooks';
 import { PlaceSuggestion, geocodeUrl, parseGeocode } from '../../utils/places';
-import { MAPBOX_ACCESS_TOKEN } from '../../config/mapboxConfig';
 
 const DEBOUNCE_MS = 300;
 const MIN_CHARS = 3;
@@ -84,7 +85,8 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ proximity, onPick }) =
       </View>
 
       {results.length > 0 && (
-        <View style={{ borderRadius: 10, backgroundColor: theme.colors.surface, ...theme.shadows.md }}>
+        <View
+          style={{ borderRadius: 10, backgroundColor: theme.colors.surface, ...theme.shadows.md }}>
           {results.map((s, i) => (
             <TouchableOpacity
               key={`${s.name}-${s.latitude}-${s.longitude}-${i}`}
@@ -94,7 +96,9 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ proximity, onPick }) =
                 {s.name}
               </Text>
               {!!s.address && (
-                <Text numberOfLines={1} style={{ color: theme.colors.textSecondary, fontSize: theme.fontSize.xs }}>
+                <Text
+                  numberOfLines={1}
+                  style={{ color: theme.colors.textSecondary, fontSize: theme.fontSize.xs }}>
                   {s.address}
                 </Text>
               )}
@@ -104,7 +108,12 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ proximity, onPick }) =
       )}
 
       {failed && (
-        <Text style={{ color: theme.colors.textSecondary, fontSize: theme.fontSize.xs, paddingHorizontal: 4 }}>
+        <Text
+          style={{
+            color: theme.colors.textSecondary,
+            fontSize: theme.fontSize.xs,
+            paddingHorizontal: 4,
+          }}>
           Couldn't find that. Try dropping a pin instead.
         </Text>
       )}

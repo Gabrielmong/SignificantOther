@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useRef } from 'react';
-import { AppState } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { router, Href } from 'expo-router';
-import { useMilestones } from './useMilestones';
+import { useCallback, useEffect, useRef } from 'react';
+import { AppState } from 'react-native';
+
 import { useGallery } from './useGallery';
-import { buildStory, notificationSchedule } from '../utils/story';
-import { registerOnThisDayRescheduler, scheduleOnThisDay } from '../services/onThisDay';
+import { useMilestones } from './useMilestones';
 import { appNotificationBehavior } from '../services/notificationBehavior';
+import { registerOnThisDayRescheduler, scheduleOnThisDay } from '../services/onThisDay';
+import { buildStory, notificationSchedule } from '../utils/story';
 
 const DEBOUNCE_MS = 1000;
 
@@ -62,7 +63,10 @@ export const useOnThisDayNotifications = () => {
       handled.current.add(id);
       // Otherwise the same tap is returned again after the next login
       Notifications.clearLastNotificationResponse();
-      router.push({ pathname: '/(tabs)/YouTwo/Story', params: { day: data.day } } as unknown as Href);
+      router.push({
+        pathname: '/(tabs)/YouTwo/Story',
+        params: { day: data.day },
+      } as unknown as Href);
     };
 
     // A tap that launched the app

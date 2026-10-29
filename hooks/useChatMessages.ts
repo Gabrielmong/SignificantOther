@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
 import { MessageAudio, MessageImage, MessageReply, MessageStatus, MessageType } from '../types';
-import { useFirebase } from './useFirebase';
 import { useAppToast } from './useAppToast';
+import { useFirebase } from './useFirebase';
 import {
   deleteChatMedia,
   editMessageText,
@@ -51,8 +52,13 @@ const byTime = (a: MessageType, b: MessageType) =>
  * this device's outgoing messages with their delivery state.
  */
 export const useChatMessages = (roomId: string | null, uid: string | null) => {
-  const { sendMessage, getLatestMessages, getMessagesBefore, listenToMessageChanges, deleteMessage } =
-    useFirebase();
+  const {
+    sendMessage,
+    getLatestMessages,
+    getMessagesBefore,
+    listenToMessageChanges,
+    deleteMessage,
+  } = useFirebase();
   const { showToast } = useAppToast();
 
   // Keyed by id, so live events, older pages and our own sends can't duplicate

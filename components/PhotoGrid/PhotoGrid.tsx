@@ -1,6 +1,6 @@
+import { Text } from '@gluestack-ui/themed';
 import React, { useCallback, useLayoutEffect, useMemo, useRef } from 'react';
 import { Image, SectionList, TouchableOpacity, View, useWindowDimensions } from 'react-native';
-import { Text } from '@gluestack-ui/themed';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -10,10 +10,11 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+
 import { useAppTheme } from '../../hooks';
 import { Photo } from '../../types';
-import { Columns, groupPhotos, nextColumns } from '../../utils/photos';
 import { selectionFeedback } from '../../utils/haptics';
+import { Columns, groupPhotos, nextColumns } from '../../utils/photos';
 
 const GAP = 2;
 // How far the pinch must go to change the column count

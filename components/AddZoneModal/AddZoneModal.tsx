@@ -1,4 +1,3 @@
-import React, { useState, useEffect, useRef } from 'react';
 import {
   ModalBackdrop,
   ModalContent,
@@ -10,17 +9,13 @@ import {
   Input,
   InputField,
 } from '@gluestack-ui/themed';
-import {
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  View,
-  Dimensions,
-} from 'react-native';
 import MapboxGL from '@rnmapbox/maps';
+import React, { useState, useEffect, useRef } from 'react';
+import { ScrollView, TouchableOpacity, StyleSheet, View, Dimensions } from 'react-native';
+
+import { MAPBOX_ACCESS_TOKEN } from '../../config';
 import { useAppTheme, useLocation, useAuth, useFirebase } from '../../hooks';
 import { ZoneType } from '../../types';
-import { MAPBOX_ACCESS_TOKEN } from '../../config';
 import { KeyboardAwareModal } from '../KeyboardAwareModal';
 
 MapboxGL.setAccessToken(MAPBOX_ACCESS_TOKEN);
@@ -215,7 +210,7 @@ export const AddZoneModal: React.FC<AddZoneModalProps> = ({
       // Animate camera to current location
       cameraRef.current?.setCamera({
         centerCoordinate: [userLocation.longitude, userLocation.latitude],
-        zoomLevel: zoomLevel,
+        zoomLevel,
         animationDuration: 1000,
       });
     }
@@ -279,133 +274,133 @@ export const AddZoneModal: React.FC<AddZoneModalProps> = ({
             Location
           </Text>
           <View style={styles.mapContainer}>
-                <MapboxGL.MapView
-                  style={styles.map}
-                  onPress={handleMapPress}
-                  styleURL={
-                    theme?.colorMode === 'dark' ? MapboxGL.StyleURL.Dark : MapboxGL.StyleURL.Street
-                  }>
-                  <MapboxGL.Camera
-                    ref={cameraRef}
-                    defaultSettings={{
-                      zoomLevel: 15,
-                      centerCoordinate: selectedLocation
-                        ? [selectedLocation.longitude, selectedLocation.latitude]
-                        : userLocation
-                          ? [userLocation.longitude, userLocation.latitude]
-                          : [-122.4324, 37.78825],
-                    }}
-                    animationMode="flyTo"
-                  />
+            <MapboxGL.MapView
+              style={styles.map}
+              onPress={handleMapPress}
+              styleURL={
+                theme?.colorMode === 'dark' ? MapboxGL.StyleURL.Dark : MapboxGL.StyleURL.Street
+              }>
+              <MapboxGL.Camera
+                ref={cameraRef}
+                defaultSettings={{
+                  zoomLevel: 15,
+                  centerCoordinate: selectedLocation
+                    ? [selectedLocation.longitude, selectedLocation.latitude]
+                    : userLocation
+                      ? [userLocation.longitude, userLocation.latitude]
+                      : [-122.4324, 37.78825],
+                }}
+                animationMode="flyTo"
+              />
 
-                  {/* User's current location */}
-                  {userLocation && (
-                    <MapboxGL.PointAnnotation
-                      id="user-location"
-                      coordinate={[userLocation.longitude, userLocation.latitude]}>
-                      <View style={styles.userMarker}>
-                        <View style={styles.userMarkerInner} />
-                      </View>
-                    </MapboxGL.PointAnnotation>
-                  )}
+              {/* User's current location */}
+              {userLocation && (
+                <MapboxGL.PointAnnotation
+                  id="user-location"
+                  coordinate={[userLocation.longitude, userLocation.latitude]}>
+                  <View style={styles.userMarker}>
+                    <View style={styles.userMarkerInner} />
+                  </View>
+                </MapboxGL.PointAnnotation>
+              )}
 
-                  {/* Selected zone location */}
-                  {selectedLocation && (
-                    <>
-                      {/* Zone radius circle */}
-                      <MapboxGL.ShapeSource
-                        id="zone-circle"
-                        shape={{
-                          type: 'Feature',
-                          geometry: {
-                            type: 'Point',
-                            coordinates: [selectedLocation.longitude, selectedLocation.latitude],
-                          },
-                          properties: {},
-                        }}>
-                        <MapboxGL.CircleLayer
-                          id="zone-circle-layer"
-                          style={{
-                            circleRadius: [
-                              'interpolate',
-                              ['exponential', 2],
-                              ['zoom'],
-                              0,
-                              0,
-                              20,
-                              [
-                                '*',
-                                radius,
-                                [
-                                  '/',
-                                  1,
-                                  ['cos', ['*', selectedLocation.latitude, ['/', Math.PI, 180]]],
-                                ],
-                              ],
+              {/* Selected zone location */}
+              {selectedLocation && (
+                <>
+                  {/* Zone radius circle */}
+                  <MapboxGL.ShapeSource
+                    id="zone-circle"
+                    shape={{
+                      type: 'Feature',
+                      geometry: {
+                        type: 'Point',
+                        coordinates: [selectedLocation.longitude, selectedLocation.latitude],
+                      },
+                      properties: {},
+                    }}>
+                    <MapboxGL.CircleLayer
+                      id="zone-circle-layer"
+                      style={{
+                        circleRadius: [
+                          'interpolate',
+                          ['exponential', 2],
+                          ['zoom'],
+                          0,
+                          0,
+                          20,
+                          [
+                            '*',
+                            radius,
+                            [
+                              '/',
+                              1,
+                              ['cos', ['*', selectedLocation.latitude, ['/', Math.PI, 180]]],
                             ],
-                            circleColor: theme.colors.primary,
-                            circleOpacity: 0.2,
-                            circleStrokeColor: theme.colors.primary,
-                            circleStrokeWidth: 2,
-                          }}
-                        />
-                      </MapboxGL.ShapeSource>
+                          ],
+                        ],
+                        circleColor: theme.colors.primary,
+                        circleOpacity: 0.2,
+                        circleStrokeColor: theme.colors.primary,
+                        circleStrokeWidth: 2,
+                      }}
+                    />
+                  </MapboxGL.ShapeSource>
 
-                      {/* Zone center marker */}
-                      <MapboxGL.PointAnnotation
-                        id="zone-location"
-                        coordinate={[selectedLocation.longitude, selectedLocation.latitude]}>
-                        <View style={[styles.zoneMarker, { borderColor: theme.colors.primary }]}>
-                          <Text style={styles.zoneMarkerText}>
-                            {ZONE_TYPES.find((t) => t.value === type)?.icon || '📍'}
-                          </Text>
-                        </View>
-                      </MapboxGL.PointAnnotation>
-                    </>
-                  )}
-                </MapboxGL.MapView>
+                  {/* Zone center marker */}
+                  <MapboxGL.PointAnnotation
+                    id="zone-location"
+                    coordinate={[selectedLocation.longitude, selectedLocation.latitude]}>
+                    <View style={[styles.zoneMarker, { borderColor: theme.colors.primary }]}>
+                      <Text style={styles.zoneMarkerText}>
+                        {ZONE_TYPES.find((t) => t.value === type)?.icon || '📍'}
+                      </Text>
+                    </View>
+                  </MapboxGL.PointAnnotation>
+                </>
+              )}
+            </MapboxGL.MapView>
 
-                {/* Zoom Controls */}
-                <View style={styles.zoomControls}>
-                  <TouchableOpacity
-                    onPress={handleZoomIn}
-                    style={[
-                      styles.zoomButton,
-                      {
-                        backgroundColor: theme?.colors?.surface || '#FFFFFF',
-                        ...theme?.shadows?.md,
-                        marginBottom: 8,
-                      },
-                    ]}>
-                    <Text style={{ fontSize: 20, fontWeight: 'bold' }}>+</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={handleZoomOut}
-                    style={[
-                      styles.zoomButton,
-                      {
-                        backgroundColor: theme?.colors?.surface || '#FFFFFF',
-                        ...theme?.shadows?.md,
-                      },
-                    ]}>
-                    <Text style={{ fontSize: 20, fontWeight: 'bold' }}>−</Text>
-                  </TouchableOpacity>
-                </View>
+            {/* Zoom Controls */}
+            <View style={styles.zoomControls}>
+              <TouchableOpacity
+                onPress={handleZoomIn}
+                style={[
+                  styles.zoomButton,
+                  {
+                    backgroundColor: theme?.colors?.surface || '#FFFFFF',
+                    ...theme?.shadows?.md,
+                    marginBottom: 8,
+                  },
+                ]}>
+                <Text style={{ fontSize: 20, fontWeight: 'bold' }}>+</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleZoomOut}
+                style={[
+                  styles.zoomButton,
+                  {
+                    backgroundColor: theme?.colors?.surface || '#FFFFFF',
+                    ...theme?.shadows?.md,
+                  },
+                ]}>
+                <Text style={{ fontSize: 20, fontWeight: 'bold' }}>−</Text>
+              </TouchableOpacity>
+            </View>
 
-                {/* Use Current Location Button */}
-                {userLocation && (
-                  <TouchableOpacity
-                    onPress={handleUseCurrentLocation}
-                    style={[
-                      styles.locationButton,
-                      {
-                        backgroundColor: theme?.colors?.surface || '#FFFFFF',
-                        ...theme?.shadows?.md,
-                      },
-                    ]}>
-                    <Text style={{ fontSize: 20 }}>📍</Text>
-                  </TouchableOpacity>
-                )}
+            {/* Use Current Location Button */}
+            {userLocation && (
+              <TouchableOpacity
+                onPress={handleUseCurrentLocation}
+                style={[
+                  styles.locationButton,
+                  {
+                    backgroundColor: theme?.colors?.surface || '#FFFFFF',
+                    ...theme?.shadows?.md,
+                  },
+                ]}>
+                <Text style={{ fontSize: 20 }}>📍</Text>
+              </TouchableOpacity>
+            )}
           </View>
           <Text
             style={{
@@ -423,151 +418,153 @@ export const AddZoneModal: React.FC<AddZoneModalProps> = ({
           <ScrollView
             style={{ flex: 1 }}
             contentContainerStyle={{ paddingBottom: 20 }}
-            showsVerticalScrollIndicator={true}
+            showsVerticalScrollIndicator
             keyboardShouldPersistTaps="handled">
             <Box style={{ padding: 20, gap: 20 }}>
-            {/* Zone Type Selection */}
-            <Box>
-              <Text
-                style={{
-                  fontSize: theme?.fontSize?.sm || 14,
-                  fontWeight: theme?.fontWeight?.semibold || '600',
-                  color: theme?.colors?.text || '#000000',
-                  marginBottom: 8,
-                }}>
-                Type
-              </Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <Box style={{ flexDirection: 'row', gap: 8 }}>
-                  {ZONE_TYPES.map((zoneType) => (
-                    <TouchableOpacity
-                      key={zoneType.value}
-                      onPress={() => {
-                        setType(zoneType.value);
-                        if (zoneType.value !== 'custom' && !initialData) {
-                          setName(zoneType.label);
-                        }
-                      }}
-                      style={[
-                        styles.typeButton,
-                        {
-                          backgroundColor:
-                            type === zoneType.value
-                              ? theme.colors.primary
-                              : theme?.colors?.surface || '#F3F4F6',
-                        },
-                      ]}>
-                      <Text style={styles.iconText}>{zoneType.icon}</Text>
-                      <Text
-                        style={{
-                          color:
-                            type === zoneType.value ? '#FFFFFF' : theme?.colors?.text || '#000000',
-                          fontSize: theme?.fontSize?.sm || 14,
-                          fontWeight: theme?.fontWeight?.semibold || '600',
-                        }}>
-                        {zoneType.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </Box>
-              </ScrollView>
-            </Box>
-
-            {/* Name Input */}
-            <Box>
-              <Text
-                style={{
-                  fontSize: theme?.fontSize?.sm || 14,
-                  fontWeight: theme?.fontWeight?.semibold || '600',
-                  color: theme?.colors?.text || '#000000',
-                  marginBottom: 8,
-                }}>
-                Name
-              </Text>
-              <Input>
-                <InputField
-                  value={name}
-                  onChangeText={setName}
-                  placeholder={type === 'home' ? 'Home' : type === 'work' ? 'Work' : 'My Place'}
-                />
-              </Input>
-            </Box>
-
-            {/* Radius Selection */}
-            <Box>
-              <Text
-                style={{
-                  fontSize: theme?.fontSize?.sm || 14,
-                  fontWeight: theme?.fontWeight?.semibold || '600',
-                  color: theme?.colors?.text || '#000000',
-                  marginBottom: 8,
-                }}>
-                Detection Radius
-              </Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <Box style={{ flexDirection: 'row', gap: 8 }}>
-                  {RADIUS_OPTIONS.map((r) => (
-                    <TouchableOpacity
-                      key={r}
-                      onPress={() => setRadius(r)}
-                      style={[
-                        styles.radiusButton,
-                        {
-                          backgroundColor:
-                            radius === r
-                              ? theme.colors.primary
-                              : theme?.colors?.surface || '#F3F4F6',
-                        },
-                      ]}>
-                      <Text
-                        style={{
-                          color: radius === r ? '#FFFFFF' : theme?.colors?.text || '#000000',
-                          fontSize: theme?.fontSize?.sm || 14,
-                          fontWeight: theme?.fontWeight?.semibold || '600',
-                        }}>
-                        {r}m
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </Box>
-              </ScrollView>
-            </Box>
-
-            {/* Action Buttons */}
-            <Box style={{ gap: 12, marginBottom: 20 }}>
-              <Box style={{ flexDirection: 'row', gap: 12 }}>
-                <Button
-                  onPress={handleCancel}
+              {/* Zone Type Selection */}
+              <Box>
+                <Text
                   style={{
-                    flex: 1,
-                    backgroundColor: theme?.colors?.surface || '#F3F4F6',
+                    fontSize: theme?.fontSize?.sm || 14,
+                    fontWeight: theme?.fontWeight?.semibold || '600',
+                    color: theme?.colors?.text || '#000000',
+                    marginBottom: 8,
                   }}>
-                  <Text style={{ color: theme?.colors?.text || '#000000' }}>Cancel</Text>
-                </Button>
-                <Button
-                  onPress={handleSave}
-                  disabled={!name.trim() || !selectedLocation}
-                  style={{
-                    flex: 1,
-                    backgroundColor: theme.colors.primary,
-                    opacity: name.trim() && selectedLocation ? 1 : 0.5,
-                  }}>
-                  <Text style={{ color: '#FFFFFF' }}>Save</Text>
-                </Button>
+                  Type
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <Box style={{ flexDirection: 'row', gap: 8 }}>
+                    {ZONE_TYPES.map((zoneType) => (
+                      <TouchableOpacity
+                        key={zoneType.value}
+                        onPress={() => {
+                          setType(zoneType.value);
+                          if (zoneType.value !== 'custom' && !initialData) {
+                            setName(zoneType.label);
+                          }
+                        }}
+                        style={[
+                          styles.typeButton,
+                          {
+                            backgroundColor:
+                              type === zoneType.value
+                                ? theme.colors.primary
+                                : theme?.colors?.surface || '#F3F4F6',
+                          },
+                        ]}>
+                        <Text style={styles.iconText}>{zoneType.icon}</Text>
+                        <Text
+                          style={{
+                            color:
+                              type === zoneType.value
+                                ? '#FFFFFF'
+                                : theme?.colors?.text || '#000000',
+                            fontSize: theme?.fontSize?.sm || 14,
+                            fontWeight: theme?.fontWeight?.semibold || '600',
+                          }}>
+                          {zoneType.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </Box>
+                </ScrollView>
               </Box>
-              {/* Delete Button - Only show when editing */}
-              {initialData && onDelete && (
-                <Button
-                  onPress={handleDelete}
+
+              {/* Name Input */}
+              <Box>
+                <Text
                   style={{
-                    backgroundColor: '#EF4444',
+                    fontSize: theme?.fontSize?.sm || 14,
+                    fontWeight: theme?.fontWeight?.semibold || '600',
+                    color: theme?.colors?.text || '#000000',
+                    marginBottom: 8,
                   }}>
-                  <Text style={{ color: '#FFFFFF' }}>Delete Zone</Text>
-                </Button>
-              )}
+                  Name
+                </Text>
+                <Input>
+                  <InputField
+                    value={name}
+                    onChangeText={setName}
+                    placeholder={type === 'home' ? 'Home' : type === 'work' ? 'Work' : 'My Place'}
+                  />
+                </Input>
+              </Box>
+
+              {/* Radius Selection */}
+              <Box>
+                <Text
+                  style={{
+                    fontSize: theme?.fontSize?.sm || 14,
+                    fontWeight: theme?.fontWeight?.semibold || '600',
+                    color: theme?.colors?.text || '#000000',
+                    marginBottom: 8,
+                  }}>
+                  Detection Radius
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <Box style={{ flexDirection: 'row', gap: 8 }}>
+                    {RADIUS_OPTIONS.map((r) => (
+                      <TouchableOpacity
+                        key={r}
+                        onPress={() => setRadius(r)}
+                        style={[
+                          styles.radiusButton,
+                          {
+                            backgroundColor:
+                              radius === r
+                                ? theme.colors.primary
+                                : theme?.colors?.surface || '#F3F4F6',
+                          },
+                        ]}>
+                        <Text
+                          style={{
+                            color: radius === r ? '#FFFFFF' : theme?.colors?.text || '#000000',
+                            fontSize: theme?.fontSize?.sm || 14,
+                            fontWeight: theme?.fontWeight?.semibold || '600',
+                          }}>
+                          {r}m
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </Box>
+                </ScrollView>
+              </Box>
+
+              {/* Action Buttons */}
+              <Box style={{ gap: 12, marginBottom: 20 }}>
+                <Box style={{ flexDirection: 'row', gap: 12 }}>
+                  <Button
+                    onPress={handleCancel}
+                    style={{
+                      flex: 1,
+                      backgroundColor: theme?.colors?.surface || '#F3F4F6',
+                    }}>
+                    <Text style={{ color: theme?.colors?.text || '#000000' }}>Cancel</Text>
+                  </Button>
+                  <Button
+                    onPress={handleSave}
+                    disabled={!name.trim() || !selectedLocation}
+                    style={{
+                      flex: 1,
+                      backgroundColor: theme.colors.primary,
+                      opacity: name.trim() && selectedLocation ? 1 : 0.5,
+                    }}>
+                    <Text style={{ color: '#FFFFFF' }}>Save</Text>
+                  </Button>
+                </Box>
+                {/* Delete Button - Only show when editing */}
+                {initialData && onDelete && (
+                  <Button
+                    onPress={handleDelete}
+                    style={{
+                      backgroundColor: '#EF4444',
+                    }}>
+                    <Text style={{ color: '#FFFFFF' }}>Delete Zone</Text>
+                  </Button>
+                )}
+              </Box>
             </Box>
-          </Box>
-        </ScrollView>
+          </ScrollView>
         </View>
       </ModalContent>
     </KeyboardAwareModal>

@@ -9,7 +9,9 @@ export const createLatestRunner = () => {
   return (job: (isCurrent: () => boolean) => Promise<void>): Promise<void> => {
     const mine = ++generation;
     const isCurrent = () => mine === generation;
-    queue = queue.then(() => job(isCurrent)).catch((error) => console.error('Serial job failed:', error));
+    queue = queue
+      .then(() => job(isCurrent))
+      .catch((error) => console.error('Serial job failed:', error));
     return queue;
   };
 };

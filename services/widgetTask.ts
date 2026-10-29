@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { WidgetCountdown } from '../types';
 
 const USER_ID_KEY = '@widget_task_user_id';
@@ -74,7 +75,13 @@ export const getWidgetTaskUserInfo = async (): Promise<{
 // Function to clear user/room/partner info (e.g., on logout)
 export const clearWidgetTaskUserInfo = async () => {
   try {
-    await AsyncStorage.multiRemove([USER_ID_KEY, ROOM_ID_KEY, PARTNER_ID_KEY, PARTNER_NAME_KEY, LAST_DATA_KEY]);
+    await AsyncStorage.multiRemove([
+      USER_ID_KEY,
+      ROOM_ID_KEY,
+      PARTNER_ID_KEY,
+      PARTNER_NAME_KEY,
+      LAST_DATA_KEY,
+    ]);
     console.log('Widget task user info cleared');
   } catch (error) {
     console.error('Error clearing widget task user info:', error);

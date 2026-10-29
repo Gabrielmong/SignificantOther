@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
+import { useState, useEffect, useCallback } from 'react';
+
 import { useAppToast } from './useAppToast';
 
 export const LOCATION_TASK_NAME = 'background-location-task';
@@ -9,7 +10,7 @@ export interface UserLocation {
   latitude: number;
   longitude: number;
   timestamp: number;
-  // Metres per second, when the platform reports it (not set by getCurrentLocation yet)
+  // Metres per second; null when the platform doesn't know it
   speed?: number | null;
 }
 
@@ -56,6 +57,12 @@ export const useLocation = () => {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
           timestamp: Date.now(),
+          // For the Map's speed readout only; updateLocation writes just the
+          // coordinates and timestamp, so this never reaches Firebase
+          speed:
+            position.coords.speed !== null && position.coords.speed >= 0
+              ? position.coords.speed
+              : null,
         };
 
         setLocation(userLocation);

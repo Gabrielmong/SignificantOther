@@ -1,13 +1,14 @@
 import { Platform } from 'react-native';
 import { requestWidgetUpdate } from 'react-native-android-widget';
+
 import { PartnerStatusWidget, PartnerStatusCompactWidget } from './PartnerStatusWidget';
-import { CountdownObject } from '../types';
 import {
   getWidgetLastData,
   mergeWidgetLastData,
   WidgetAccent,
   WidgetDisplayData,
 } from '../services/widgetTask';
+import { CountdownObject } from '../types';
 import { getNextCountdown, isSameWidgetCountdown } from '../utils/countdown';
 
 // Redraws every widget size placed on the home screen with the same data.

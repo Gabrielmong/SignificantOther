@@ -1,6 +1,7 @@
-import React from 'react';
 import { Text } from '@gluestack-ui/themed';
+import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
+
 import { useAppTheme } from '../../hooks';
 import { buildCalendarCells, feelingDisplay } from '../../utils/feelingHistory';
 

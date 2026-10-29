@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { successFeedback } from '../utils/haptics';
 import type { Unsubscribe } from 'firebase/database';
+import { useState, useEffect, useCallback, useRef } from 'react';
+
+import { successFeedback } from '../utils/haptics';
 
 interface UseFlowersProps {
   roomId: string | null;
@@ -136,7 +137,9 @@ export const useFlowers = ({
 
   const loadFlowerData = useCallback(
     async (
-      partnerFlowerSnapshot?: { val: () => { selectedFlower: string; message: string } | null } | null,
+      partnerFlowerSnapshot?: {
+        val: () => { selectedFlower: string; message: string } | null;
+      } | null,
       ownFlowerSnapshot?: { val: () => { selectedFlower: string; message: string } | null } | null,
     ) => {
       if (partnerFlowerSnapshot?.val()) {

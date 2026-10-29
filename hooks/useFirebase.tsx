@@ -1,11 +1,3 @@
-import { ensureFirebaseApp } from '../services/firebaseApp';
-import {
-  getStorage,
-  uploadBytesResumable,
-  getDownloadURL,
-  ref as storageRef,
-} from 'firebase/storage';
-import { useAppToast } from './useAppToast';
 import {
   getDatabase,
   ref as databaseRef,
@@ -30,9 +22,18 @@ import {
   DataSnapshot,
   Query,
 } from 'firebase/database';
+import {
+  getStorage,
+  uploadBytesResumable,
+  getDownloadURL,
+  ref as storageRef,
+} from 'firebase/storage';
+import uuid from 'react-native-uuid';
+
+import { useAppToast } from './useAppToast';
 import { PathData } from '../components';
 import { useAuth } from './useAuth';
-import uuid from 'react-native-uuid';
+import { ensureFirebaseApp } from '../services/firebaseApp';
 import {
   Activity,
   ActivityObject,
@@ -52,10 +53,10 @@ import {
   MessageReply,
   MessageType,
 } from '../types';
-import { monthKey } from '../utils/feelingHistory';
+import { FavoriteThing, FavoriteThings } from '../types/FavoriteThing';
 import { Journal, JournalObject } from '../types/Journal';
 import { WhiteboardSnapshot } from '../types/WhiteboardSnapshot';
-import { FavoriteThing, FavoriteThings } from '../types/FavoriteThing';
+import { monthKey } from '../utils/feelingHistory';
 
 export const useFirebase = () => {
   let app, auth;
@@ -363,10 +364,8 @@ export const useFirebase = () => {
     await set(databaseRef(db, `rooms/${roomId}/chatReads/${uid}`), serverTimestamp());
   };
 
-  const listenToChatReads = (
-    roomId: string,
-    callback: (reads: Record<string, number>) => void,
-  ) => onValue(databaseRef(db, `rooms/${roomId}/chatReads`), (s) => callback(s.val() || {}));
+  const listenToChatReads = (roomId: string, callback: (reads: Record<string, number>) => void) =>
+    onValue(databaseRef(db, `rooms/${roomId}/chatReads`), (s) => callback(s.val() || {}));
 
   // Partner messages newer than your last read. Re-queries whenever your read
   // marker moves, and never-read counts as nothing unread rather than the
@@ -492,8 +491,7 @@ export const useFirebase = () => {
     // Skip malformed rows rather than letting them break grouping.
     return Object.values(data)
       .filter(
-        (entry) =>
-          !!entry && typeof entry.feeling === 'string' && typeof entry.at === 'number',
+        (entry) => !!entry && typeof entry.feeling === 'string' && typeof entry.at === 'number',
       )
       .sort((a, b) => a.at - b.at);
   };
@@ -991,11 +989,9 @@ export const useFirebase = () => {
   // Whether this device is connected to the Realtime Database right now
   const isConnected = () =>
     new Promise<boolean>((resolve) => {
-      onValue(
-        databaseRef(db, '.info/connected'),
-        (snapshot) => resolve(snapshot.val() === true),
-        { onlyOnce: true },
-      );
+      onValue(databaseRef(db, '.info/connected'), (snapshot) => resolve(snapshot.val() === true), {
+        onlyOnce: true,
+      });
     });
 
   const setMilestone = async (roomId: string, milestone: Milestone) => {

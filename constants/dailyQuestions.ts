@@ -7,7 +7,7 @@
 export const DAILY_QUESTIONS: string[] = [
   "What's a small thing I did recently that made you smile?",
   'What was your favorite moment we shared this week?',
-  "If we could teleport anywhere for dinner tonight, where would we go?",
+  'If we could teleport anywhere for dinner tonight, where would we go?',
   'What song reminds you of us, and why?',
   "What's something you've never told me but have always wanted to?",
   'What did you first notice about me?',

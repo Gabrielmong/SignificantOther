@@ -9,12 +9,12 @@
  */
 export const duration = {
   instant: 0,
-  fast: 100,       // Quick feedback (hover states)
-  normal: 150,     // Button/card press
-  moderate: 200,   // List item entry
-  slow: 250,       // Screen transitions
-  slower: 300,     // Modal entry
-  slowest: 400,    // Complex animations
+  fast: 100, // Quick feedback (hover states)
+  normal: 150, // Button/card press
+  moderate: 200, // List item entry
+  slow: 250, // Screen transitions
+  slower: 300, // Modal entry
+  slowest: 400, // Complex animations
 } as const;
 
 /**
@@ -152,7 +152,7 @@ export const animationPresets = {
     opacityTo: 1,
     duration: duration.moderate,
     easing: 'ease-out',
-    staggerDelay: 50,  // Delay between items
+    staggerDelay: 50, // Delay between items
   },
 
   /**
@@ -189,7 +189,7 @@ export const animationPresets = {
     scaleTo: 1.1,
     duration: duration.normal,
     easing: 'ease-in-out',
-    repeat: 2,  // Pulse twice
+    repeat: 2, // Pulse twice
   },
 
   /**
@@ -211,7 +211,7 @@ export const animationPresets = {
     translateXTo: 100,
     duration: 1500,
     easing: 'linear',
-    repeat: -1,  // Infinite
+    repeat: -1, // Infinite
   },
 } as const;
 
@@ -241,10 +241,10 @@ export const interactionTiming = {
  * Fallback values when user prefers reduced motion
  */
 export const reducedMotion = {
-  duration: duration.instant,  // No animations
-  scale: 1.0,                  // No scaling
-  opacity: 1.0,                // No fade
-  translate: 0,                // No movement
+  duration: duration.instant, // No animations
+  scale: 1.0, // No scaling
+  opacity: 1.0, // No fade
+  translate: 0, // No movement
 } as const;
 
 /**

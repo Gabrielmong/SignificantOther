@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
-import type { ScheduledMemory } from '../utils/story';
+
 import { parseDay } from '../utils/milestones';
 import { createLatestRunner } from '../utils/serial';
+import type { ScheduledMemory } from '../utils/story';
 
 export const ON_THIS_DAY_KEY = '@SignificantOther:onThisDayEnabled';
 

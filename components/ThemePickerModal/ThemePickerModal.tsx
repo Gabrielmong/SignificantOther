@@ -9,7 +9,7 @@ import {
   Text,
 } from '@gluestack-ui/themed';
 import { Pressable } from 'react-native';
-import { useAppTheme } from '../../hooks';
+
 import {
   ACCENT_IDS,
   accentThemes,
@@ -17,8 +17,17 @@ import {
   readableTextOn,
   type AccentId,
 } from '../../config/theme';
+import { useAppTheme } from '../../hooks';
 
-const Bubble = ({ color, label, alignSelf }: { color: string; label: string; alignSelf: 'flex-start' | 'flex-end' }) => (
+const Bubble = ({
+  color,
+  label,
+  alignSelf,
+}: {
+  color: string;
+  label: string;
+  alignSelf: 'flex-start' | 'flex-end';
+}) => (
   <Box
     style={{
       alignSelf,

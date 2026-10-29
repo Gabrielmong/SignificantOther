@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import {
   ModalBackdrop,
   ModalContent,
@@ -17,9 +16,11 @@ import {
   SelectContent,
   SelectItem,
 } from '@gluestack-ui/themed';
-import { Alert, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
-import { useAppTheme } from '../../hooks';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import React, { useState } from 'react';
+import { Alert, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+
+import { useAppTheme } from '../../hooks';
 import { RecurrenceType, RecurrenceUnit } from '../../types';
 import { KeyboardAwareModal } from '../KeyboardAwareModal';
 
@@ -77,14 +78,10 @@ export const AddCountdownModal: React.FC<AddCountdownModalProps> = ({
 }) => {
   const { theme } = useAppTheme();
   const [title, setTitle] = useState(initialData?.title || '');
-  const [date, setDate] = useState(
-    initialData?.date ? new Date(initialData.date) : new Date(),
-  );
+  const [date, setDate] = useState(initialData?.date ? new Date(initialData.date) : new Date());
   const [selectedIcon, setSelectedIcon] = useState(initialData?.icon || '❤️');
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [recurrence, setRecurrence] = useState<RecurrenceType>(
-    initialData?.recurrence || 'none',
-  );
+  const [recurrence, setRecurrence] = useState<RecurrenceType>(initialData?.recurrence || 'none');
   const [recurrenceInterval, setRecurrenceInterval] = useState<string>(
     initialData?.recurrenceInterval?.toString() || '1',
   );
@@ -360,9 +357,7 @@ export const AddCountdownModal: React.FC<AddCountdownModalProps> = ({
                     ].map((option) => (
                       <TouchableOpacity
                         key={option.value}
-                        onPress={() =>
-                          setRecurrenceUnit(option.value as RecurrenceUnit)
-                        }
+                        onPress={() => setRecurrenceUnit(option.value as RecurrenceUnit)}
                         style={[
                           styles.unitButton,
                           {
@@ -413,10 +408,7 @@ export const AddCountdownModal: React.FC<AddCountdownModalProps> = ({
           </Box>
 
           {initialData && onShare && (
-            <Button
-              variant="link"
-              onPress={onShare}
-              accessibilityLabel="Share countdown to chat">
+            <Button variant="link" onPress={onShare} accessibilityLabel="Share countdown to chat">
               <Text style={{ color: theme.colors.primary }}>Share to chat</Text>
             </Button>
           )}

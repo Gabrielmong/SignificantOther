@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
 import { Accelerometer } from 'expo-sensors';
+import { useState, useEffect, useCallback } from 'react';
 
 interface MotionState {
   isMoving: boolean;
@@ -22,7 +22,7 @@ export const useMotionDetection = () => {
     let lastX = 0,
       lastY = 0,
       lastZ = 0;
-    let movementBuffer: number[] = [];
+    const movementBuffer: number[] = [];
     const BUFFER_SIZE = 10;
     const UPDATE_INTERVAL = 1000; // Check every second
 

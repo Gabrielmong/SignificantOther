@@ -1,12 +1,11 @@
+import { Text } from '@gluestack-ui/themed';
+import { router, useLocalSearchParams, Href } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { ArrowLeft, Plus } from 'lucide-react-native';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { router, useLocalSearchParams, Href } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { Text } from '@gluestack-ui/themed';
-import { ArrowLeft, Plus } from 'lucide-react-native';
-import { useAppTheme, useAppToast, useGallery, usePlaces } from '../../../hooks';
-import type { PendingPhoto } from '../../../hooks/useGallery';
+
 import {
   PhotoAddSheet,
   PhotoGrid,
@@ -14,9 +13,11 @@ import {
   Skeleton,
   pickPhotosForGallery,
 } from '../../../components';
+import { useAppTheme, useAppToast, useGallery, usePlaces } from '../../../hooks';
+import type { PendingPhoto } from '../../../hooks/useGallery';
 import { Photo } from '../../../types';
-import { photosWithTag } from '../../../utils/photos';
 import { fadeEntering } from '../../../utils/motion';
+import { photosWithTag } from '../../../utils/photos';
 
 // Matches PhotoGrid's tile spacing, so the placeholders line up with the photos
 const GRID_GAP = 2;
@@ -60,7 +61,12 @@ export default function Photos() {
     }
   };
   const handlePhotoPress = (photo: Photo, ordered: Photo[]) =>
-    setViewing(Math.max(ordered.findIndex((p) => p.id === photo.id), 0));
+    setViewing(
+      Math.max(
+        ordered.findIndex((p) => p.id === photo.id),
+        0,
+      ),
+    );
 
   const chip = (label: string, active: boolean, onPress: () => void) => (
     <TouchableOpacity
@@ -193,7 +199,10 @@ export default function Photos() {
         savePlace={savePlace}
         onPlacePress={(placeId) => {
           setViewing(null);
-          router.push({ pathname: '/(tabs)/YouTwo/Places', params: { focus: placeId } } as unknown as Href);
+          router.push({
+            pathname: '/(tabs)/YouTwo/Places',
+            params: { focus: placeId },
+          } as unknown as Href);
         }}
         onMilestonePress={() => {
           setViewing(null);

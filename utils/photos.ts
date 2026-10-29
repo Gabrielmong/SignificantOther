@@ -4,9 +4,9 @@
  * outside the app.
  */
 
-import type { Photo } from '../types/Photo';
-import type { Milestone } from '../types/Milestone';
 import { parseDay, toDay } from './milestones';
+import type { Milestone } from '../types/Milestone';
+import type { Photo } from '../types/Photo';
 
 /**
  * A tag as stored: trimmed, lowercase, single spaces, and without the

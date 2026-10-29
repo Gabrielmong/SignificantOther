@@ -10,18 +10,16 @@ import {
   Switch,
   ModalBody,
 } from '@gluestack-ui/themed';
-import { useEffect, useState } from 'react';
-import { useAppToast, useAuth, useAppTheme } from '../../hooks';
 import * as Notifications from 'expo-notifications';
-import { IconButton } from '../IconButton';
 import { Minus, Plus } from 'lucide-react-native';
-import { useAppSelector } from '../../state';
-import {
-  isOnThisDayEnabled,
-  setOnThisDayEnabled,
-} from '../../services/onThisDay';
-import { CHECKIN_ID, CHECKIN_TITLE, checkinIdsToCancel } from '../../utils/checkin';
+import { useEffect, useState } from 'react';
+
+import { useAppToast, useAuth, useAppTheme } from '../../hooks';
 import { appNotificationBehavior } from '../../services/notificationBehavior';
+import { isOnThisDayEnabled, setOnThisDayEnabled } from '../../services/onThisDay';
+import { useAppSelector } from '../../state';
+import { CHECKIN_ID, CHECKIN_TITLE, checkinIdsToCancel } from '../../utils/checkin';
+import { IconButton } from '../IconButton';
 
 const formatTimeLabel = (time: number) => {
   return time < 10 ? `0${time}` : time;

@@ -1,5 +1,6 @@
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import uuid from 'react-native-uuid';
+
 import type { MilestonePhoto } from '../types';
 
 const MAX_EDGE = 1600;

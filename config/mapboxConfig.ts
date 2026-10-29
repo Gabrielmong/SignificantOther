@@ -7,5 +7,4 @@
 
 import Constants from 'expo-constants';
 
-export const MAPBOX_ACCESS_TOKEN =
-  Constants.expoConfig?.extra?.mapboxAccessToken || '';
+export const MAPBOX_ACCESS_TOKEN = Constants.expoConfig?.extra?.mapboxAccessToken || '';

@@ -1,5 +1,3 @@
-import { useEffect, useRef, useState } from 'react';
-import { Alert, Linking } from 'react-native';
 import {
   getRecordingPermissionsAsync,
   RecordingPresets,
@@ -8,6 +6,9 @@ import {
   useAudioRecorder,
   useAudioRecorderState,
 } from 'expo-audio';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, Linking } from 'react-native';
+
 import { useAppToast } from './useAppToast';
 import { selectionFeedback, tapFeedback } from '../utils/haptics';
 
@@ -67,9 +68,15 @@ export const useVoiceRecorder = (onRecorded: (uri: string, durationMs: number) =
 
     try {
       await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
-      await recorder.prepareToRecordAsync();
+      // expo-audio refuses to prepare twice, and a tap (released before
+      // recording began) leaves the recorder prepared, so only prepare when it
+      // isn't already, after stopping anything left recording
+      const status = recorder.getStatus();
+      if (status.isRecording) await recorder.stop();
+      if (status.isRecording || !status.canRecord) await recorder.prepareToRecordAsync();
       if (!holdingRef.current) {
-        // Let go before recording began: that was a tap
+        // Let go before recording began: that was a tap. The prepared session
+        // is kept for the next press.
         endRecordingMode();
         holdTip();
         return;

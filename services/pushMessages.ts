@@ -1,7 +1,8 @@
 import { getMessaging, setBackgroundMessageHandler } from '@react-native-firebase/messaging';
-import { renderAllWidgets } from '../widgets/renderWidgets';
-import { mergeWidgetLastData } from './widgetTask';
+
 import { handleChatPushMessage } from './chatNotifications';
+import { mergeWidgetLastData } from './widgetTask';
+import { renderAllWidgets } from '../widgets/renderWidgets';
 
 // Data-only FCM messages, handled the same way in the foreground (onMessage,
 // app/_layout.tsx) and in the background. Required from index.js: a push to a

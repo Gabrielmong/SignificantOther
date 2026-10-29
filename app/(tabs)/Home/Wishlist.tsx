@@ -25,16 +25,7 @@ import {
   Divider,
   HStack,
 } from '@gluestack-ui/themed';
-import {
-  useAppTheme,
-  useAppToast,
-  useAuth,
-  useFirebase,
-  useImageUpload,
-  useShareToChat,
-} from '../../../hooks';
-import { Fragment, useEffect, useState } from 'react';
-import { Activity, Wishlist as WishlistType } from '../../../types';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import {
   ArrowLeft,
@@ -45,11 +36,21 @@ import {
   ExternalLink,
   Send,
 } from 'lucide-react-native';
+import { Fragment, useEffect, useState } from 'react';
 import { Linking, TouchableOpacity } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import type { GradientColors } from '../../../config/theme';
-import { KeyboardAwareModal } from '../../../components';
 import Animated from 'react-native-reanimated';
+
+import { KeyboardAwareModal } from '../../../components';
+import type { GradientColors } from '../../../config/theme';
+import {
+  useAppTheme,
+  useAppToast,
+  useAuth,
+  useFirebase,
+  useImageUpload,
+  useShareToChat,
+} from '../../../hooks';
+import { Activity, Wishlist as WishlistType } from '../../../types';
 import { listItemExiting, listLayout, useListEntering } from '../../../utils/motion';
 
 export default function Wishlist() {
@@ -249,7 +250,9 @@ export default function Wishlist() {
 
   // One running stagger index across headers and cards, so the grouped list
   // fades in top to bottom as a single list rather than per category
-  const enterListItem = useListEntering(!!filteredWishlist && Object.keys(filteredWishlist).length > 0);
+  const enterListItem = useListEntering(
+    !!filteredWishlist && Object.keys(filteredWishlist).length > 0,
+  );
   let staggerIndex = 0;
 
   return (
@@ -304,62 +307,62 @@ export default function Wishlist() {
             paddingVertical: theme.spacing[3],
             gap: theme.spacing[2],
           }}>
-        {categories.map((category) => {
-          const isSelected = selectedFilter === category.value;
-          const gradientColors =
-            category.value === 'all'
-              ? theme.gradients.primary.colors
-              : categoryGradients[category.value] || theme.gradients.primary.colors;
-          const chipTextColor = category.value === 'all' ? theme.colors.onPrimary : '#FFFFFF';
+          {categories.map((category) => {
+            const isSelected = selectedFilter === category.value;
+            const gradientColors =
+              category.value === 'all'
+                ? theme.gradients.primary.colors
+                : categoryGradients[category.value] || theme.gradients.primary.colors;
+            const chipTextColor = category.value === 'all' ? theme.colors.onPrimary : '#FFFFFF';
 
-          return (
-            <TouchableOpacity
-              key={category.value}
-              onPress={() => setSelectedFilter(category.value)}
-              activeOpacity={0.7}>
-              {isSelected ? (
-                <LinearGradient
-                  colors={gradientColors}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={{
-                    paddingHorizontal: theme.spacing[4],
-                    paddingVertical: theme.spacing[2],
-                    borderRadius: theme.radii.full,
-                    ...theme.shadows.sm,
-                  }}>
-                  <Text
+            return (
+              <TouchableOpacity
+                key={category.value}
+                onPress={() => setSelectedFilter(category.value)}
+                activeOpacity={0.7}>
+                {isSelected ? (
+                  <LinearGradient
+                    colors={gradientColors}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
                     style={{
-                      color: chipTextColor,
-                      fontSize: theme.fontSize.sm,
-                      fontWeight: theme.fontWeight.semibold,
+                      paddingHorizontal: theme.spacing[4],
+                      paddingVertical: theme.spacing[2],
+                      borderRadius: theme.radii.full,
+                      ...theme.shadows.sm,
                     }}>
-                    {category.emoji ? `${category.emoji} ${category.label}` : category.label}
-                  </Text>
-                </LinearGradient>
-              ) : (
-                <Box
-                  style={{
-                    paddingHorizontal: theme.spacing[4],
-                    paddingVertical: theme.spacing[2],
-                    borderRadius: theme.radii.full,
-                    backgroundColor: theme.colors.surface,
-                    borderWidth: 1,
-                    borderColor: theme.colors.border,
-                  }}>
-                  <Text
+                    <Text
+                      style={{
+                        color: chipTextColor,
+                        fontSize: theme.fontSize.sm,
+                        fontWeight: theme.fontWeight.semibold,
+                      }}>
+                      {category.emoji ? `${category.emoji} ${category.label}` : category.label}
+                    </Text>
+                  </LinearGradient>
+                ) : (
+                  <Box
                     style={{
-                      color: theme.colors.textSecondary,
-                      fontSize: theme.fontSize.sm,
-                      fontWeight: theme.fontWeight.medium,
+                      paddingHorizontal: theme.spacing[4],
+                      paddingVertical: theme.spacing[2],
+                      borderRadius: theme.radii.full,
+                      backgroundColor: theme.colors.surface,
+                      borderWidth: 1,
+                      borderColor: theme.colors.border,
                     }}>
-                    {category.emoji ? `${category.emoji} ${category.label}` : category.label}
-                  </Text>
-                </Box>
-              )}
-            </TouchableOpacity>
-          );
-        })}
+                    <Text
+                      style={{
+                        color: theme.colors.textSecondary,
+                        fontSize: theme.fontSize.sm,
+                        fontWeight: theme.fontWeight.medium,
+                      }}>
+                      {category.emoji ? `${category.emoji} ${category.label}` : category.label}
+                    </Text>
+                  </Box>
+                )}
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       </Box>
       <ScrollView
@@ -397,38 +400,38 @@ export default function Wishlist() {
                     entering={enterListItem(staggerIndex++)}
                     exiting={listItemExiting}
                     layout={listLayout}>
-                  <Box
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: theme.spacing[2],
-                      marginTop: index > 0 ? theme.spacing[2] : 0,
-                    }}>
-                    <Text
-                      style={{
-                        fontSize: theme.fontSize.xl,
-                        fontWeight: theme.fontWeight.bold,
-                        color: theme.colors.text,
-                      }}>
-                      {capitalize(key)}
-                    </Text>
                     <Box
                       style={{
-                        backgroundColor: theme.colors.surface,
-                        paddingHorizontal: theme.spacing[2],
-                        paddingVertical: theme.spacing[1],
-                        borderRadius: theme.radii.full,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: theme.spacing[2],
+                        marginTop: index > 0 ? theme.spacing[2] : 0,
                       }}>
                       <Text
                         style={{
-                          fontSize: theme.fontSize.xs,
-                          color: theme.colors.textSecondary,
-                          fontWeight: theme.fontWeight.semibold,
+                          fontSize: theme.fontSize.xl,
+                          fontWeight: theme.fontWeight.bold,
+                          color: theme.colors.text,
                         }}>
-                        {Object.keys(filteredWishlist[categoryKey]).length}
+                        {capitalize(key)}
                       </Text>
+                      <Box
+                        style={{
+                          backgroundColor: theme.colors.surface,
+                          paddingHorizontal: theme.spacing[2],
+                          paddingVertical: theme.spacing[1],
+                          borderRadius: theme.radii.full,
+                        }}>
+                        <Text
+                          style={{
+                            fontSize: theme.fontSize.xs,
+                            color: theme.colors.textSecondary,
+                            fontWeight: theme.fontWeight.semibold,
+                          }}>
+                          {Object.keys(filteredWishlist[categoryKey]).length}
+                        </Text>
+                      </Box>
                     </Box>
-                  </Box>
                   </Animated.View>
 
                   {Object.keys(filteredWishlist[categoryKey]).map((activity) => {
@@ -444,147 +447,145 @@ export default function Wishlist() {
                         entering={enterListItem(staggerIndex++)}
                         exiting={listItemExiting}
                         layout={listLayout}>
-                      <TouchableOpacity
-                        style={{ width: '100%' }}
-                        activeOpacity={0.95}>
-                        <LinearGradient
-                          colors={gradientColors}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 1 }}
-                          style={{
-                            borderRadius: theme.radii.xl,
-                            padding: theme.commonSpacing.cardPadding,
-                            gap: theme.spacing[3],
-                            ...theme.shadows.lg,
-                          }}>
-                          <HStack
+                        <TouchableOpacity style={{ width: '100%' }} activeOpacity={0.95}>
+                          <LinearGradient
+                            colors={gradientColors}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
                             style={{
-                              justifyContent: 'space-between',
-                              alignItems: 'flex-start',
+                              borderRadius: theme.radii.xl,
+                              padding: theme.commonSpacing.cardPadding,
                               gap: theme.spacing[3],
+                              ...theme.shadows.lg,
                             }}>
-                            <Box style={{ flex: 1 }}>
-                              <Text
-                                style={{
-                                  fontSize: theme.fontSize.lg,
-                                  fontWeight: theme.fontWeight.bold,
-                                  color: '#FFFFFF',
-                                  marginBottom: theme.spacing[1],
-                                }}>
-                                {item.title}
-                              </Text>
-
-                              <Text
-                                style={{
-                                  fontSize: theme.fontSize.sm,
-                                  color: 'rgba(255, 255, 255, 0.9)',
-                                  lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
-                                }}>
-                                {item.description}
-                              </Text>
-                            </Box>
-
                             <HStack
                               style={{
-                                gap: theme.spacing[2],
-                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                alignItems: 'flex-start',
+                                gap: theme.spacing[3],
                               }}>
-                              <TouchableOpacity
-                                onPress={() => {
-                                  handleToggleDone({
-                                    id: activity,
-                                    entry: { ...item, done: !item.done },
-                                    under: key,
-                                  });
-                                }}
-                                style={{
-                                  width: 32,
-                                  height: 32,
-                                  borderRadius: 16,
-                                  backgroundColor: item.done
-                                    ? 'rgba(255, 255, 255, 1)'
-                                    : 'rgba(255, 255, 255, 0.2)',
-                                  justifyContent: 'center',
-                                  alignItems: 'center',
-                                  borderWidth: 2,
-                                  borderColor: '#FFFFFF',
-                                }}>
-                                {item.done && <CheckIcon size={18} color={gradientColors[0]} />}
-                              </TouchableOpacity>
+                              <Box style={{ flex: 1 }}>
+                                <Text
+                                  style={{
+                                    fontSize: theme.fontSize.lg,
+                                    fontWeight: theme.fontWeight.bold,
+                                    color: '#FFFFFF',
+                                    marginBottom: theme.spacing[1],
+                                  }}>
+                                  {item.title}
+                                </Text>
 
-                              <TouchableOpacity
-                                onPress={() => handleShareEntry(activity, item, key)}
-                                accessibilityRole="button"
-                                accessibilityLabel={`Share ${item.title} to chat`}
-                                style={{
-                                  width: 32,
-                                  height: 32,
-                                  borderRadius: 16,
-                                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                                  justifyContent: 'center',
-                                  alignItems: 'center',
-                                }}>
-                                <Send size={16} color="#FFFFFF" />
-                              </TouchableOpacity>
+                                <Text
+                                  style={{
+                                    fontSize: theme.fontSize.sm,
+                                    color: 'rgba(255, 255, 255, 0.9)',
+                                    lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
+                                  }}>
+                                  {item.description}
+                                </Text>
+                              </Box>
 
-                              <TouchableOpacity
-                                onPress={() => handleDeleteEntry(activity, categoryKey)}
+                              <HStack
                                 style={{
-                                  width: 32,
-                                  height: 32,
-                                  borderRadius: 16,
-                                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                                  justifyContent: 'center',
+                                  gap: theme.spacing[2],
                                   alignItems: 'center',
                                 }}>
-                                <Trash size={16} color="#FFFFFF" />
-                              </TouchableOpacity>
+                                <TouchableOpacity
+                                  onPress={() => {
+                                    handleToggleDone({
+                                      id: activity,
+                                      entry: { ...item, done: !item.done },
+                                      under: key,
+                                    });
+                                  }}
+                                  style={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: 16,
+                                    backgroundColor: item.done
+                                      ? 'rgba(255, 255, 255, 1)'
+                                      : 'rgba(255, 255, 255, 0.2)',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    borderWidth: 2,
+                                    borderColor: '#FFFFFF',
+                                  }}>
+                                  {item.done && <CheckIcon size={18} color={gradientColors[0]} />}
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                  onPress={() => handleShareEntry(activity, item, key)}
+                                  accessibilityRole="button"
+                                  accessibilityLabel={`Share ${item.title} to chat`}
+                                  style={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: 16,
+                                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                  }}>
+                                  <Send size={16} color="#FFFFFF" />
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                  onPress={() => handleDeleteEntry(activity, categoryKey)}
+                                  style={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: 16,
+                                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                  }}>
+                                  <Trash size={16} color="#FFFFFF" />
+                                </TouchableOpacity>
+                              </HStack>
                             </HStack>
-                          </HStack>
 
-                          {/* Image */}
-                          {item.image && (
-                            <Image
-                              source={{ uri: item.image }}
-                              alt="Image"
-                              style={{
-                                width: '100%',
-                                height: 160,
-                                borderRadius: theme.radii.lg,
-                                marginTop: theme.spacing[2],
-                              }}
-                              resizeMode="cover"
-                            />
-                          )}
-
-                          {/* Link Button */}
-                          {item.link && (
-                            <TouchableOpacity
-                              onPress={() => handleLinkClick(String(item.link))}
-                              style={{
-                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                paddingVertical: theme.spacing[3],
-                                paddingHorizontal: theme.spacing[4],
-                                borderRadius: theme.radii.lg,
-                                marginTop: theme.spacing[2],
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: theme.spacing[2],
-                              }}>
-                              <ExternalLink size={18} color={gradientColors[0]} />
-                              <Text
+                            {/* Image */}
+                            {item.image && (
+                              <Image
+                                source={{ uri: item.image }}
+                                alt="Image"
                                 style={{
-                                  color: gradientColors[0],
-                                  fontWeight: theme.fontWeight.semibold,
-                                  fontSize: theme.fontSize.sm,
+                                  width: '100%',
+                                  height: 160,
+                                  borderRadius: theme.radii.lg,
+                                  marginTop: theme.spacing[2],
+                                }}
+                                resizeMode="cover"
+                              />
+                            )}
+
+                            {/* Link Button */}
+                            {item.link && (
+                              <TouchableOpacity
+                                onPress={() => handleLinkClick(String(item.link))}
+                                style={{
+                                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                  paddingVertical: theme.spacing[3],
+                                  paddingHorizontal: theme.spacing[4],
+                                  borderRadius: theme.radii.lg,
+                                  marginTop: theme.spacing[2],
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: theme.spacing[2],
                                 }}>
-                                Open Link
-                              </Text>
-                            </TouchableOpacity>
-                          )}
-                        </LinearGradient>
-                      </TouchableOpacity>
+                                <ExternalLink size={18} color={gradientColors[0]} />
+                                <Text
+                                  style={{
+                                    color: gradientColors[0],
+                                    fontWeight: theme.fontWeight.semibold,
+                                    fontSize: theme.fontSize.sm,
+                                  }}>
+                                  Open Link
+                                </Text>
+                              </TouchableOpacity>
+                            )}
+                          </LinearGradient>
+                        </TouchableOpacity>
                       </Animated.View>
                     );
                   })}
@@ -725,14 +726,14 @@ export default function Wishlist() {
                     <SelectDragIndicator />
                   </SelectDragIndicatorWrapper>
 
-                  <SelectItem value="activities" label={'Activities 💤'} />
-                  <SelectItem value="music" label={'Music 🎵'} />
-                  <SelectItem value="movies" label={'Movies 📽'} />
-                  <SelectItem value="books" label={'Books 📚'} />
-                  <SelectItem value="food" label={'Food 🍔'} />
-                  <SelectItem value="dates" label={'Dates 👩‍❤️‍👨'} />
-                  <SelectItem value="other" label={'Other 🎊'} />
-                  <SelectItem value="gifts" label={'Gifts 🎁'} />
+                  <SelectItem value="activities" label="Activities 💤" />
+                  <SelectItem value="music" label="Music 🎵" />
+                  <SelectItem value="movies" label="Movies 📽" />
+                  <SelectItem value="books" label="Books 📚" />
+                  <SelectItem value="food" label="Food 🍔" />
+                  <SelectItem value="dates" label="Dates 👩‍❤️‍👨" />
+                  <SelectItem value="other" label="Other 🎊" />
+                  <SelectItem value="gifts" label="Gifts 🎁" />
                 </SelectContent>
               </SelectPortal>
             </Select>

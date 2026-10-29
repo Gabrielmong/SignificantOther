@@ -7,6 +7,7 @@ import {
   LinearTransition,
   ReduceMotion,
 } from 'react-native-reanimated';
+
 import { animationPresets, duration } from '../config/theme/animations';
 
 // Shared Reanimated layout animations, so every screen moves the same way.

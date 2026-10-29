@@ -7,15 +7,16 @@ import {
   Box,
   HStack,
 } from '@gluestack-ui/themed';
-import { useAppTheme, useAuth, useFirebase } from '../../../../hooks';
-import { applyOpacity } from '../../../../config/theme';
-import { useEffect, useState } from 'react';
-import { Journal as JournalEntry, JournalObject } from '../../../../types';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ArrowLeft, Plus, Calendar, User, ChevronRight, Eye } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
 import { TouchableOpacity } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated from 'react-native-reanimated';
+
+import { applyOpacity } from '../../../../config/theme';
+import { useAppTheme, useAuth, useFirebase } from '../../../../hooks';
+import { Journal as JournalEntry, JournalObject } from '../../../../types';
 import { listItemExiting, listLayout, useListEntering } from '../../../../utils/motion';
 
 interface ParsedJournal extends JournalEntry {
@@ -160,7 +161,8 @@ export default function Journal() {
           gap: theme.spacing[3],
         }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} />}>
-        {journal && journal.length > 0 &&
+        {journal &&
+          journal.length > 0 &&
           journal.map(({ id, authorId, title, description, author, createdAt, readAt }, index) => {
             const isSelf = user?.uid === authorId;
             const gradientColors = isSelf
@@ -176,96 +178,75 @@ export default function Journal() {
                 entering={enterListItem(index)}
                 exiting={listItemExiting}
                 layout={listLayout}>
-              <TouchableOpacity
-                style={{ width: '100%' }}
-                activeOpacity={0.9}
-                onPress={() => goToEntry(id)}>
-                <LinearGradient
-                  colors={gradientColors}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={{
-                    borderRadius: theme.radii.xl,
-                    padding: theme.commonSpacing.cardPadding,
-                    ...theme.shadows.lg,
-                  }}>
-                  {/* Header with title and chevron */}
-                  <HStack
+                <TouchableOpacity
+                  style={{ width: '100%' }}
+                  activeOpacity={0.9}
+                  onPress={() => goToEntry(id)}>
+                  <LinearGradient
+                    colors={gradientColors}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
                     style={{
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: theme.spacing[2],
+                      borderRadius: theme.radii.xl,
+                      padding: theme.commonSpacing.cardPadding,
+                      ...theme.shadows.lg,
                     }}>
-                    <Text
-                      style={{
-                        fontSize: theme.fontSize.xl,
-                        fontWeight: theme.fontWeight.bold,
-                        color: onColor,
-                        flex: 1,
-                      }}
-                      numberOfLines={2}>
-                      {title}
-                    </Text>
-                    <ChevronRight size={20} color={applyOpacity(onColor, 0.6)} />
-                  </HStack>
-
-                  {/* Description */}
-                  <Text
-                    style={{
-                      fontSize: theme.fontSize.sm,
-                      color: applyOpacity(onColor, 0.9),
-                      lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
-                      marginBottom: theme.spacing[3],
-                    }}>
-                    {getTextPreview(description)}
-                  </Text>
-
-                  {/* Footer with date and author */}
-                  <HStack
-                    style={{
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      paddingTop: theme.spacing[2],
-                      borderTopWidth: 1,
-                      borderTopColor: 'rgba(255, 255, 255, 0.2)',
-                    }}>
+                    {/* Header with title and chevron */}
                     <HStack
                       style={{
+                        justifyContent: 'space-between',
                         alignItems: 'center',
-                        gap: theme.spacing[1],
+                        marginBottom: theme.spacing[2],
                       }}>
-                      <Calendar size={14} color={applyOpacity(onColor, 0.8)} />
                       <Text
                         style={{
-                          fontSize: theme.fontSize.xs,
-                          color: applyOpacity(onColor, 0.8),
-                        }}>
-                        {formatDate(createdAt)}
+                          fontSize: theme.fontSize.xl,
+                          fontWeight: theme.fontWeight.bold,
+                          color: onColor,
+                          flex: 1,
+                        }}
+                        numberOfLines={2}>
+                        {title}
                       </Text>
+                      <ChevronRight size={20} color={applyOpacity(onColor, 0.6)} />
                     </HStack>
 
-                    <HStack style={{ alignItems: 'center', gap: theme.spacing[2] }}>
+                    {/* Description */}
+                    <Text
+                      style={{
+                        fontSize: theme.fontSize.sm,
+                        color: applyOpacity(onColor, 0.9),
+                        lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
+                        marginBottom: theme.spacing[3],
+                      }}>
+                      {getTextPreview(description)}
+                    </Text>
+
+                    {/* Footer with date and author */}
+                    <HStack
+                      style={{
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        paddingTop: theme.spacing[2],
+                        borderTopWidth: 1,
+                        borderTopColor: 'rgba(255, 255, 255, 0.2)',
+                      }}>
                       <HStack
                         style={{
                           alignItems: 'center',
                           gap: theme.spacing[1],
-                          backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                          paddingHorizontal: theme.spacing[2],
-                          paddingVertical: theme.spacing[1],
-                          borderRadius: theme.radii.full,
                         }}>
-                        <User size={12} color={onColor} />
+                        <Calendar size={14} color={applyOpacity(onColor, 0.8)} />
                         <Text
                           style={{
                             fontSize: theme.fontSize.xs,
-                            color: onColor,
-                            fontWeight: theme.fontWeight.semibold,
+                            color: applyOpacity(onColor, 0.8),
                           }}>
-                          {isSelf ? 'You' : author}
+                          {formatDate(createdAt)}
                         </Text>
                       </HStack>
 
-                      {isSelf && readAt && (
+                      <HStack style={{ alignItems: 'center', gap: theme.spacing[2] }}>
                         <HStack
                           style={{
                             alignItems: 'center',
@@ -275,21 +256,42 @@ export default function Journal() {
                             paddingVertical: theme.spacing[1],
                             borderRadius: theme.radii.full,
                           }}>
-                          <Eye size={12} color={onColor} />
+                          <User size={12} color={onColor} />
                           <Text
                             style={{
                               fontSize: theme.fontSize.xs,
                               color: onColor,
                               fontWeight: theme.fontWeight.semibold,
                             }}>
-                            Seen
+                            {isSelf ? 'You' : author}
                           </Text>
                         </HStack>
-                      )}
+
+                        {isSelf && readAt && (
+                          <HStack
+                            style={{
+                              alignItems: 'center',
+                              gap: theme.spacing[1],
+                              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                              paddingHorizontal: theme.spacing[2],
+                              paddingVertical: theme.spacing[1],
+                              borderRadius: theme.radii.full,
+                            }}>
+                            <Eye size={12} color={onColor} />
+                            <Text
+                              style={{
+                                fontSize: theme.fontSize.xs,
+                                color: onColor,
+                                fontWeight: theme.fontWeight.semibold,
+                              }}>
+                              Seen
+                            </Text>
+                          </HStack>
+                        )}
+                      </HStack>
                     </HStack>
-                  </HStack>
-                </LinearGradient>
-              </TouchableOpacity>
+                  </LinearGradient>
+                </TouchableOpacity>
               </Animated.View>
             );
           })}

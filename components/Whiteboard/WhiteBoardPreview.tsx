@@ -1,9 +1,10 @@
+import { Box, Text } from '@gluestack-ui/themed';
 import { useState, useEffect } from 'react';
 import { View } from 'react-native';
-import { useAppTheme, useAuth, useFirebase } from '../../hooks';
-import { PathData } from './Whiteboard';
 import { Path, Svg } from 'react-native-svg';
-import { Box, Text } from '@gluestack-ui/themed';
+
+import { PathData } from './Whiteboard';
+import { useAppTheme, useAuth, useFirebase } from '../../hooks';
 import { Skeleton } from '../Skeleton';
 import { PressableScale } from '../styled/PressableScale';
 
@@ -63,14 +64,14 @@ export const WhiteBoardPreview = ({
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
-          height: height,
+          height,
         }}>
         {loading ? (
           <Skeleton height="100%" />
         ) : (
           <Svg
-            height={'100%'}
-            width={'100%'}
+            height="100%"
+            width="100%"
             style={{ backgroundColor: canvasColor, borderRadius: theme.radii.md }}>
             {paths?.map((path, index) => (
               <Path

@@ -3,9 +3,10 @@
  * Displays the distance between the user and their partner
  */
 
+import { Box, Spinner } from '@gluestack-ui/themed';
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Box, Spinner } from '@gluestack-ui/themed';
+
 import { useAppTheme } from '../../hooks';
 import { Card } from '../styled';
 

@@ -5,8 +5,8 @@
  * turned into local dates on each phone.
  */
 
-import type { Milestone, SpecialKind } from '../types/Milestone';
 import type { Countdown, CountdownObject } from '../types/Countdown';
+import type { Milestone, SpecialKind } from '../types/Milestone';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -98,8 +98,7 @@ export const ymdSince = (
   const end = startOfDay(today);
   if (start > end) return { years: 0, months: 0, days: 0 };
 
-  let months =
-    (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+  let months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
   while (months > 0 && addMonthsClamped(start, months) > end) months--;
 
   return {
@@ -188,7 +187,11 @@ export const rollAnniversary = (
  * An anniversary's occurrence in a calendar month, or null. Never before
  * the milestone's own year.
  */
-export const anniversaryInMonth = (day: string, year: number, monthIndex: number): number | null => {
+export const anniversaryInMonth = (
+  day: string,
+  year: number,
+  monthIndex: number,
+): number | null => {
   const [y, m, d] = day.split('-').map(Number);
   if (m - 1 !== monthIndex || year < y) return null;
   return endOfDay(new Date(year, monthIndex, Math.min(d, daysInMonth(year, monthIndex)))).getTime();

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
-import { useMotionDetection } from './useMotionDetection';
+
 import { useLocation } from './useLocation';
+import { useMotionDetection } from './useMotionDetection';
 
 /**
  * Hook that combines motion detection with location tracking

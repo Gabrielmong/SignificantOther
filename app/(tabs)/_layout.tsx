@@ -1,6 +1,5 @@
-import { Tabs } from 'expo-router';
-import { GluestackUIProvider, View } from '@gluestack-ui/themed';
-import { Icon } from '@gluestack-ui/themed';
+import { GluestackUIProvider, View, Icon } from '@gluestack-ui/themed';
+import { Tabs, usePathname } from 'expo-router';
 import {
   CalendarHeart,
   CircleUserRound,
@@ -8,11 +7,11 @@ import {
   Home,
   MessageCircle,
 } from 'lucide-react-native';
-import { usePathname } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { TAB_HIDDEN_ROUTES } from '../../constants';
+
 import { AnimatedTabIcon } from '../../components';
+import { TAB_HIDDEN_ROUTES } from '../../constants';
 import { useAppTheme, useOnThisDayNotifications, useUnreadCount } from '../../hooks';
 import { useAppSelector } from '../../state';
 

@@ -1,12 +1,13 @@
+import { Text } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
-import { Text } from '@gluestack-ui/themed';
+
 import { useAppTheme } from '../../hooks';
 import type { PlaceInput } from '../../hooks/usePlaces';
 import { Place } from '../../types';
+import { PlaceForm } from '../PlaceForm';
 import { PlaceMap } from '../PlaceMap';
 import { PlaceSearch } from '../PlaceSearch';
-import { PlaceForm } from '../PlaceForm';
 
 interface PlaceEditorProps {
   initial: Partial<PlaceInput>;
@@ -84,7 +85,9 @@ export const PlaceEditor: React.FC<PlaceEditorProps> = ({
         />
       </View>
       <Text style={{ fontSize: theme.fontSize.xs, color: theme.colors.textTertiary }}>
-        {hasPin ? 'Long-press the map to move the pin.' : 'Search above, or long-press the map to drop a pin.'}
+        {hasPin
+          ? 'Long-press the map to move the pin.'
+          : 'Search above, or long-press the map to drop a pin.'}
       </Text>
 
       <PlaceForm value={value} onChange={setValue} />

@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { DEFAULT_ACCENT, toAccentId, type AccentId } from '../config/theme/accentThemes';
 
 const ACCENT_KEY = '@SignificantOther:accent';

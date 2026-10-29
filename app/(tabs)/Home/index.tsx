@@ -1,33 +1,3 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { router } from 'expo-router';
-import {
-  useAppTheme,
-  useAppToast,
-  useAuth,
-  useFirebase,
-  useLocation,
-  useCountdowns,
-  useFlowers,
-  useFeelings,
-  useDailyQuestion,
-  useWhiteboard,
-  useZones,
-  useShareToChat,
-} from '../../../hooks';
-import {
-  FeelingModal,
-  FeelingPressable,
-  FlowerModal,
-  FlowerPressable,
-  WhiteBoardPreview,
-  AddCountdownModal,
-  AnimatedHeartLoader,
-  GradientButton,
-  LocationAndZonesSection,
-  CountdownsSection,
-  DailyQuestionCard, KeyboardAwareModal, Skeleton } from '../../../components';
-import { GradientCard } from '../../../components/styled';
 import {
   Box,
   Button,
@@ -42,14 +12,48 @@ import {
   Text,
   Spinner,
   Divider,
+  ScrollView,
 } from '@gluestack-ui/themed';
-import { ScrollView } from '@gluestack-ui/themed';
-import { useAppSelector } from '../../../state';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import React, { useEffect, useState, useCallback } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
-import { calculateDistance, formatDistance } from '../../../utils';
+
+import {
+  FeelingModal,
+  FeelingPressable,
+  FlowerModal,
+  FlowerPressable,
+  WhiteBoardPreview,
+  AddCountdownModal,
+  AnimatedHeartLoader,
+  GradientButton,
+  LocationAndZonesSection,
+  CountdownsSection,
+  DailyQuestionCard,
+  KeyboardAwareModal,
+  Skeleton,
+} from '../../../components';
+import { GradientCard } from '../../../components/styled';
+import {
+  useAppTheme,
+  useAppToast,
+  useAuth,
+  useFirebase,
+  useLocation,
+  useCountdowns,
+  useFlowers,
+  useFeelings,
+  useDailyQuestion,
+  useWhiteboard,
+  useZones,
+  useShareToChat,
+} from '../../../hooks';
 import { setLocationTaskUserInfo } from '../../../services/locationTask';
+import { useAppSelector } from '../../../state';
+import { calculateDistance, formatDistance } from '../../../utils';
 import { fadeEntering } from '../../../utils/motion';
 
 // Flower/feeling card height: 100px image plus the card's padding
@@ -596,7 +600,7 @@ export default function Home() {
                 {/* Whiteboard Preview - Large Feature Card with Gradient */}
                 <GradientCard
                   onPress={handleOpenWhiteboard}
-                  useGradient={true}
+                  useGradient
                   gradientKey="primarySubtle"
                   style={{ width: '100%', height: 180 }}>
                   <WhiteBoardPreview
@@ -719,10 +723,7 @@ export default function Home() {
                   alignItems: 'center',
                   gap: theme?.spacing[5],
                 }}>
-                <GradientCard
-                  useGradient={true}
-                  gradientKey="primarySubtle"
-                  style={{ width: '100%' }}>
+                <GradientCard useGradient gradientKey="primarySubtle" style={{ width: '100%' }}>
                   <Box
                     style={{
                       padding: theme?.spacing[6],

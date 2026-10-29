@@ -10,11 +10,12 @@ import {
   Text,
   Pressable,
 } from '@gluestack-ui/themed';
-import { timeAgo } from '../../utils';
+
+import { useAppTheme } from '../../hooks';
 import { useAppSelector } from '../../state';
 import { MessageType } from '../../types';
+import { timeAgo } from '../../utils';
 import { messagePreview } from '../../utils/chat';
-import { useAppTheme } from '../../hooks';
 
 interface MessageOptionsModalProps {
   isOpen: boolean;

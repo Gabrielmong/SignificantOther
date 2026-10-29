@@ -15,6 +15,7 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
+
 import { useAppTheme } from '../../hooks';
 
 // One pulse is slow on purpose: a fast blink reads as an error, not as "loading"

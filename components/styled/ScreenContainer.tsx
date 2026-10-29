@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { View, ScrollView, ViewStyle, RefreshControl } from 'react-native';
+
 import { useAppTheme } from '../../hooks';
 
 interface ScreenContainerProps {
@@ -62,9 +63,5 @@ export const ScreenContainer: React.FC<ScreenContainerProps> = ({
     );
   }
 
-  return (
-    <View style={[containerStyle, contentStyle]}>
-      {children}
-    </View>
-  );
+  return <View style={[containerStyle, contentStyle]}>{children}</View>;
 };

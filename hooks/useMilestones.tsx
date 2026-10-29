@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
 import { useAppSelector } from '../state';
-import { useFirebase } from './useFirebase';
 import { useAppToast } from './useAppToast';
+import { useFirebase } from './useFirebase';
+import { PickedPhoto, uploadPhotoWithThumb, deletePhoto } from '../services/photoUpload';
 import {
   CountdownObject,
   Milestone,
@@ -16,7 +18,6 @@ import {
   resolveMilestoneId,
 } from '../utils/milestones';
 import { milestoneMirrorFields } from '../utils/photos';
-import { PickedPhoto, uploadPhotoWithThumb, deletePhoto } from '../services/photoUpload';
 
 export type MilestoneInput = {
   id?: string; // Missing for a new milestone
@@ -28,7 +29,10 @@ export type MilestoneInput = {
   placeId?: string | null; // undefined keeps the current place, null clears it
 };
 
-export type PhotoChange = { type: 'keep' } | { type: 'remove' } | { type: 'new'; photo: PickedPhoto };
+export type PhotoChange =
+  | { type: 'keep' }
+  | { type: 'remove' }
+  | { type: 'new'; photo: PickedPhoto };
 
 const isAnniversaryKind = (kind: MilestoneKind) =>
   (ANNIVERSARY_KINDS as readonly MilestoneKind[]).includes(kind);

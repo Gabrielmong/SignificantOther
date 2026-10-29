@@ -1,17 +1,18 @@
-import { useEffect, useMemo, useState } from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
+import { Box, Heading, HStack, Text } from '@gluestack-ui/themed';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Box, Heading, HStack, Text } from '@gluestack-ui/themed';
-import Animated from 'react-native-reanimated';
 import { ArrowLeft, Star } from 'lucide-react-native';
-import { useAppSelector } from '../../../state';
-import { getChatMessage, useAppTheme, useChatStars } from '../../../hooks';
+import { useEffect, useMemo, useState } from 'react';
+import { ScrollView, TouchableOpacity } from 'react-native';
+import Animated from 'react-native-reanimated';
+
 import { Skeleton } from '../../../components';
+import { getChatMessage, useAppTheme, useChatStars } from '../../../hooks';
+import { useAppSelector } from '../../../state';
 import { MessageType } from '../../../types';
 import { messagePreview } from '../../../utils/chat';
-import { listItemExiting, listLayout, useListEntering } from '../../../utils/motion';
 import { tapFeedback } from '../../../utils/haptics';
+import { listItemExiting, listLayout, useListEntering } from '../../../utils/motion';
 
 const formatStarredDate = (timestamp: number) => {
   const date = new Date(timestamp);

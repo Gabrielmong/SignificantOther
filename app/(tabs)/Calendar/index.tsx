@@ -1,16 +1,17 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Box, HStack, Heading, Text } from '@gluestack-ui/themed';
 import { useFocusEffect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Box, HStack, Heading, Text } from '@gluestack-ui/themed';
-import { RefreshControl, ScrollView, TouchableOpacity } from 'react-native';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
-import { useAppTheme, useAppToast, useAuth, useFirebase } from '../../../hooks';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { RefreshControl, ScrollView, TouchableOpacity } from 'react-native';
+
 import {
   AnimatedHeartLoader,
   MoodCalendar,
   MoodDayModal,
   MoodDaySection,
 } from '../../../components';
+import { useAppTheme, useAppToast, useAuth, useFirebase } from '../../../hooks';
 import { useAppSelector } from '../../../state';
 import { CountdownObject, FeelingHistoryEntry } from '../../../types';
 import {
@@ -320,7 +321,8 @@ export default function Calendar() {
                   }}>
                   {`${occurrence.icon} ${occurrence.title}`}
                 </Text>
-                <Text style={{ fontSize: theme?.fontSize?.sm, color: theme?.colors?.textSecondary }}>
+                <Text
+                  style={{ fontSize: theme?.fontSize?.sm, color: theme?.colors?.textSecondary }}>
                   {formatShortDate(month, day)}
                 </Text>
               </TouchableOpacity>

@@ -3,13 +3,14 @@
  * Displays distance/proximity status, zone notifications, and zones management
  */
 
-import React from 'react';
-import { TouchableOpacity } from 'react-native';
 import { Box, HStack, Text } from '@gluestack-ui/themed';
 import { Heart } from 'lucide-react-native';
+import React from 'react';
+import { TouchableOpacity } from 'react-native';
+
 import { useAppTheme } from '../../hooks';
-import { DistanceCard } from '../DistanceCard';
 import { calculateZoneETA, formatETA } from '../../utils';
+import { DistanceCard } from '../DistanceCard';
 
 interface Zone {
   zoneName: string;
@@ -66,11 +67,7 @@ export const LocationAndZonesSection: React.FC<LocationAndZonesSectionProps> = (
               ...(theme?.shadows?.sm || {}),
             }}>
             <Box style={{ alignItems: 'center', gap: theme?.spacing?.[2] || 8 }}>
-              <Heart
-                size={32}
-                color={theme.colors.primary}
-                fill={theme.colors.primary}
-              />
+              <Heart size={32} color={theme.colors.primary} fill={theme.colors.primary} />
               <Text
                 style={{
                   fontSize: theme?.fontSize?.xl || 20,

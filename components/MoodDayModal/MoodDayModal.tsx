@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Box,
   Modal,
@@ -9,6 +8,8 @@ import {
   ModalHeader,
   Text,
 } from '@gluestack-ui/themed';
+import React from 'react';
+
 import { useAppTheme } from '../../hooks';
 import { FeelingHistoryEntry } from '../../types';
 import { CountdownOccurrence, feelingDisplay, formatTime } from '../../utils/feelingHistory';

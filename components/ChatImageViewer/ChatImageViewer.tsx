@@ -1,9 +1,9 @@
+import { X } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { Image, Modal, Pressable, StyleSheet, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X } from 'lucide-react-native';
 
 const MAX_SCALE = 4;
 const DOUBLE_TAP_SCALE = 2.5;

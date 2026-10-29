@@ -1,19 +1,10 @@
+import { Text } from '@gluestack-ui/themed';
+import { router, Href, useLocalSearchParams } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { Plus } from 'lucide-react-native';
 import React, { useEffect, useMemo, useState } from 'react';
 import { AppState, ScrollView, TouchableOpacity, View } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { router, Href, useLocalSearchParams } from 'expo-router';
-import { Text } from '@gluestack-ui/themed';
-import { Plus } from 'lucide-react-native';
-import {
-  useAppTheme,
-  useAppToast,
-  useFirebase,
-  useGallery,
-  useMilestones,
-  usePlaces,
-} from '../../../hooks';
-import type { PendingPhoto } from '../../../hooks/useGallery';
-import { useAppSelector } from '../../../state';
+
 import {
   MilestoneModal,
   MilestoneRow,
@@ -27,6 +18,16 @@ import {
   pickPhotosForGallery,
 } from '../../../components';
 import { PressableScale } from '../../../components/styled';
+import {
+  useAppTheme,
+  useAppToast,
+  useFirebase,
+  useGallery,
+  useMilestones,
+  usePlaces,
+} from '../../../hooks';
+import type { PendingPhoto } from '../../../hooks/useGallery';
+import { useAppSelector } from '../../../state';
 import { Milestone, MilestoneKind, SpecialKind } from '../../../types';
 import { formatCounter, pickCounterMilestone } from '../../../utils/milestones';
 import { buildStory, memoriesOn, pickHighlight } from '../../../utils/story';
@@ -41,10 +42,13 @@ const useToday = (): Date => {
     const arm = () => {
       const now = new Date();
       const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-      timer = setTimeout(() => {
-        setToday(new Date());
-        arm();
-      }, nextMidnight.getTime() - now.getTime() + 1000);
+      timer = setTimeout(
+        () => {
+          setToday(new Date());
+          arm();
+        },
+        nextMidnight.getTime() - now.getTime() + 1000,
+      );
     };
     arm();
 
@@ -75,7 +79,10 @@ export default function YouTwo() {
   } = useMilestones();
   const { places, byId: placesById, savePlace } = usePlaces();
   const openPlace = (placeId: string) =>
-    router.push({ pathname: '/(tabs)/YouTwo/Places', params: { focus: placeId } } as unknown as Href);
+    router.push({
+      pathname: '/(tabs)/YouTwo/Places',
+      params: { focus: placeId },
+    } as unknown as Href);
   const params = useLocalSearchParams<{ milestone?: string }>();
   const gallery = useGallery();
   const { showToast } = useAppToast();
@@ -117,9 +124,10 @@ export default function YouTwo() {
   );
 
   // Edit the latest copy; if the partner deleted it meanwhile, keep the open copy
-  const editing = modal.open && modal.milestone
-    ? milestones.find((m) => m.id === modal.milestone!.id) ?? modal.milestone
-    : null;
+  const editing =
+    modal.open && modal.milestone
+      ? (milestones.find((m) => m.id === modal.milestone!.id) ?? modal.milestone)
+      : null;
 
   const [partnerProfile, setPartnerProfile] = useState<{
     displayName?: string;
@@ -279,7 +287,8 @@ export default function YouTwo() {
                 onPress={() => openStory()}
                 accessibilityRole="link"
                 style={{ alignSelf: 'flex-start', paddingVertical: 4 }}>
-                <Text style={{ color: theme.colors.primary, fontWeight: theme.fontWeight.semibold }}>
+                <Text
+                  style={{ color: theme.colors.primary, fontWeight: theme.fontWeight.semibold }}>
                   See full story ›
                 </Text>
               </TouchableOpacity>

@@ -1,9 +1,33 @@
+import { FirebaseError } from '@firebase/util';
+import {
+  AuthorizationStatus,
+  getMessaging,
+  getToken,
+  hasPermission,
+  onTokenRefresh,
+  requestPermission,
+  unregisterDeviceForRemoteMessages,
+} from '@react-native-firebase/messaging';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   updateProfile,
 } from 'firebase/auth';
+import { get, getDatabase, onValue, ref, update } from 'firebase/database';
+import { useEffect } from 'react';
+import { PermissionsAndroid, Linking, Platform } from 'react-native';
+import {
+  BatteryOptEnabled,
+  RequestDisableOptimization,
+} from 'react-native-battery-optimization-check';
+
+import { useAppToast } from './useAppToast';
+import { useFirebase } from './useFirebase';
+import { clearAccentStorage } from '../services/accentStorage';
+import { setLocationTaskUserInfo, clearLocationTaskUserInfo } from '../services/locationTask';
+import { clearOnThisDay } from '../services/onThisDay';
+import { setWidgetTaskUserInfo, clearWidgetTaskUserInfo } from '../services/widgetTask';
 import {
   useAppDispatch,
   setUser,
@@ -18,31 +42,6 @@ import {
   resetRoom,
   store,
 } from '../state';
-import { useFirebase } from './useFirebase';
-import { useAppToast } from './useAppToast';
-import { FirebaseError } from '@firebase/util';
-import { get, getDatabase, onValue, ref, update } from 'firebase/database';
-import {
-  AuthorizationStatus,
-  getMessaging,
-  getToken,
-  hasPermission,
-  onTokenRefresh,
-  requestPermission,
-  unregisterDeviceForRemoteMessages,
-} from '@react-native-firebase/messaging';
-import { useEffect } from 'react';
-import { PermissionsAndroid } from 'react-native';
-import { Linking } from 'react-native';
-import {
-  setLocationTaskUserInfo,
-  clearLocationTaskUserInfo,
-} from '../services/locationTask';
-import { setWidgetTaskUserInfo, clearWidgetTaskUserInfo } from '../services/widgetTask';
-import { clearAccentStorage } from '../services/accentStorage';
-import { clearOnThisDay } from '../services/onThisDay';
-import { Platform } from 'react-native';
-import { BatteryOptEnabled, RequestDisableOptimization } from 'react-native-battery-optimization-check';
 
 // Guards against re-registering onTokenRefresh() every time
 // initialize() runs (it's called on every route change via EntryChecker,
@@ -375,53 +374,60 @@ export const useAuth = () => {
     const uid = auth.currentUser.uid;
     const userDocRef = ref(db, `users/${uid}`);
 
-    return get(userDocRef).then((snapshot) => {
-      const data = snapshot.val();
+    return get(userDocRef)
+      .then((snapshot) => {
+        const data = snapshot.val();
 
-      if (data) {
-        const updatedFields: PartialUserPayload = {
-          roomId: data.roomId,
-          fcmtokens: data.fcmtokens,
-          notifications: data.notifications,
-        };
+        if (data) {
+          const updatedFields: PartialUserPayload = {
+            roomId: data.roomId,
+            fcmtokens: data.fcmtokens,
+            notifications: data.notifications,
+          };
 
-        // Not in a room yet: there's nothing to read, and rooms/undefined is denied
-        if (!data.roomId) {
-          dispatch(updateUser(updatedFields));
-          return;
-        }
-
-        const roomDocRef = ref(db, `rooms/${data.roomId}`);
-
-        return get(roomDocRef).then((snapshot) => {
-          const roomData = snapshot.val();
-
-          if (roomData) {
-            const partnerId = Object.keys(roomData.users || {}).find((id) => id !== uid) || '';
-            const roomFields: RoomPayload = {
-              partnerId,
-              roomId: data.roomId,
-              partnerName: roomData.users?.[partnerId]?.name,
-            };
-
-            dispatch(setRoom(roomFields));
-
+          // Not in a room yet: there's nothing to read, and rooms/undefined is denied
+          if (!data.roomId) {
             dispatch(updateUser(updatedFields));
-
-            // Set location task user info for background tracking
-            setLocationTaskUserInfo(uid, data.roomId);
-
-            // Set widget task user info so the home-screen widget's
-            // background handler/task can resolve the right partner
-            if (roomFields.partnerId) {
-              setWidgetTaskUserInfo(uid, data.roomId, roomFields.partnerId, roomFields.partnerName);
-            }
+            return;
           }
-        });
-      }
-    }).catch((error) => {
-      console.error('Error loading extra profile:', error);
-    });
+
+          const roomDocRef = ref(db, `rooms/${data.roomId}`);
+
+          return get(roomDocRef).then((snapshot) => {
+            const roomData = snapshot.val();
+
+            if (roomData) {
+              const partnerId = Object.keys(roomData.users || {}).find((id) => id !== uid) || '';
+              const roomFields: RoomPayload = {
+                partnerId,
+                roomId: data.roomId,
+                partnerName: roomData.users?.[partnerId]?.name,
+              };
+
+              dispatch(setRoom(roomFields));
+
+              dispatch(updateUser(updatedFields));
+
+              // Set location task user info for background tracking
+              setLocationTaskUserInfo(uid, data.roomId);
+
+              // Set widget task user info so the home-screen widget's
+              // background handler/task can resolve the right partner
+              if (roomFields.partnerId) {
+                setWidgetTaskUserInfo(
+                  uid,
+                  data.roomId,
+                  roomFields.partnerId,
+                  roomFields.partnerName,
+                );
+              }
+            }
+          });
+        }
+      })
+      .catch((error) => {
+        console.error('Error loading extra profile:', error);
+      });
   };
 
   const requestUserPermission = async () => {

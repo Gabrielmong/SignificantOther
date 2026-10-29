@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { successFeedback } from '../utils/haptics';
 import type { Unsubscribe } from 'firebase/database';
+import { useState, useEffect, useCallback, useRef } from 'react';
+
+import { successFeedback } from '../utils/haptics';
 
 interface UseFeelingsProps {
   roomId: string | null;
@@ -11,7 +12,12 @@ interface UseFeelingsProps {
     userId: string,
   ) => Promise<{ val: () => { selectedFeeling: string } | null }>;
   updateFeeling: (roomId: string, userId: string, feeling: string) => Promise<void>;
-  logFeelingHistory: (roomId: string, userId: string, feeling: string, at?: number) => Promise<void>;
+  logFeelingHistory: (
+    roomId: string,
+    userId: string,
+    feeling: string,
+    at?: number,
+  ) => Promise<void>;
   listenToFeelingChanges: (
     callback: (data: { feeling: string }) => void,
     roomId: string,

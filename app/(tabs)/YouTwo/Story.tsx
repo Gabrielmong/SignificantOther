@@ -1,14 +1,15 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Image, SectionList, TouchableOpacity, View } from 'react-native';
+import { Text } from '@gluestack-ui/themed';
 import { router, useLocalSearchParams, Href } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Text } from '@gluestack-ui/themed';
 import { ArrowLeft } from 'lucide-react-native';
-import { useAppTheme, useGallery, useMilestones, usePlaces } from '../../../hooks';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Image, SectionList, TouchableOpacity, View } from 'react-native';
+
 import { PhotoViewer } from '../../../components';
+import { useAppTheme, useGallery, useMilestones, usePlaces } from '../../../hooks';
 import { Milestone, Photo } from '../../../types';
-import { StoryDay, buildStory, capThumbs } from '../../../utils/story';
 import { parseDay } from '../../../utils/milestones';
+import { StoryDay, buildStory, capThumbs } from '../../../utils/story';
 
 const THUMB = 46;
 
@@ -49,24 +50,28 @@ export default function Story() {
     if (loading || scrolled.current || !params.day) return;
     scrolled.current = true;
     const sectionIndex = sections.findIndex((s) => s.title === params.day!.slice(0, 4));
-    const itemIndex = sectionIndex >= 0 ? sections[sectionIndex].data.findIndex((d) => d.day === params.day) : -1;
+    const itemIndex =
+      sectionIndex >= 0 ? sections[sectionIndex].data.findIndex((d) => d.day === params.day) : -1;
     if (itemIndex < 0) return; // Unknown day: stay at the top
     target.current = { sectionIndex, itemIndex };
     setTimeout(scrollToTarget, 300);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, params.day, sections]);
 
   const openMilestone = (m: Milestone) =>
     router.navigate({ pathname: '/(tabs)/YouTwo', params: { milestone: m.id } } as unknown as Href);
   const openPlace = (placeId: string) =>
-    router.push({ pathname: '/(tabs)/YouTwo/Places', params: { focus: placeId } } as unknown as Href);
+    router.push({
+      pathname: '/(tabs)/YouTwo/Places',
+      params: { focus: placeId },
+    } as unknown as Href);
 
   const placeLink = (placeId?: string) => {
     const place = placeId ? byId[placeId] : undefined;
     if (!place) return null;
     return (
       <TouchableOpacity onPress={() => openPlace(place.id)} accessibilityRole="link">
-        <Text style={{ color: theme.colors.textSecondary, fontSize: theme.fontSize.sm, marginTop: 4 }}>
+        <Text
+          style={{ color: theme.colors.textSecondary, fontSize: theme.fontSize.sm, marginTop: 4 }}>
           📍 {place.name}
         </Text>
       </TouchableOpacity>
@@ -103,7 +108,9 @@ export default function Story() {
               justifyContent: 'center',
               backgroundColor: theme.colors.surfaceElevated,
             }}>
-            <Text style={{ color: theme.colors.text, fontWeight: theme.fontWeight.semibold }}>+{extra}</Text>
+            <Text style={{ color: theme.colors.text, fontWeight: theme.fontWeight.semibold }}>
+              +{extra}
+            </Text>
           </TouchableOpacity>
         )}
       </View>
@@ -126,7 +133,14 @@ export default function Story() {
           }}>
           {date}
         </Text>
-        <View style={{ marginLeft: 8, paddingLeft: 12, borderLeftWidth: 2, borderLeftColor: theme.colors.border, gap: 8 }}>
+        <View
+          style={{
+            marginLeft: 8,
+            paddingLeft: 12,
+            borderLeftWidth: 2,
+            borderLeftColor: theme.colors.border,
+            gap: 8,
+          }}>
           {d.milestones.length > 0 ? (
             d.milestones.map((m, i) => (
               <TouchableOpacity
@@ -182,7 +196,12 @@ export default function Story() {
         <TouchableOpacity onPress={() => router.back()} accessibilityLabel="Back">
           <ArrowLeft size={24} color={theme.colors.text} />
         </TouchableOpacity>
-        <Text style={{ fontSize: theme.fontSize.xl, fontWeight: theme.fontWeight.bold, color: theme.colors.text }}>
+        <Text
+          style={{
+            fontSize: theme.fontSize.xl,
+            fontWeight: theme.fontWeight.bold,
+            color: theme.colors.text,
+          }}>
           Our story
         </Text>
       </View>

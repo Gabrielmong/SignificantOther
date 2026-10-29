@@ -1,15 +1,26 @@
-import { StatusBar } from 'expo-status-bar';
-import { Text, View, Button, Image, Box, Switch, HStack, VStack, Pressable } from '@gluestack-ui/themed';
-import { useAuth } from '../../../hooks/useAuth';
-import { useAppSelector } from '../../../state';
-import { useAppTheme, useAppToast } from '../../../hooks';
-import { router } from 'expo-router';
-import { IconButton, NotificationsModal, ThemePickerModal } from '../../../components';
-import { Edit, Copy, Moon, Sun, Palette } from 'lucide-react-native';
-import { accentThemes } from '../../../config/theme';
+import {
+  Text,
+  View,
+  Button,
+  Image,
+  Box,
+  Switch,
+  HStack,
+  VStack,
+  Pressable,
+} from '@gluestack-ui/themed';
 import * as Clipboard from 'expo-clipboard';
 import * as Notifications from 'expo-notifications';
+import { router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { Edit, Copy, Moon, Sun, Palette } from 'lucide-react-native';
 import { useState } from 'react';
+
+import { IconButton, NotificationsModal, ThemePickerModal } from '../../../components';
+import { accentThemes } from '../../../config/theme';
+import { useAppTheme, useAppToast } from '../../../hooks';
+import { useAuth } from '../../../hooks/useAuth';
+import { useAppSelector } from '../../../state';
 
 export default function Profile() {
   const user = useAppSelector((state) => state.user);

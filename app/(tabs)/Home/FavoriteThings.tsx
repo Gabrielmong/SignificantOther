@@ -24,18 +24,20 @@ import {
   Divider,
   HStack,
 } from '@gluestack-ui/themed';
-import { useAppTheme, useAppToast, useAuth, useFirebase, useShareToChat } from '../../../hooks';
-import { Fragment, useEffect, useState } from 'react';
-import { FavoriteThing, FavoriteThings as FavoriteThingsType } from '../../../types';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ArrowLeft, ChevronDownIcon, Plus, Send, Trash } from 'lucide-react-native';
+import { Fragment, useEffect, useState } from 'react';
 import { Alert, TouchableOpacity } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import type { GradientColors } from '../../../config/theme';
-import { KeyboardAwareModal } from '../../../components';
 import Animated from 'react-native-reanimated';
-import { listItemExiting, listLayout, useListEntering } from '../../../utils/motion';
+
+import { KeyboardAwareModal } from '../../../components';
+import type { GradientColors } from '../../../config/theme';
+import { useAppTheme, useAppToast, useAuth, useFirebase, useShareToChat } from '../../../hooks';
 import { useAppSelector } from '../../../state';
+import { FavoriteThing, FavoriteThings as FavoriteThingsType } from '../../../types';
+
+import { listItemExiting, listLayout, useListEntering } from '../../../utils/motion';
 
 export default function FavoriteThings() {
   const { theme } = useAppTheme();
@@ -193,7 +195,9 @@ export default function FavoriteThings() {
 
   // One running stagger index across headers and cards, so the grouped list
   // fades in top to bottom as a single list rather than per category
-  const enterListItem = useListEntering(!!filteredFavoriteThings && Object.keys(filteredFavoriteThings).length > 0);
+  const enterListItem = useListEntering(
+    !!filteredFavoriteThings && Object.keys(filteredFavoriteThings).length > 0,
+  );
   let staggerIndex = 0;
 
   return (
@@ -341,38 +345,38 @@ export default function FavoriteThings() {
                     entering={enterListItem(staggerIndex++)}
                     exiting={listItemExiting}
                     layout={listLayout}>
-                  <Box
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: theme.spacing[2],
-                      marginTop: index > 0 ? theme.spacing[2] : 0,
-                    }}>
-                    <Text
-                      style={{
-                        fontSize: theme.fontSize.xl,
-                        fontWeight: theme.fontWeight.bold,
-                        color: theme.colors.text,
-                      }}>
-                      {capitalize(key)}
-                    </Text>
                     <Box
                       style={{
-                        backgroundColor: theme.colors.surface,
-                        paddingHorizontal: theme.spacing[2],
-                        paddingVertical: theme.spacing[1],
-                        borderRadius: theme.radii.full,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: theme.spacing[2],
+                        marginTop: index > 0 ? theme.spacing[2] : 0,
                       }}>
                       <Text
                         style={{
-                          fontSize: theme.fontSize.xs,
-                          color: theme.colors.textSecondary,
-                          fontWeight: theme.fontWeight.semibold,
+                          fontSize: theme.fontSize.xl,
+                          fontWeight: theme.fontWeight.bold,
+                          color: theme.colors.text,
                         }}>
-                        {Object.keys(filteredFavoriteThings[categoryKey]).length}
+                        {capitalize(key)}
                       </Text>
+                      <Box
+                        style={{
+                          backgroundColor: theme.colors.surface,
+                          paddingHorizontal: theme.spacing[2],
+                          paddingVertical: theme.spacing[1],
+                          borderRadius: theme.radii.full,
+                        }}>
+                        <Text
+                          style={{
+                            fontSize: theme.fontSize.xs,
+                            color: theme.colors.textSecondary,
+                            fontWeight: theme.fontWeight.semibold,
+                          }}>
+                          {Object.keys(filteredFavoriteThings[categoryKey]).length}
+                        </Text>
+                      </Box>
                     </Box>
-                  </Box>
                   </Animated.View>
 
                   {Object.keys(filteredFavoriteThings[categoryKey]).map((entryId) => {

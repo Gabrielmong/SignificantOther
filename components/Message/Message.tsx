@@ -1,3 +1,6 @@
+import { Box, Pressable, Text } from '@gluestack-ui/themed';
+import { router } from 'expo-router';
+import { ChevronRight, ImageOff, MoreHorizontal, Reply, Star } from 'lucide-react-native';
 import { useRef } from 'react';
 import {
   ActivityIndicator,
@@ -6,7 +9,6 @@ import {
   Text as NativeText,
   useWindowDimensions,
 } from 'react-native';
-import { Box, Pressable, Text } from '@gluestack-ui/themed';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   interpolate,
@@ -15,12 +17,12 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { ChevronRight, ImageOff, MoreHorizontal, Reply, Star } from 'lucide-react-native';
-import { router } from 'expo-router';
-import { useAppSelector } from '../../state';
-import { useAppTheme } from '../../hooks';
+
 import { applyOpacity } from '../../config/theme';
 import { springConfig } from '../../config/theme/animations';
+import { useAppTheme } from '../../hooks';
+import { isAppStorageUrl } from '../../services/chatMedia';
+import { useAppSelector } from '../../state';
 import {
   MessageAttachment,
   MessageAudio,
@@ -28,9 +30,8 @@ import {
   MessageReply,
   MessageStatus,
 } from '../../types';
-import { selectionFeedback } from '../../utils/haptics';
 import { attachmentRoute, dayLabel, isWebLink, splitLinks, timeLabel } from '../../utils/chat';
-import { isAppStorageUrl } from '../../services/chatMedia';
+import { selectionFeedback } from '../../utils/haptics';
 import { VoiceNotePlayer } from '../VoiceNote';
 
 // Within a day, a gap this long gets a small time label
@@ -214,15 +215,11 @@ export const Message = ({
   }));
   const replyIconStyle = useAnimatedStyle(() => ({
     opacity: interpolate(translateX.value, [0, SWIPE_ACTION_AT], [0, 1], 'clamp'),
-    transform: [
-      { scale: interpolate(translateX.value, [0, SWIPE_ACTION_AT], [0.6, 1], 'clamp') },
-    ],
+    transform: [{ scale: interpolate(translateX.value, [0, SWIPE_ACTION_AT], [0.6, 1], 'clamp') }],
   }));
   const optionsIconStyle = useAnimatedStyle(() => ({
     opacity: interpolate(translateX.value, [-SWIPE_ACTION_AT, 0], [1, 0], 'clamp'),
-    transform: [
-      { scale: interpolate(translateX.value, [-SWIPE_ACTION_AT, 0], [1, 0.6], 'clamp') },
-    ],
+    transform: [{ scale: interpolate(translateX.value, [-SWIPE_ACTION_AT, 0], [1, 0.6], 'clamp') }],
   }));
 
   return (
@@ -361,7 +358,9 @@ export const Message = ({
               {/* Shared item: a snapshot card that opens the item */}
               {attachment && (
                 <Pressable
-                  onPress={attachmentTarget ? () => router.push(attachmentTarget as never) : undefined}
+                  onPress={
+                    attachmentTarget ? () => router.push(attachmentTarget as never) : undefined
+                  }
                   disabled={!attachmentTarget}
                   accessibilityRole="link"
                   accessibilityLabel={`Open ${ATTACHMENT_LABELS[attachment.kind]} ${attachment.title}`}

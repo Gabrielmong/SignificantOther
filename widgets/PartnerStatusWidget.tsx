@@ -1,4 +1,5 @@
 import { FlexWidget, TextWidget, ImageWidget } from 'react-native-android-widget';
+
 import { FLOWER_MAP, FEELING_EMOJIS, FEELINGS_LABELS } from '../constants';
 import { WidgetAccent, WidgetDisplayData } from '../services/widgetTask';
 import { formatCountdownLabel } from '../utils/countdown';

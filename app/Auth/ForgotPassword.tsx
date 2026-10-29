@@ -8,13 +8,14 @@ import {
   Text,
   Icon,
 } from '@gluestack-ui/themed';
-import { useState } from 'react';
-import { useAppTheme, useAuth } from '../../hooks';
 import { router } from 'expo-router';
-import { ArrowLeft } from 'lucide-react-native';
-import { TouchableOpacity } from 'react-native';
-import { AuthFooter, IconButton } from '../../components';
 import { StatusBar } from 'expo-status-bar';
+import { ArrowLeft } from 'lucide-react-native';
+import { useState } from 'react';
+import { TouchableOpacity } from 'react-native';
+
+import { AuthFooter, IconButton } from '../../components';
+import { useAppTheme, useAuth } from '../../hooks';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');

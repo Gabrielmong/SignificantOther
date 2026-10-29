@@ -1,3 +1,7 @@
+import MapboxGL from '@rnmapbox/maps';
+import { router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { ArrowLeft, Heart, X } from 'lucide-react-native';
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import {
   View,
@@ -9,7 +13,8 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
-import MapboxGL from '@rnmapbox/maps';
+
+import { MAPBOX_ACCESS_TOKEN } from '../../../config';
 import {
   useAppTheme,
   useAuth,
@@ -19,10 +24,6 @@ import {
   useZones,
 } from '../../../hooks';
 import { useAppSelector } from '../../../state';
-import { router } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { ArrowLeft, Heart, X } from 'lucide-react-native';
-import { MAPBOX_ACCESS_TOKEN } from '../../../config';
 import { calculateDistance, formatDistance } from '../../../utils';
 
 MapboxGL.setAccessToken(MAPBOX_ACCESS_TOKEN);
@@ -591,7 +592,7 @@ export default function Map() {
                 <ProfileMarker
                   photoURL={user.photoURL}
                   label="You"
-                  isUser={true}
+                  isUser
                   annotationRef={userAnnotationRef}
                 />
               </MapboxGL.PointAnnotation>
@@ -685,7 +686,7 @@ export default function Map() {
       <Modal
         visible={showUserDrawer}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setShowUserDrawer(false)}>
         <TouchableOpacity
           style={styles.drawerOverlay}
@@ -829,7 +830,7 @@ export default function Map() {
       <Modal
         visible={showPartnerDrawer}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setShowPartnerDrawer(false)}>
         <TouchableOpacity
           style={styles.drawerOverlay}
@@ -971,7 +972,7 @@ export default function Map() {
       <Modal
         visible={showMergedDrawer}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setShowMergedDrawer(false)}>
         <TouchableOpacity
           style={styles.drawerOverlay}

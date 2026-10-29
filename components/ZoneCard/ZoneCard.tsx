@@ -1,9 +1,10 @@
+import { MapPin } from 'lucide-react-native';
 import React from 'react';
 import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
-import { useAppTheme } from '../../hooks';
+
 import { applyOpacity } from '../../config/theme';
+import { useAppTheme } from '../../hooks';
 import { Zone } from '../../types';
-import { MapPin } from 'lucide-react-native';
 
 interface ZoneCardProps {
   zone: Zone;
@@ -49,15 +50,14 @@ export const ZoneCard: React.FC<ZoneCardProps> = ({ zone, status, onPress }) => 
           ...theme?.shadows?.sm,
           borderLeftWidth: 4,
           borderLeftColor:
-            status === 'inside'
-              ? '#10B981'
-              : status === 'approaching'
-              ? '#F59E0B'
-              : 'transparent',
+            status === 'inside' ? '#10B981' : status === 'approaching' ? '#F59E0B' : 'transparent',
         },
       ]}>
       <View
-        style={[styles.iconContainer, { backgroundColor: applyOpacity(theme.colors.primary, 0.1) }]}>
+        style={[
+          styles.iconContainer,
+          { backgroundColor: applyOpacity(theme.colors.primary, 0.1) },
+        ]}>
         <Text style={styles.icon}>{zone.icon}</Text>
       </View>
       <View style={styles.contentContainer}>
@@ -81,8 +81,8 @@ export const ZoneCard: React.FC<ZoneCardProps> = ({ zone, status, onPress }) => 
                   zone.type === 'home'
                     ? applyOpacity(theme.colors.primary, 0.1)
                     : zone.type === 'work'
-                    ? applyOpacity(theme.colors.accentAlt, 0.1)
-                    : 'rgba(107, 114, 128, 0.1)',
+                      ? applyOpacity(theme.colors.accentAlt, 0.1)
+                      : 'rgba(107, 114, 128, 0.1)',
               },
             ]}>
             <Text
@@ -93,8 +93,8 @@ export const ZoneCard: React.FC<ZoneCardProps> = ({ zone, status, onPress }) => 
                     zone.type === 'home'
                       ? theme.colors.primary
                       : zone.type === 'work'
-                      ? theme.colors.accentAlt
-                      : '#6B7280',
+                        ? theme.colors.accentAlt
+                        : '#6B7280',
                   fontSize: theme?.fontSize?.xs || 12,
                 },
               ]}>

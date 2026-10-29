@@ -1,8 +1,3 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
-import { Svg, Path } from 'react-native-svg';
-import { GestureResponderEvent } from 'react-native';
-import { runOnJS } from 'react-native-reanimated';
 import {
   Slider,
   SliderFilledTrack,
@@ -20,6 +15,11 @@ import {
   Text,
   ModalContent,
 } from '@gluestack-ui/themed';
+import { Brush, Eraser, PaintBucket, Palette, Pipette, UndoDot } from 'lucide-react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, StyleSheet, Animated, GestureResponderEvent } from 'react-native';
+import { runOnJS } from 'react-native-reanimated';
+import { Svg, Path } from 'react-native-svg';
 import ColorPicker, {
   Panel1,
   Swatches,
@@ -27,9 +27,9 @@ import ColorPicker, {
   OpacitySlider,
   HueSlider,
 } from 'reanimated-color-picker';
-import { IconButton } from '../IconButton';
-import { Brush, Eraser, PaintBucket, Palette, Pipette, UndoDot } from 'lucide-react-native';
+
 import { useAppTheme } from '../../hooks';
+import { IconButton } from '../IconButton';
 
 export interface PathData {
   path: string[];
@@ -289,8 +289,8 @@ export const Whiteboard = ({
           zIndex: 1,
         }}>
         <Svg
-          height={'100%'}
-          width={'100%'}
+          height="100%"
+          width="100%"
           style={{ backgroundColor: canvasColor, borderRadius: theme.radii.lg }}>
           {paths &&
             paths?.map(({ path, color, width }, index) => (

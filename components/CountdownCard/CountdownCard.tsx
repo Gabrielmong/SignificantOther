@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
-import { useAppTheme } from '../../hooks';
+
 import { applyOpacity } from '../../config/theme';
+import { useAppTheme } from '../../hooks';
 import { Countdown } from '../../types';
 
 interface CountdownCardProps {
@@ -91,7 +92,10 @@ export const CountdownCard: React.FC<CountdownCardProps> = ({ countdown, onPress
         },
       ]}>
       <View
-        style={[styles.iconContainer, { backgroundColor: applyOpacity(theme.colors.primary, 0.1) }]}>
+        style={[
+          styles.iconContainer,
+          { backgroundColor: applyOpacity(theme.colors.primary, 0.1) },
+        ]}>
         <Text style={styles.icon}>{countdown.icon}</Text>
       </View>
       <View style={styles.contentContainer}>

@@ -1,4 +1,5 @@
 import { Spinner, StatusBar, View } from '@gluestack-ui/themed';
+
 import { useAppTheme } from '../../hooks';
 
 export const LoadingScreen = () => {

@@ -1,12 +1,13 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from 'expo-notifications';
+import { Href, router, useSegments } from 'expo-router';
+import * as TaskManager from 'expo-task-manager';
+import { getDatabase, push, ref, serverTimestamp, set } from 'firebase/database';
 import { useEffect, useRef, useState } from 'react';
 import { AppState, Platform } from 'react-native';
-import * as Notifications from 'expo-notifications';
-import * as TaskManager from 'expo-task-manager';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getDatabase, push, ref, serverTimestamp, set } from 'firebase/database';
-import { Href, router, useSegments } from 'expo-router';
-import { ensureFirebaseApp, ensureSignedIn } from './firebaseApp';
+
 import { isChatOnScreen } from './chatPresence';
+import { ensureFirebaseApp, ensureSignedIn } from './firebaseApp';
 
 // Chat pushes arrive as data-only FCM messages and are drawn here, because a
 // notification Android draws from the FCM payload can't have an inline Reply.

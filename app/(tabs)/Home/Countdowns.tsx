@@ -1,6 +1,12 @@
-import React from 'react';
+import { Box, Button, HStack, Text, Heading } from '@gluestack-ui/themed';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { ArrowLeft, Plus } from 'lucide-react-native';
+import React from 'react';
+import { ScrollView, TouchableOpacity } from 'react-native';
+import Animated from 'react-native-reanimated';
+
+import { CountdownCard, AddCountdownModal } from '../../../components';
 import {
   useAppTheme,
   useAuth,
@@ -9,11 +15,6 @@ import {
   useCountdowns,
   useShareToChat,
 } from '../../../hooks';
-import { CountdownCard, AddCountdownModal } from '../../../components';
-import { Box, Button, HStack, Text, Heading } from '@gluestack-ui/themed';
-import { ScrollView, TouchableOpacity } from 'react-native';
-import { ArrowLeft, Plus } from 'lucide-react-native';
-import Animated from 'react-native-reanimated';
 import { listItemExiting, listLayout, useListEntering } from '../../../utils/motion';
 
 export default function Countdowns() {
@@ -122,10 +123,7 @@ export default function Countdowns() {
               entering={enterListItem(index)}
               exiting={listItemExiting}
               layout={listLayout}>
-              <CountdownCard
-                countdown={countdown}
-                onPress={() => handleEditCountdown(countdown)}
-              />
+              <CountdownCard countdown={countdown} onPress={() => handleEditCountdown(countdown)} />
             </Animated.View>
           ))
         ) : (

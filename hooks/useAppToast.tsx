@@ -1,6 +1,6 @@
 import { useToast, Toast, ToastDescription, ToastTitle, VStack } from '@gluestack-ui/themed';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCallback } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface AppToast {
   title: string;

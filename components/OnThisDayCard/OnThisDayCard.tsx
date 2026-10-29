@@ -1,11 +1,12 @@
-import React from 'react';
-import { Image, View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useAppTheme } from '../../hooks';
+import React from 'react';
+import { Image, View } from 'react-native';
+
 import { applyOpacity } from '../../config/theme';
-import { PressableScale } from '../styled/PressableScale';
+import { useAppTheme } from '../../hooks';
 import { Highlight, yearsText } from '../../utils/story';
+import { PressableScale } from '../styled/PressableScale';
 
 interface OnThisDayCardProps {
   highlight: Highlight;
@@ -32,7 +33,10 @@ export const OnThisDayCard: React.FC<OnThisDayCardProps> = ({ highlight, placeNa
   return (
     <PressableScale onPress={onPress} accessibilityRole="button">
       <LinearGradient
-        colors={[applyOpacity(theme.colors.primary, 0.35), applyOpacity(theme.colors.primary700, 0.25)]}
+        colors={[
+          applyOpacity(theme.colors.primary, 0.35),
+          applyOpacity(theme.colors.primary700, 0.25),
+        ]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{
@@ -45,7 +49,12 @@ export const OnThisDayCard: React.FC<OnThisDayCardProps> = ({ highlight, placeNa
         {image ? (
           <Image
             source={{ uri: image }}
-            style={{ width: 64, height: 64, borderRadius: 10, backgroundColor: theme.colors.surfaceElevated }}
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: 10,
+              backgroundColor: theme.colors.surfaceElevated,
+            }}
           />
         ) : (
           <View
@@ -72,11 +81,17 @@ export const OnThisDayCard: React.FC<OnThisDayCardProps> = ({ highlight, placeNa
           </Text>
           <Text
             numberOfLines={2}
-            style={{ fontSize: theme.fontSize.md, fontWeight: theme.fontWeight.bold, color: theme.colors.text }}>
+            style={{
+              fontSize: theme.fontSize.md,
+              fontWeight: theme.fontWeight.bold,
+              color: theme.colors.text,
+            }}>
             {highlight.title}
           </Text>
           {details.length > 0 && (
-            <Text numberOfLines={1} style={{ fontSize: theme.fontSize.sm, color: theme.colors.textSecondary }}>
+            <Text
+              numberOfLines={1}
+              style={{ fontSize: theme.fontSize.sm, color: theme.colors.textSecondary }}>
               {details.join(' · ')}
             </Text>
           )}

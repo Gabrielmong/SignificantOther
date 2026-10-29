@@ -1,11 +1,12 @@
-import React from 'react';
-import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { MapPin } from 'lucide-react-native';
+import React from 'react';
+import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
+
 import { useAppTheme } from '../../hooks';
 import { Place } from '../../types';
-import { PressableScale } from '../styled/PressableScale';
 import { PlaceMap } from '../PlaceMap';
+import { PressableScale } from '../styled/PressableScale';
 
 interface PlacesPreviewProps {
   places: Place[];
@@ -19,7 +20,12 @@ export const PlacesPreview: React.FC<PlacesPreviewProps> = ({ places, onOpen }) 
   return (
     <View style={{ gap: 8 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text style={{ fontSize: theme.fontSize.lg, fontWeight: theme.fontWeight.bold, color: theme.colors.text }}>
+        <Text
+          style={{
+            fontSize: theme.fontSize.lg,
+            fontWeight: theme.fontWeight.bold,
+            color: theme.colors.text,
+          }}>
           Places
         </Text>
         <TouchableOpacity onPress={onOpen} accessibilityRole="button">

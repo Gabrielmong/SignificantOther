@@ -11,10 +11,11 @@ import {
   ScrollView,
   ModalBody,
 } from '@gluestack-ui/themed';
+import { useState, useEffect } from 'react';
 import { Pressable } from 'react-native';
+
 import { FEELINGS_LABELS, FEELINGS_MAP } from '../../constants';
 import { useAppTheme } from '../../hooks';
-import { useState, useEffect } from 'react';
 
 const capitalize = (s: string) => {
   return s.charAt(0).toUpperCase() + s.slice(1);
