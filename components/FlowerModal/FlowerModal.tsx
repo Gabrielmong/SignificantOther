@@ -6,15 +6,15 @@ import {
   Input,
   InputField,
   Image,
-  Modal,
   Box,
   Text,
   Button,
 } from '@gluestack-ui/themed';
-import { Pressable } from 'react-native';
+import { Pressable, ScrollView } from 'react-native';
 import { FLOWER_MAP } from '../../constants';
 import { useAppTheme } from '../../hooks';
 import { useState, useEffect } from 'react';
+import { KeyboardAwareModal } from '../KeyboardAwareModal';
 
 export const FlowerModal = ({
   showFlowerModal,
@@ -57,10 +57,11 @@ export const FlowerModal = ({
   };
 
   return (
-    <Modal isOpen={showFlowerModal}>
+    <KeyboardAwareModal isOpen={showFlowerModal}>
       <ModalBackdrop onPress={onClose} />
 
-      <ModalContent>
+      {/* Shrinks to fit above the keyboard; only the flower grid gets shorter */}
+      <ModalContent style={{ flexShrink: 1, maxHeight: '90%' }}>
         <ModalCloseButton onPress={onClose} />
 
         <ModalHeader>
@@ -84,71 +85,68 @@ export const FlowerModal = ({
           </Box>
         </ModalHeader>
 
-        <Box
-          style={{
+        <ScrollView
+          style={{ flexShrink: 1 }}
+          contentContainerStyle={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: theme.spacing[3],
+            justifyContent: 'center',
             padding: theme.commonSpacing.screenPadding,
-            gap: theme.spacing[5],
-          }}>
-          <Box
-            style={{
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              gap: theme.spacing[3],
-              justifyContent: 'center',
-            }}>
-            {Object.keys(FLOWER_MAP).map((flower) => (
-              <Pressable
-                key={flower}
-                onPress={() => {
-                  handleFlowerSelect(flower);
-                }}>
-                <Image
-                  source={FLOWER_MAP[flower]}
-                  alt={flower}
-                  style={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: theme.radii.md,
-                    borderWidth: flower === internalFlower ? 3 : 0,
-                    borderColor: flower === internalFlower ? theme.colors.primary : 'transparent',
-                  }}
-                />
-              </Pressable>
-            ))}
-          </Box>
-
-          <Box>
-            <Input
-              variant="outline"
-              style={{
-                height: 'auto',
-                paddingVertical: theme.spacing[2],
-                borderRadius: theme.radii.md,
-                backgroundColor: theme.colors.inputBackground,
+          }}
+          keyboardShouldPersistTaps="handled">
+          {Object.keys(FLOWER_MAP).map((flower) => (
+            <Pressable
+              key={flower}
+              onPress={() => {
+                handleFlowerSelect(flower);
               }}>
-              <InputField
-                value={internalFlowerMessage}
-                onChangeText={(text) => handleFlowerMessageChange(text)}
-                placeholder="Flower Message"
-                maxLength={100}
-                multiline
+              <Image
+                source={FLOWER_MAP[flower]}
+                alt={flower}
                 style={{
-                  fontSize: theme.fontSize.md,
-                  color: theme.colors.text,
+                  width: 80,
+                  height: 80,
+                  borderRadius: theme.radii.md,
+                  borderWidth: flower === internalFlower ? 3 : 0,
+                  borderColor: flower === internalFlower ? theme.colors.primary : 'transparent',
                 }}
               />
-            </Input>
+            </Pressable>
+          ))}
+        </ScrollView>
 
-            <Text
+        <Box style={{ paddingHorizontal: theme.commonSpacing.screenPadding }}>
+          <Input
+            variant="outline"
+            style={{
+              height: 'auto',
+              paddingVertical: theme.spacing[2],
+              borderRadius: theme.radii.md,
+              backgroundColor: theme.colors.inputBackground,
+            }}>
+            <InputField
+              value={internalFlowerMessage}
+              onChangeText={(text) => handleFlowerMessageChange(text)}
+              placeholder="Flower Message"
+              maxLength={100}
+              multiline
               style={{
-                textAlign: 'right',
-                color: theme.colors.textTertiary,
-                fontSize: theme.fontSize.xs,
-                marginTop: theme.spacing[1],
-              }}>
-              {internalFlowerMessage.length}/100
-            </Text>
-          </Box>
+                fontSize: theme.fontSize.md,
+                color: theme.colors.text,
+              }}
+            />
+          </Input>
+
+          <Text
+            style={{
+              textAlign: 'right',
+              color: theme.colors.textTertiary,
+              fontSize: theme.fontSize.xs,
+              marginTop: theme.spacing[1],
+            }}>
+            {internalFlowerMessage.length}/100
+          </Text>
         </Box>
         <Button
           onPress={handleSave}
@@ -167,6 +165,6 @@ export const FlowerModal = ({
           </Text>
         </Button>
       </ModalContent>
-    </Modal>
+    </KeyboardAwareModal>
   );
 };

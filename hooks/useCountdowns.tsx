@@ -4,6 +4,7 @@ import { calculateNextRecurrenceDate, shouldUpdateCountdown } from '../utils';
 import { rollAnniversary } from '../utils/milestones';
 import { syncNextCountdownToWidget } from '../widgets/renderWidgets';
 import { router, Href } from 'expo-router';
+import type { Unsubscribe } from 'firebase/database';
 
 interface UseCountdownsProps {
   roomId: string | null;
@@ -14,7 +15,7 @@ interface UseCountdownsProps {
   listenToCountdownChanges: (
     callback: ({ countdowns }: { countdowns: CountdownObject }) => void,
     roomId: string,
-  ) => void;
+  ) => Unsubscribe;
   showToast: (options: {
     title: string;
     description: string;

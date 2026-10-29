@@ -4,10 +4,10 @@
  */
 
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Text } from '@gluestack-ui/themed';
 import { useAppTheme } from '../../hooks';
+import { PressableScale } from '../styled/PressableScale';
 
 type GradientKey = 'primary' | 'aurora' | 'sunset' | 'ocean';
 
@@ -34,15 +34,15 @@ export const GradientButton: React.FC<GradientButtonProps> = ({
   const onColor = gradientKey === 'ocean' ? theme.colors.onPartner : theme.colors.onPrimary;
 
   return (
-    <TouchableOpacity
+    <PressableScale
       onPress={onPress}
+      accessibilityRole="button"
       style={{
         flex: 1,
         borderRadius: theme?.radii?.lg || 12,
         overflow: 'hidden',
         ...theme?.shadows?.sm,
-      }}
-      activeOpacity={0.8}>
+      }}>
       <LinearGradient
         colors={gradient.colors}
         start={gradient.start}
@@ -75,6 +75,6 @@ export const GradientButton: React.FC<GradientButtonProps> = ({
           </Text>
         )}
       </LinearGradient>
-    </TouchableOpacity>
+    </PressableScale>
   );
 };

@@ -6,6 +6,7 @@ import { useMilestones } from './useMilestones';
 import { useGallery } from './useGallery';
 import { buildStory, notificationSchedule } from '../utils/story';
 import { registerOnThisDayRescheduler, scheduleOnThisDay } from '../services/onThisDay';
+import { appNotificationBehavior } from '../services/notificationBehavior';
 
 const DEBOUNCE_MS = 1000;
 
@@ -47,15 +48,7 @@ export const useOnThisDayNotifications = () => {
 
   // Show notifications that arrive while the app is open (e.g. at 09:00)
   useEffect(() => {
-    Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldShowBanner: true,
-        shouldShowList: true,
-        shouldPlaySound: false,
-        shouldSetBadge: false,
-      }),
-    });
+    Notifications.setNotificationHandler({ handleNotification: appNotificationBehavior });
   }, []);
 
   // Tapping a notification opens the story at that memory's day

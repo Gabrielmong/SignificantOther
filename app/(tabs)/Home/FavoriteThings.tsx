@@ -7,7 +7,6 @@ import {
   Button,
   Input,
   InputField,
-  Modal,
   ModalBackdrop,
   ModalCloseButton,
   ModalContent,
@@ -25,18 +24,23 @@ import {
   Divider,
   HStack,
 } from '@gluestack-ui/themed';
-import { useAppTheme, useAppToast, useAuth, useFirebase } from '../../../hooks';
+import { useAppTheme, useAppToast, useAuth, useFirebase, useShareToChat } from '../../../hooks';
 import { Fragment, useEffect, useState } from 'react';
-import { FavoriteThings as FavoriteThingsType } from '../../../types';
+import { FavoriteThing, FavoriteThings as FavoriteThingsType } from '../../../types';
 import { router } from 'expo-router';
-import { ArrowLeft, ChevronDownIcon, Plus, Trash } from 'lucide-react-native';
-import { TouchableOpacity } from 'react-native';
+import { ArrowLeft, ChevronDownIcon, Plus, Send, Trash } from 'lucide-react-native';
+import { Alert, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import type { GradientColors } from '../../../config/theme';
+import { KeyboardAwareModal } from '../../../components';
+import Animated from 'react-native-reanimated';
+import { listItemExiting, listLayout, useListEntering } from '../../../utils/motion';
+import { useAppSelector } from '../../../state';
 
 export default function FavoriteThings() {
   const { theme } = useAppTheme();
 
-  const categoryGradients: Record<string, string[]> = {
+  const categoryGradients: Record<string, GradientColors> = {
     music: ['#EC4899', '#DB2777'],
     snacks: ['#F59E0B', '#D97706'],
     drinks: ['#06B6D4', '#0891B2'],
@@ -48,6 +52,9 @@ export default function FavoriteThings() {
     other: ['#6366F1', '#4F46E5'],
   };
   const { showToast } = useAppToast();
+  const shareToChat = useShareToChat();
+  const { partnerName } = useAppSelector((state) => state.room);
+  const partnerLabel = partnerName || 'your partner';
   const { user } = useAuth();
   const [favoriteThings, setFavoriteThings] = useState<FavoriteThingsType | null>(null);
   const {
@@ -150,6 +157,25 @@ export default function FavoriteThings() {
     { value: 'snacks', label: 'Snacks', emoji: '🍿' },
   ];
 
+  // Favorites are private to their author, so sharing one is confirmed first
+  const handleShareEntry = (id: string, entry: FavoriteThing, under: string) => {
+    const category = categories.find((c) => c.value === under);
+    Alert.alert(`Share with ${partnerLabel}?`, `"${entry.title}" will be posted in your chat.`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Share',
+        onPress: () =>
+          shareToChat({
+            kind: 'favorite',
+            id,
+            title: entry.title,
+            subtitle: category?.label ?? capitalize(under),
+            emoji: category?.emoji,
+          }),
+      },
+    ]);
+  };
+
   const getFilteredFavoriteThings = () => {
     if (!favoriteThings) return null;
 
@@ -164,6 +190,11 @@ export default function FavoriteThings() {
   };
 
   const filteredFavoriteThings = getFilteredFavoriteThings();
+
+  // One running stagger index across headers and cards, so the grouped list
+  // fades in top to bottom as a single list rather than per category
+  const enterListItem = useListEntering(!!filteredFavoriteThings && Object.keys(filteredFavoriteThings).length > 0);
+  let staggerIndex = 0;
 
   return (
     <View
@@ -305,6 +336,11 @@ export default function FavoriteThings() {
               return (
                 <Fragment key={key}>
                   {/* Category Header */}
+                  <Animated.View
+                    key={`header-${key}`}
+                    entering={enterListItem(staggerIndex++)}
+                    exiting={listItemExiting}
+                    layout={listLayout}>
                   <Box
                     style={{
                       flexDirection: 'row',
@@ -337,13 +373,21 @@ export default function FavoriteThings() {
                       </Text>
                     </Box>
                   </Box>
+                  </Animated.View>
 
                   {Object.keys(filteredFavoriteThings[categoryKey]).map((entryId) => {
                     const item = filteredFavoriteThings[categoryKey][entryId];
                     const gradientColors = categoryGradients[key] || theme.gradients.primary.colors;
 
+                    // Keyed by entry id: entering only runs on first mount, not when
+                    // loadData / the listener hands back the same entries
                     return (
-                      <View key={entryId} style={{ width: '100%' }}>
+                      <Animated.View
+                        key={entryId}
+                        style={{ width: '100%' }}
+                        entering={enterListItem(staggerIndex++)}
+                        exiting={listItemExiting}
+                        layout={listLayout}>
                         <LinearGradient
                           colors={gradientColors}
                           start={{ x: 0, y: 0 }}
@@ -383,25 +427,47 @@ export default function FavoriteThings() {
                               )}
                             </Box>
 
-                            <TouchableOpacity
-                              onPress={() => handleDeleteEntry(entryId, categoryKey)}
-                              style={{
-                                width: 32,
-                                height: 32,
-                                borderRadius: 16,
-                                backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                              }}>
-                              <Trash size={16} color="#FFFFFF" />
-                            </TouchableOpacity>
+                            <HStack style={{ gap: theme.spacing[2], alignItems: 'center' }}>
+                              <TouchableOpacity
+                                onPress={() => handleShareEntry(entryId, item, key)}
+                                accessibilityRole="button"
+                                accessibilityLabel={`Share ${item.title} with ${partnerLabel}`}
+                                style={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: 16,
+                                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                }}>
+                                <Send size={16} color="#FFFFFF" />
+                              </TouchableOpacity>
+
+                              <TouchableOpacity
+                                onPress={() => handleDeleteEntry(entryId, categoryKey)}
+                                style={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: 16,
+                                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                }}>
+                                <Trash size={16} color="#FFFFFF" />
+                              </TouchableOpacity>
+                            </HStack>
                           </HStack>
                         </LinearGradient>
-                      </View>
+                      </Animated.View>
                     );
                   })}
 
-                  {index !== Object.keys(filteredFavoriteThings).length - 1 && <Divider />}
+                  {/* Layout-only wrapper so the divider slides with the cards around it */}
+                  {index !== Object.keys(filteredFavoriteThings).length - 1 && (
+                    <Animated.View style={{ width: '100%' }} layout={listLayout}>
+                      <Divider />
+                    </Animated.View>
+                  )}
                 </Fragment>
               );
             })}
@@ -480,7 +546,7 @@ export default function FavoriteThings() {
             </Box>
           )}
       </ScrollView>
-      <Modal isOpen={modalOpen}>
+      <KeyboardAwareModal isOpen={modalOpen}>
         <ModalBackdrop onPress={handleCloseModal} />
 
         <ModalContent>
@@ -555,7 +621,7 @@ export default function FavoriteThings() {
             </Button>
           </Box>
         </ModalContent>
-      </Modal>
+      </KeyboardAwareModal>
     </View>
   );
 }

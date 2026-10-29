@@ -1,9 +1,10 @@
 import React from 'react';
-import { TouchableOpacity, ViewStyle } from 'react-native';
+import { ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAppTheme } from '../../hooks';
 import { Box } from '@gluestack-ui/themed';
 import { GradientKey } from '../../config/theme';
+import { PressableScale } from './PressableScale';
 
 interface GradientCardProps {
   children: React.ReactNode;
@@ -14,7 +15,7 @@ interface GradientCardProps {
   opacity?: number;
 }
 
-export const GradientCard: React.FC = ({
+export const GradientCard: React.FC<GradientCardProps> = ({
   children,
   onPress,
   gradientKey = 'primarySubtle',
@@ -63,9 +64,9 @@ export const GradientCard: React.FC = ({
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={cardStyle}>
+      <PressableScale onPress={onPress} accessibilityRole="button" style={cardStyle}>
         {content}
-      </TouchableOpacity>
+      </PressableScale>
     );
   }
 

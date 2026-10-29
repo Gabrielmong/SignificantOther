@@ -21,6 +21,7 @@ import {
   setOnThisDayEnabled,
 } from '../../services/onThisDay';
 import { CHECKIN_ID, CHECKIN_TITLE, checkinIdsToCancel } from '../../utils/checkin';
+import { appNotificationBehavior } from '../../services/notificationBehavior';
 
 const formatTimeLabel = (time: number) => {
   return time < 10 ? `0${time}` : time;
@@ -78,15 +79,7 @@ export const NotificationsModal = ({
   };
 
   const setNotificationHandler = async () => {
-    Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: false,
-        shouldSetBadge: true,
-        shouldShowBanner: true,
-        shouldShowList: true,
-      }),
-    });
+    Notifications.setNotificationHandler({ handleNotification: appNotificationBehavior });
   };
 
   const addNotification = async () => {

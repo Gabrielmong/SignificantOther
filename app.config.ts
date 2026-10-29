@@ -56,6 +56,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
     '@react-native-firebase/messaging',
     [
+      'expo-audio',
+      {
+        microphonePermission:
+          'Allow Significant Other to use your microphone to record voice notes for your partner.',
+      },
+    ],
+    [
       'expo-location',
       {
         locationAlwaysAndWhenInUsePermission:

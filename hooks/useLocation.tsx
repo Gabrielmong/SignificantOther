@@ -9,6 +9,8 @@ export interface UserLocation {
   latitude: number;
   longitude: number;
   timestamp: number;
+  // Metres per second, when the platform reports it (not set by getCurrentLocation yet)
+  speed?: number | null;
 }
 
 export const useLocation = () => {

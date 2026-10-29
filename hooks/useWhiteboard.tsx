@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { router } from 'expo-router';
 import { PathData } from '../components';
+import type { Unsubscribe } from 'firebase/database';
 
 interface UseWhiteboardProps {
   roomId: string | null;
   listenToWhiteboardEvents: (
     callback: (data: { paths: PathData[]; canvasColor: string; name: string }) => void,
     roomId: string,
-  ) => void;
+  ) => Unsubscribe;
   setShowModal: (show: boolean) => void;
 }
 

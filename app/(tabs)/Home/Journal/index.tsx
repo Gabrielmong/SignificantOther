@@ -15,6 +15,8 @@ import { router } from 'expo-router';
 import { ArrowLeft, Plus, Calendar, User, ChevronRight, Eye } from 'lucide-react-native';
 import { TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import Animated from 'react-native-reanimated';
+import { listItemExiting, listLayout, useListEntering } from '../../../../utils/motion';
 
 interface ParsedJournal extends JournalEntry {
   id: string;
@@ -27,6 +29,7 @@ export default function Journal() {
   const { getJournal, listenToJournalChanges } = useFirebase();
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const enterListItem = useListEntering(!!journal?.length);
 
   const loadData = async () => {
     if (user.roomId) {
@@ -158,16 +161,22 @@ export default function Journal() {
         }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} />}>
         {journal && journal.length > 0 &&
-          journal.map(({ id, authorId, title, description, author, createdAt, readAt }) => {
+          journal.map(({ id, authorId, title, description, author, createdAt, readAt }, index) => {
             const isSelf = user?.uid === authorId;
             const gradientColors = isSelf
               ? theme.gradients.primary.colors
               : theme.gradients.partner.colors;
             const onColor = isSelf ? theme.colors.onPrimary : theme.colors.onPartner;
 
+            // Keyed by entry id: entering only runs on first mount, not when the
+            // listener re-emits the same entries (e.g. a readAt update)
             return (
-              <TouchableOpacity
+              <Animated.View
                 key={id}
+                entering={enterListItem(index)}
+                exiting={listItemExiting}
+                layout={listLayout}>
+              <TouchableOpacity
                 style={{ width: '100%' }}
                 activeOpacity={0.9}
                 onPress={() => goToEntry(id)}>
@@ -281,6 +290,7 @@ export default function Journal() {
                   </HStack>
                 </LinearGradient>
               </TouchableOpacity>
+              </Animated.View>
             );
           })}
 

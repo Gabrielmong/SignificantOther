@@ -22,6 +22,8 @@ export const FeelingPressable = ({
       }
       imageSource={FEELINGS_MAP[feeling] || FEELINGS_MAP['neutral']}
       imageAlt="feeling"
+      // Fades the card when the partner's feeling changes
+      contentKey={feeling}
       imagePosition="left"
       contentAlign="flex-end"
       loading={loading}

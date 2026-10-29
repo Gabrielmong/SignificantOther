@@ -4,17 +4,14 @@
  * Consolidates FeelingPressable and FlowerPressable patterns
  */
 
-import React from 'react';
-import { TouchableOpacity, ViewStyle } from 'react-native';
-import { Box, Text, Image, Spinner } from '@gluestack-ui/themed';
+import React, { useEffect, useRef } from 'react';
+import { ViewStyle } from 'react-native';
+import { Box, Text, Image } from '@gluestack-ui/themed';
+import Animated from 'react-native-reanimated';
 import { useAppTheme } from '../../hooks';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from 'react-native-reanimated';
-
-const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+import { fadeEntering } from '../../utils/motion';
+import { Skeleton } from '../Skeleton';
+import { PressableScale } from './PressableScale';
 
 interface PressableCardProps {
   // Content
@@ -22,6 +19,12 @@ interface PressableCardProps {
   content?: string;
   imageSource?: any;
   imageAlt?: string;
+  /**
+   * Identifies what the card shows (e.g. the flower or feeling). When it
+   * changes, e.g. the partner updates it live, the new content fades in
+   * instead of just swapping.
+   */
+  contentKey?: string;
 
   // Layout
   imagePosition?: 'left' | 'right';
@@ -43,11 +46,14 @@ interface PressableCardProps {
   style?: ViewStyle;
 }
 
+const IMAGE_SIZE = 100;
+
 export const PressableCard: React.FC<PressableCardProps> = ({
   label,
   content,
   imageSource,
   imageAlt = 'image',
+  contentKey,
   imagePosition = 'left',
   contentAlign = 'flex-start',
   loading = false,
@@ -59,20 +65,16 @@ export const PressableCard: React.FC<PressableCardProps> = ({
   style,
 }) => {
   const { theme } = useAppTheme();
-  const scale = useSharedValue(1);
 
-  // Animation style
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const handlePressIn = () => {
-    scale.value = withTiming(0.98, { duration: theme.duration.normal });
-  };
-
-  const handlePressOut = () => {
-    scale.value = withTiming(1, { duration: theme.duration.normal });
-  };
+  // Only fade on later changes: on first mount the card arrives with its
+  // screen, and fading it again on its own would look like a flicker.
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+  }, []);
+  const entering = mounted.current ? fadeEntering : undefined;
+  // Loading → loaded also counts as a change, so the content fades in
+  const fadeKey = loading ? 'loading' : contentKey ?? content ?? '';
 
   // Image component (100x100 with loading state)
   const imageComponent = (
@@ -82,28 +84,20 @@ export const PressableCard: React.FC<PressableCardProps> = ({
         justifyContent: 'center',
       }}>
       {loading ? (
-        <Box
-          style={{
-            backgroundColor: theme.colors.surface,
-            width: 100,
-            height: 100,
-            borderRadius: theme.radii['2xl'],
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}>
-          <Spinner color={theme.colors.primary} />
-        </Box>
+        <Skeleton width={IMAGE_SIZE} height={IMAGE_SIZE} borderRadius={theme.radii['2xl']} />
       ) : (
         imageSource && (
-          <Image
-            source={imageSource}
-            alt={imageAlt}
-            style={{
-              width: 100,
-              height: 100,
-              borderRadius: theme.radii['2xl'],
-            }}
-          />
+          <Animated.View key={fadeKey} entering={entering}>
+            <Image
+              source={imageSource}
+              alt={imageAlt}
+              style={{
+                width: IMAGE_SIZE,
+                height: IMAGE_SIZE,
+                borderRadius: theme.radii['2xl'],
+              }}
+            />
+          </Animated.View>
         )
       )}
     </Box>
@@ -127,28 +121,34 @@ export const PressableCard: React.FC<PressableCardProps> = ({
         </Text>
       )}
 
-      {content && (
-        <Text
-          style={{
-            color: theme.colors.text,
-            fontSize: theme.fontSize.md,
-            fontWeight: theme.fontWeight.medium,
-          }}>
-          {loading ? 'Loading...' : content}
-        </Text>
+      {loading ? (
+        <Skeleton width="80%" height={theme.fontSize.md} style={{ marginTop: theme.spacing[1] }} />
+      ) : (
+        content && (
+          <Animated.View
+            key={fadeKey}
+            entering={entering}
+            style={{ alignSelf: 'stretch', alignItems: contentAlign }}>
+            <Text
+              style={{
+                color: theme.colors.text,
+                fontSize: theme.fontSize.md,
+                fontWeight: theme.fontWeight.medium,
+              }}>
+              {content}
+            </Text>
+          </Animated.View>
+        )
       )}
     </Box>
   );
 
   return (
-    <AnimatedTouchable
+    <PressableScale
       onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
       disabled={disabled || loading}
-      activeOpacity={0.8}
+      accessibilityRole="button"
       style={[
-        animatedStyle,
         {
           padding: padding || theme.commonSpacing.cardPaddingCompact,
           backgroundColor: theme.colors.surface,
@@ -176,6 +176,6 @@ export const PressableCard: React.FC<PressableCardProps> = ({
           {imageComponent}
         </>
       )}
-    </AnimatedTouchable>
+    </PressableScale>
   );
 };

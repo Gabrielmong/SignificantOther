@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Modal,
   ModalBackdrop,
   ModalContent,
   ModalCloseButton,
@@ -20,6 +19,7 @@ import { TagPicker } from '../TagPicker';
 import { PlacePicker, PlaceRow } from '../PlacePicker';
 import type { PlaceInput } from '../../hooks/usePlaces';
 import { Place } from '../../types';
+import { KeyboardAwareModal } from '../KeyboardAwareModal';
 
 // Opens the system picker (up to 30 photos) and turns each pick into a
 // pending upload dated from its EXIF data. Cancel gives []. Throws on
@@ -202,7 +202,7 @@ export const PhotoAddSheet: React.FC<PhotoAddSheetProps> = ({
         : `Upload ${items.length} photos`;
 
   return (
-    <Modal isOpen={isOpen}>
+    <KeyboardAwareModal isOpen={isOpen}>
       <ModalBackdrop onPress={uploading ? undefined : onClose} />
       <ModalContent style={{ backgroundColor: theme.colors.surface }}>
         {!uploading && <ModalCloseButton onPress={onClose} />}
@@ -310,6 +310,6 @@ export const PhotoAddSheet: React.FC<PhotoAddSheetProps> = ({
           </Box>
         </ModalBody>
       </ModalContent>
-    </Modal>
+    </KeyboardAwareModal>
   );
 };

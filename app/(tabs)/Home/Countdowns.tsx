@@ -1,11 +1,20 @@
 import React from 'react';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useAppTheme, useAuth, useFirebase, useAppToast, useCountdowns } from '../../../hooks';
+import {
+  useAppTheme,
+  useAuth,
+  useFirebase,
+  useAppToast,
+  useCountdowns,
+  useShareToChat,
+} from '../../../hooks';
 import { CountdownCard, AddCountdownModal } from '../../../components';
 import { Box, Button, HStack, Text, Heading } from '@gluestack-ui/themed';
 import { ScrollView, TouchableOpacity } from 'react-native';
 import { ArrowLeft, Plus } from 'lucide-react-native';
+import Animated from 'react-native-reanimated';
+import { listItemExiting, listLayout, useListEntering } from '../../../utils/motion';
 
 export default function Countdowns() {
   const { theme } = useAppTheme();
@@ -33,8 +42,27 @@ export default function Countdowns() {
     showToast,
   });
 
+  const shareToChat = useShareToChat();
+  // Snapshot of the saved countdown (not unsaved edits in the modal)
+  const handleShareCountdown = () => {
+    if (!editingCountdown?.id) return;
+    shareToChat({
+      kind: 'countdown',
+      id: editingCountdown.id,
+      title: editingCountdown.title,
+      subtitle: new Date(editingCountdown.date).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+      emoji: editingCountdown.icon,
+    });
+    handleCloseCountdownModal();
+  };
+
   // Sort countdowns by nearest date
   const sortedCountdowns = Object.values(countdowns).sort((a, b) => a.date - b.date);
+  const enterListItem = useListEntering(sortedCountdowns.length > 0);
 
   return (
     <Box
@@ -86,12 +114,19 @@ export default function Countdowns() {
           gap: 12,
         }}>
         {sortedCountdowns.length > 0 ? (
-          sortedCountdowns.map((countdown) => (
-            <CountdownCard
+          // Keyed by id so entering only runs when a card first mounts (not on
+          // every listener emit); layout slides the rest into a deleted card's gap
+          sortedCountdowns.map((countdown, index) => (
+            <Animated.View
               key={countdown.id}
-              countdown={countdown}
-              onPress={() => handleEditCountdown(countdown)}
-            />
+              entering={enterListItem(index)}
+              exiting={listItemExiting}
+              layout={listLayout}>
+              <CountdownCard
+                countdown={countdown}
+                onPress={() => handleEditCountdown(countdown)}
+              />
+            </Animated.View>
           ))
         ) : (
           <Box
@@ -134,9 +169,14 @@ export default function Countdowns() {
                 recurrence: editingCountdown.recurrence,
                 recurrenceInterval: editingCountdown.recurrenceInterval,
                 recurrenceUnit: editingCountdown.recurrenceUnit,
+                milestoneId: editingCountdown.milestoneId,
               }
             : undefined
         }
+        onDelete={
+          editingCountdown?.id ? () => handleDeleteCountdown(editingCountdown.id!) : undefined
+        }
+        onShare={editingCountdown?.id ? handleShareCountdown : undefined}
       />
     </Box>
   );

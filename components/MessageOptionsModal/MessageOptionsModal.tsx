@@ -8,10 +8,12 @@ import {
   Box,
   Button,
   Text,
+  Pressable,
 } from '@gluestack-ui/themed';
 import { timeAgo } from '../../utils';
 import { useAppSelector } from '../../state';
 import { MessageType } from '../../types';
+import { messagePreview } from '../../utils/chat';
 import { useAppTheme } from '../../hooks';
 
 interface MessageOptionsModalProps {
@@ -21,7 +23,18 @@ interface MessageOptionsModalProps {
   onDeleteMessage: () => void;
   onReplyMessage: () => void;
   onClose?: () => void;
+  // Your current reaction to this message, highlighted in the picker
+  myReaction?: string;
+  // Absent for messages that can't take a reaction (not on the server yet)
+  onReact?: (emoji: string) => void;
+  // Absent when the message can't be edited (not yours, too old, not text)
+  onEditMessage?: () => void;
+  // Absent for messages that can't be starred (not on the server yet)
+  onToggleStar?: () => void;
+  starred?: boolean;
 }
+
+export const MESSAGE_REACTIONS = ['❤️', '😂', '😮', '😢', '👍', '🔥'];
 
 export const MessageOptionsModal = ({
   isOpen,
@@ -30,9 +43,34 @@ export const MessageOptionsModal = ({
   onCopyMessage,
   onDeleteMessage,
   onReplyMessage,
+  myReaction,
+  onReact,
+  onEditMessage,
+  onToggleStar,
+  starred,
 }: MessageOptionsModalProps) => {
   const user = useAppSelector((state) => state.user);
   const { theme } = useAppTheme();
+  // A photo or voice note alone has no text worth copying
+  const copyable = !!currentMessage?.message || !!currentMessage?.attachment;
+
+  const optionButton = (label: string, onPress: () => void) => (
+    <Button
+      variant="outline"
+      onPress={onPress}
+      style={{
+        borderColor: theme.colors.border,
+      }}>
+      <Text
+        style={{
+          color: theme.colors.text,
+          fontSize: theme.fontSize.sm,
+          fontWeight: theme.fontWeight.medium,
+        }}>
+        {label}
+      </Text>
+    </Button>
+  );
 
   return (
     <Modal isOpen={isOpen}>
@@ -61,6 +99,27 @@ export const MessageOptionsModal = ({
               gap: theme.spacing[3],
               padding: theme.commonSpacing.screenPadding,
             }}>
+            {onReact && (
+              <Box style={{ flexDirection: 'row', gap: theme.spacing[1] }}>
+                {MESSAGE_REACTIONS.map((emoji) => (
+                  <Pressable
+                    key={emoji}
+                    onPress={() => onReact(emoji)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`React with ${emoji}`}
+                    accessibilityState={{ selected: myReaction === emoji }}
+                    style={{
+                      padding: theme.spacing[2],
+                      borderRadius: theme.radii.full,
+                      backgroundColor:
+                        myReaction === emoji ? theme.colors.surfaceElevated : 'transparent',
+                    }}>
+                    <Text style={{ fontSize: theme.fontSize['2xl'] }}>{emoji}</Text>
+                  </Pressable>
+                ))}
+              </Box>
+            )}
+
             <Box
               style={{
                 flexDirection: 'row',
@@ -81,7 +140,7 @@ export const MessageOptionsModal = ({
                   color: theme.colors.white,
                   fontSize: theme.fontSize.md,
                 }}>
-                {currentMessage?.message}
+                {currentMessage ? messagePreview(currentMessage) : ''}
               </Text>
             </Box>
 
@@ -95,41 +154,15 @@ export const MessageOptionsModal = ({
             <Box
               style={{
                 flexDirection: 'row',
+                flexWrap: 'wrap',
                 justifyContent: 'center',
                 alignItems: 'center',
                 gap: theme.spacing[2],
               }}>
-              <Button
-                variant="outline"
-                onPress={onCopyMessage}
-                style={{
-                  borderColor: theme.colors.border,
-                }}>
-                <Text
-                  style={{
-                    color: theme.colors.text,
-                    fontSize: theme.fontSize.sm,
-                    fontWeight: theme.fontWeight.medium,
-                  }}>
-                  Copy
-                </Text>
-              </Button>
-
-              <Button
-                variant="outline"
-                onPress={onReplyMessage}
-                style={{
-                  borderColor: theme.colors.border,
-                }}>
-                <Text
-                  style={{
-                    color: theme.colors.text,
-                    fontSize: theme.fontSize.sm,
-                    fontWeight: theme.fontWeight.medium,
-                  }}>
-                  Reply
-                </Text>
-              </Button>
+              {copyable && optionButton('Copy', onCopyMessage)}
+              {optionButton('Reply', onReplyMessage)}
+              {onToggleStar && optionButton(starred ? 'Unstar' : 'Star', onToggleStar)}
+              {onEditMessage && optionButton('Edit', onEditMessage)}
 
               {currentMessage?.uid === user.uid && (
                 <Button

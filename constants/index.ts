@@ -2,19 +2,21 @@ import { version } from '../package.json';
 
 export const APP_VERSION = version;
 
+// Each entry also hides the tab bar on its nested routes (e.g. /Home/Journal/abc123)
 export const TAB_HIDDEN_ROUTES = [
   '/Profile/EditProfile',
   '/Home/WhiteBoard',
   '/Home/Wishlist',
+  '/Home/FavoriteThings',
   '/Home/Map',
   '/Home/Zones',
   '/Home/Countdowns',
   '/Home/DailyQuestion',
   '/Home/Journal',
-  '/Home/Journal/[id]',
   '/YouTwo/Photos',
   '/YouTwo/Places',
   '/YouTwo/Story',
+  '/Chat/starred',
 ];
 
 export const FLOWER_MAP: {

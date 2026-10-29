@@ -4,12 +4,12 @@ import { Box, Text } from '@gluestack-ui/themed';
 import { Plus } from 'lucide-react-native';
 import { useAppTheme } from '../../hooks';
 import { CountdownCard } from '../CountdownCard';
-import { CountdownObject } from '../../types';
+import { Countdown, CountdownObject } from '../../types';
 
 interface CountdownsSectionProps {
-  countdowns: CountdownObject[];
+  countdowns: CountdownObject;
   onAddCountdown: () => void;
-  onEditCountdown: (countdown: CountdownObject) => void;
+  onEditCountdown: (countdown: Countdown) => void;
   onViewAll: () => void;
 }
 

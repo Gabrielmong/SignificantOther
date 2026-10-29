@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 import { useAppTheme, useAuth, useFirebase } from '../../hooks';
 import { PathData } from './Whiteboard';
 import { Path, Svg } from 'react-native-svg';
-import { Box, Spinner, Text } from '@gluestack-ui/themed';
+import { Box, Text } from '@gluestack-ui/themed';
+import { Skeleton } from '../Skeleton';
+import { PressableScale } from '../styled/PressableScale';
 
 type WhiteBoardPreviewProps = {
   height: number;
@@ -24,9 +26,12 @@ export const WhiteBoardPreview = ({
 }: WhiteBoardPreviewProps) => {
   const { user } = useAuth();
   const { theme } = useAppTheme();
+  // Without onPress a plain View, so a pressable parent card gets the touch
+  // (and its press animation) instead of this preview swallowing it
+  const Container = onPress ? PressableScale : View;
 
   return (
-    <TouchableOpacity
+    <Container
       onPress={onPress}
       style={{
         padding: theme.spacing[4],
@@ -61,7 +66,7 @@ export const WhiteBoardPreview = ({
           height: height,
         }}>
         {loading ? (
-          <Spinner color={theme.colors.primary} />
+          <Skeleton height="100%" />
         ) : (
           <Svg
             height={'100%'}
@@ -79,6 +84,6 @@ export const WhiteBoardPreview = ({
           </Svg>
         )}
       </Box>
-    </TouchableOpacity>
+    </Container>
   );
 };

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
-import { Pencil, Trash2, X } from 'lucide-react-native';
+import { Pencil, Send, Trash2, X } from 'lucide-react-native';
 import { useAppTheme } from '../../hooks';
 import { Milestone, Photo, Place } from '../../types';
 import { parseDay } from '../../utils/milestones';
@@ -12,6 +12,7 @@ interface PlaceCardProps {
   photos: Photo[];
   onEdit: () => void;
   onDelete: () => void;
+  onShare?: () => void;
   onMilestonePress: (m: Milestone) => void;
   onPhotoPress: (index: number) => void;
   onClose: () => void;
@@ -24,6 +25,7 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({
   photos,
   onEdit,
   onDelete,
+  onShare,
   onMilestonePress,
   onPhotoPress,
   onClose,
@@ -62,6 +64,11 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({
           }}>
           {place.name}
         </Text>
+        {onShare && (
+          <TouchableOpacity onPress={onShare} accessibilityLabel="Share place to chat" style={{ padding: 6 }}>
+            <Send size={18} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+        )}
         <TouchableOpacity onPress={onEdit} accessibilityLabel="Edit place" style={{ padding: 6 }}>
           <Pencil size={18} color={theme.colors.textSecondary} />
         </TouchableOpacity>

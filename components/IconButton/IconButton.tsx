@@ -7,11 +7,20 @@ export interface IconButtonProps {
   icon: any;
   onPress: () => void;
   disabled?: boolean;
-  size?: number;
+  /** Pixel size, or a named preset (see ICON_BUTTON_SIZES) */
+  size?: number | IconButtonSize;
   variant?: IconButtonVariant;
 }
 
 type IconButtonVariant = 'solid' | 'outline' | 'ghost' | 'primary' | 'secondary';
+
+const ICON_BUTTON_SIZES = {
+  sm: 32,
+  md: 40,
+  lg: 48,
+} as const;
+
+export type IconButtonSize = keyof typeof ICON_BUTTON_SIZES;
 
 export const IconButton = ({
   icon,
@@ -68,14 +77,15 @@ export const IconButton = ({
     }
   };
 
-  const iconSize = size * 0.6;
+  const buttonSize = typeof size === 'number' ? size : ICON_BUTTON_SIZES[size];
+  const iconSize = buttonSize * 0.6;
 
   return (
     <TouchableOpacity
       style={{
         backgroundColor: getBackgroundColor(),
-        width: size,
-        height: size,
+        width: buttonSize,
+        height: buttonSize,
         borderRadius: theme.radii.xl,
         borderColor: getBorderColor(),
         borderWidth: variant === 'outline' ? 1 : 0,

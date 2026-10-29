@@ -1,9 +1,10 @@
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { Image, View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { useAppTheme } from '../../hooks';
 import { Milestone } from '../../types';
 import { parseDay } from '../../utils/milestones';
+import { PressableScale } from '../styled/PressableScale';
 
 interface MilestoneRowProps {
   milestone: Milestone;
@@ -19,9 +20,8 @@ export const MilestoneRow: React.FC<MilestoneRowProps> = ({ milestone, onPress }
   });
 
   return (
-    <TouchableOpacity
+    <PressableScale
       onPress={onPress}
-      activeOpacity={0.85}
       accessibilityRole="button"
       accessibilityLabel={`${milestone.title}, ${date}`}
       style={{
@@ -63,6 +63,6 @@ export const MilestoneRow: React.FC<MilestoneRowProps> = ({ milestone, onPress }
           style={{ width: 44, height: 44, borderRadius: theme.radii.md }}
         />
       )}
-    </TouchableOpacity>
+    </PressableScale>
   );
 };

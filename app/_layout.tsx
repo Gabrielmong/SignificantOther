@@ -7,22 +7,31 @@ import { EntryCheckerWrapper } from '../components';
 import { useAppTheme } from '../hooks/';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { AppRegistry, Platform, KeyboardAvoidingView } from 'react-native';
-import {
-  getMessaging,
-  onMessage,
-  onNotificationOpenedApp,
-  setBackgroundMessageHandler,
-} from '@react-native-firebase/messaging';
+import { AppRegistry, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
+import { useEffect, useState } from 'react';
+import { getMessaging, onMessage, onNotificationOpenedApp } from '@react-native-firebase/messaging';
 import * as Notifications from 'expo-notifications';
-import { renderAllWidgets } from '../widgets/renderWidgets';
-import { mergeWidgetLastData } from '../services/widgetTask';
+import { handlePushMessage } from '../services/pushMessages';
+import { useChatNotificationTaps } from '../services/chatNotifications';
 // Import location task to register it
 import '../services/locationTask';
 
 // Inner component that consumes theme
 function AppContent() {
   const { colorMode, theme, gluestackConfig, isLoading } = useAppTheme();
+  useChatNotificationTaps();
+
+  // On Android edge-to-edge, KeyboardAvoidingView computes its padding from the
+  // keyboardDidHide event too, and that event's screenY sits above the nav bar,
+  // so a nav-bar-sized padding is left behind. Only enable it while the keyboard is up.
+  const [keyboardVisible, setKeyboardVisible] = useState(Keyboard.isVisible());
+  useEffect(() => {
+    const subscriptions = [
+      Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true)),
+      Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false)),
+    ];
+    return () => subscriptions.forEach((subscription) => subscription.remove());
+  }, []);
 
   // Wait for the cached theme so a non-default accent never flashes purple
   if (isLoading) return null;
@@ -43,8 +52,9 @@ function AppContent() {
           <StatusBar backgroundColor={theme.colors.background} />
           <KeyboardAvoidingView
             style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
+            // 'height' on Android keeps the shrunk height after the keyboard closes
+            behavior="padding"
+            enabled={Platform.OS === 'ios' || keyboardVisible}>
             <EntryCheckerWrapper>
               <Slot />
             </EntryCheckerWrapper>
@@ -65,36 +75,10 @@ export default function AppLayout() {
   );
 }
 
-async function handleWidgetRefreshMessage(remoteMessage: {
-  data?: { [key: string]: string | object };
-}) {
-  if (remoteMessage.data?.type !== 'widget-refresh') {
-    return false;
-  }
-
-  // Merge rather than overwrite, so the cached countdown survives a
-  // flower/feeling push.
-  const data = await mergeWidgetLastData({
-    flower: String(remoteMessage.data.flower || ''),
-    message: String(remoteMessage.data.message || ''),
-    feeling: String(remoteMessage.data.feeling || ''),
-    partnerName: String(remoteMessage.data.partnerName || ''),
-  });
-
-  await renderAllWidgets(data);
-
-  return true;
-}
-
-setBackgroundMessageHandler(getMessaging(), async (remoteMessage) => {
-  const handled = await handleWidgetRefreshMessage(remoteMessage);
-  if (!handled) {
-    console.log('Message handled in the background!', remoteMessage);
-  }
-});
-
+// The background handler is registered in services/pushMessages.ts (required
+// from index.js), since this route module doesn't load in headless launches.
 onMessage(getMessaging(), async (remoteMessage) => {
-  const handled = await handleWidgetRefreshMessage(remoteMessage);
+  const handled = await handlePushMessage(remoteMessage);
   if (!handled) {
     console.log('Message handled in the foreground!', remoteMessage);
   }

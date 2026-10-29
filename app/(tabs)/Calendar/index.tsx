@@ -205,7 +205,7 @@ export default function Calendar() {
       <ScrollView
         style={{ flex: 1 }}
         // Extra bottom padding keeps content clear of the floating tab bar.
-        contentContainerStyle={{ padding: 16, paddingBottom: 96, gap: 12 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: theme.spacing[5], gap: 12 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

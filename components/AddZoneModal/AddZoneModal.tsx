@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Modal,
   ModalBackdrop,
   ModalContent,
   ModalCloseButton,
@@ -17,13 +16,12 @@ import {
   StyleSheet,
   View,
   Dimensions,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import MapboxGL from '@rnmapbox/maps';
 import { useAppTheme, useLocation, useAuth, useFirebase } from '../../hooks';
 import { ZoneType } from '../../types';
 import { MAPBOX_ACCESS_TOKEN } from '../../config';
+import { KeyboardAwareModal } from '../KeyboardAwareModal';
 
 MapboxGL.setAccessToken(MAPBOX_ACCESS_TOKEN);
 
@@ -89,7 +87,7 @@ export const AddZoneModal: React.FC<AddZoneModalProps> = ({
   } | null>(null);
 
   const cameraRef = useRef<MapboxGL.Camera>(null);
-  const locationUpdateInterval = useRef<NodeJS.Timeout | null>(null);
+  const locationUpdateInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   const [zoomLevel, setZoomLevel] = useState(15);
 
   // Sync form state with initialData when modal opens or data changes
@@ -249,7 +247,7 @@ export const AddZoneModal: React.FC<AddZoneModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen}>
+    <KeyboardAwareModal isOpen={isOpen}>
       <ModalBackdrop onPress={handleCancel} />
       <ModalContent
         style={{
@@ -420,10 +418,8 @@ export const AddZoneModal: React.FC<AddZoneModalProps> = ({
         </Box>
 
         {/* Scrollable Form Fields */}
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}>
+        {/* Keyboard avoidance comes from KeyboardAwareModal */}
+        <View style={{ flex: 1 }}>
           <ScrollView
             style={{ flex: 1 }}
             contentContainerStyle={{ paddingBottom: 20 }}
@@ -572,9 +568,9 @@ export const AddZoneModal: React.FC<AddZoneModalProps> = ({
             </Box>
           </Box>
         </ScrollView>
-        </KeyboardAvoidingView>
+        </View>
       </ModalContent>
-    </Modal>
+    </KeyboardAwareModal>
   );
 };
 

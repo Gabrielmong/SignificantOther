@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Modal,
   ModalBackdrop,
   ModalContent,
   ModalCloseButton,
@@ -18,10 +17,11 @@ import {
   SelectContent,
   SelectItem,
 } from '@gluestack-ui/themed';
-import { ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { Alert, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useAppTheme } from '../../hooks';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { RecurrenceType, RecurrenceUnit } from '../../types';
+import { KeyboardAwareModal } from '../KeyboardAwareModal';
 
 interface AddCountdownModalProps {
   isOpen: boolean;
@@ -41,7 +41,12 @@ interface AddCountdownModalProps {
     recurrence?: RecurrenceType;
     recurrenceInterval?: number;
     recurrenceUnit?: RecurrenceUnit;
+    milestoneId?: string;
   };
+  // Shown only when editing an existing countdown
+  onDelete?: () => void;
+  // Also edit-only: sends a snapshot of the saved countdown to the chat
+  onShare?: () => void;
 }
 
 const ICON_OPTIONS = [
@@ -67,6 +72,8 @@ export const AddCountdownModal: React.FC<AddCountdownModalProps> = ({
   onClose,
   onSave,
   initialData,
+  onDelete,
+  onShare,
 }) => {
   const { theme } = useAppTheme();
   const [title, setTitle] = useState(initialData?.title || '');
@@ -123,8 +130,30 @@ export const AddCountdownModal: React.FC<AddCountdownModalProps> = ({
     onClose();
   };
 
+  const handleDelete = () => {
+    if (!onDelete) return;
+
+    Alert.alert(
+      'Delete countdown?',
+      initialData?.milestoneId
+        ? 'It will be removed for both of you. Saving its milestone again brings it back.'
+        : 'It will be removed for both of you.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            onDelete();
+            onClose();
+          },
+        },
+      ],
+    );
+  };
+
   return (
-    <Modal isOpen={isOpen}>
+    <KeyboardAwareModal isOpen={isOpen}>
       <ModalBackdrop onPress={handleCancel} />
       <ModalContent>
         <ModalCloseButton onPress={handleCancel} />
@@ -382,9 +411,24 @@ export const AddCountdownModal: React.FC<AddCountdownModalProps> = ({
               <Text style={{ color: theme.colors.onPrimary }}>Save</Text>
             </Button>
           </Box>
+
+          {initialData && onShare && (
+            <Button
+              variant="link"
+              onPress={onShare}
+              accessibilityLabel="Share countdown to chat">
+              <Text style={{ color: theme.colors.primary }}>Share to chat</Text>
+            </Button>
+          )}
+
+          {initialData && onDelete && (
+            <Button variant="link" onPress={handleDelete}>
+              <Text style={{ color: theme.colors.error }}>Delete countdown</Text>
+            </Button>
+          )}
         </Box>
       </ModalContent>
-    </Modal>
+    </KeyboardAwareModal>
   );
 };
 

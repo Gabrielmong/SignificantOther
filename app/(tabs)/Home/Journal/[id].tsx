@@ -12,13 +12,13 @@ import {
   Spinner,
   HStack,
 } from '@gluestack-ui/themed';
-import { useAppTheme, useAuth, useFirebase } from '../../../../hooks';
+import { useAppTheme, useAuth, useFirebase, useShareToChat } from '../../../../hooks';
 import { applyOpacity } from '../../../../config/theme';
 import { StatusBar, TouchableOpacity } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Journal } from '../../../../types';
-import { ArrowLeft, Edit, Trash, Calendar, User, Clock, Eye } from 'lucide-react-native';
+import { ArrowLeft, Edit, Trash, Calendar, User, Clock, Eye, Send } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function Note() {
@@ -31,12 +31,18 @@ export default function Note() {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const shareToChat = useShareToChat();
 
-  useEffect(() => {
-    if (params.id && user.roomId) {
-      loadData();
-    }
-  }, []);
+  // Reload on focus, not just mount: the stack keeps this screen mounted while
+  // the editor is open, so coming back must pick up the edit
+  useFocusEffect(
+    useCallback(() => {
+      if (params.id && user.roomId) {
+        loadData();
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [params.id, user.roomId]),
+  );
 
   const loadData = async () => {
     if (params.id && user.roomId) {
@@ -70,13 +76,30 @@ export default function Note() {
     router.push(`/(tabs)/Home/Journal/editor?id=${params.id}`);
   };
 
+  // Title + date only: the body can be long or private
+  const handleShare = () => {
+    if (!note || !params.id) return;
+    shareToChat({
+      kind: 'journal',
+      id: String(params.id),
+      title: note.title,
+      subtitle: createdDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+      emoji: '📖',
+    });
+  };
+
   const handleDeleteModalOpen = () => {
     setDeleteModalOpen(true);
   };
 
   const handleDeleteNote = () => {
     deleteEntryInJournal(String(user.roomId), String(params.id)).then(() => {
-      router.push('/(tabs)/Home/Journal/');
+      // Back, not push: pushing left the deleted note one back-swipe away
+      router.back();
     });
   };
 
@@ -114,6 +137,15 @@ export default function Note() {
           </Text>
 
           <HStack style={{ gap: theme.spacing[2] }}>
+            {note && (
+              <TouchableOpacity
+                onPress={handleShare}
+                accessibilityRole="button"
+                accessibilityLabel="Share entry to chat">
+                <Send size={22} color={theme?.colors?.text} />
+              </TouchableOpacity>
+            )}
+
             {user?.uid === note?.authorId && (
               <>
                 <TouchableOpacity onPress={handleEdit}>

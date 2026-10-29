@@ -4,6 +4,7 @@ import { Text } from '@gluestack-ui/themed';
 import { MapPin } from 'lucide-react-native';
 import { useAppTheme } from '../../hooks';
 import { Place } from '../../types';
+import { PressableScale } from '../styled/PressableScale';
 import { PlaceMap } from '../PlaceMap';
 
 interface PlacesPreviewProps {
@@ -29,7 +30,7 @@ export const PlacesPreview: React.FC<PlacesPreviewProps> = ({ places, onOpen }) 
       </View>
 
       {places.length === 0 ? (
-        <TouchableOpacity
+        <PressableScale
           onPress={onOpen}
           accessibilityRole="button"
           style={{
@@ -45,7 +46,7 @@ export const PlacesPreview: React.FC<PlacesPreviewProps> = ({ places, onOpen }) 
           }}>
           <MapPin size={18} color={theme.colors.textSecondary} />
           <Text style={{ color: theme.colors.textSecondary }}>Add your first place</Text>
-        </TouchableOpacity>
+        </PressableScale>
       ) : (
         // A plain View, not a Touchable: on Android a fading (opacity) wrapper
         // hides the native map inside it. The tap target sits on top instead.

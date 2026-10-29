@@ -1,9 +1,10 @@
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { Image, View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAppTheme } from '../../hooks';
 import { applyOpacity } from '../../config/theme';
+import { PressableScale } from '../styled/PressableScale';
 import { Highlight, yearsText } from '../../utils/story';
 
 interface OnThisDayCardProps {
@@ -29,7 +30,7 @@ export const OnThisDayCard: React.FC<OnThisDayCardProps> = ({ highlight, placeNa
   ].filter(Boolean);
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.85} accessibilityRole="button">
+    <PressableScale onPress={onPress} accessibilityRole="button">
       <LinearGradient
         colors={[applyOpacity(theme.colors.primary, 0.35), applyOpacity(theme.colors.primary700, 0.25)]}
         start={{ x: 0, y: 0 }}
@@ -81,6 +82,6 @@ export const OnThisDayCard: React.FC<OnThisDayCardProps> = ({ highlight, placeNa
           )}
         </View>
       </LinearGradient>
-    </TouchableOpacity>
+    </PressableScale>
   );
 };

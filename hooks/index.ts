@@ -16,3 +16,8 @@ export * from './useMilestones';
 export * from './useGallery';
 export * from './usePlaces';
 export * from './useOnThisDayNotifications';
+export * from './useKeyboardHeight';
+export * from './useChatMessages';
+export * from './useUnreadCount';
+export * from './useShareToChat';
+export * from './useChatStars';

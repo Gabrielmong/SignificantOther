@@ -7,7 +7,6 @@ import {
   Button,
   Input,
   InputField,
-  Modal,
   ModalBackdrop,
   ModalCloseButton,
   ModalContent,
@@ -26,7 +25,14 @@ import {
   Divider,
   HStack,
 } from '@gluestack-ui/themed';
-import { useAppTheme, useAppToast, useAuth, useFirebase, useImageUpload } from '../../../hooks';
+import {
+  useAppTheme,
+  useAppToast,
+  useAuth,
+  useFirebase,
+  useImageUpload,
+  useShareToChat,
+} from '../../../hooks';
 import { Fragment, useEffect, useState } from 'react';
 import { Activity, Wishlist as WishlistType } from '../../../types';
 import { router } from 'expo-router';
@@ -37,15 +43,20 @@ import {
   Plus,
   Trash,
   ExternalLink,
+  Send,
 } from 'lucide-react-native';
 import { Linking, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import type { GradientColors } from '../../../config/theme';
+import { KeyboardAwareModal } from '../../../components';
+import Animated from 'react-native-reanimated';
+import { listItemExiting, listLayout, useListEntering } from '../../../utils/motion';
 
 export default function Wishlist() {
   const { theme } = useAppTheme();
 
   // Map categories to gradient colors
-  const categoryGradients: Record<string, string[]> = {
+  const categoryGradients: Record<string, GradientColors> = {
     activities: ['#8B5CF6', '#7C3AED'],
     music: ['#EC4899', '#DB2777'],
     movies: ['#3B82F6', '#2563EB'],
@@ -56,6 +67,7 @@ export default function Wishlist() {
     gifts: ['#8B5CF6', '#EC4899'],
   };
   const { showToast } = useAppToast();
+  const shareToChat = useShareToChat();
   const { user } = useAuth();
   const [wishlist, setWishlist] = useState<WishlistType | null>(null);
   const { uploadImage, askPermission } = useImageUpload();
@@ -208,6 +220,17 @@ export default function Wishlist() {
     { value: 'other', label: 'Other', emoji: '🎊' },
   ];
 
+  const handleShareEntry = (id: string, entry: Activity, under: string) => {
+    const category = categories.find((c) => c.value === under);
+    shareToChat({
+      kind: 'wishlist',
+      id,
+      title: entry.title,
+      subtitle: category?.label ?? capitalize(under),
+      emoji: category?.emoji,
+    });
+  };
+
   const getFilteredWishlist = () => {
     if (!wishlist) return null;
 
@@ -223,6 +246,11 @@ export default function Wishlist() {
   };
 
   const filteredWishlist = getFilteredWishlist();
+
+  // One running stagger index across headers and cards, so the grouped list
+  // fades in top to bottom as a single list rather than per category
+  const enterListItem = useListEntering(!!filteredWishlist && Object.keys(filteredWishlist).length > 0);
+  let staggerIndex = 0;
 
   return (
     <View
@@ -364,6 +392,11 @@ export default function Wishlist() {
               return (
                 <Fragment key={key}>
                   {/* Category Header */}
+                  <Animated.View
+                    key={`header-${key}`}
+                    entering={enterListItem(staggerIndex++)}
+                    exiting={listItemExiting}
+                    layout={listLayout}>
                   <Box
                     style={{
                       flexDirection: 'row',
@@ -396,14 +429,22 @@ export default function Wishlist() {
                       </Text>
                     </Box>
                   </Box>
+                  </Animated.View>
 
                   {Object.keys(filteredWishlist[categoryKey]).map((activity) => {
                     const item = filteredWishlist[categoryKey][activity];
                     const gradientColors = categoryGradients[key] || theme.gradients.primary.colors;
 
+                    // Keyed by entry id: entering only runs on first mount, not when
+                    // loadData / the listener hands back the same entries
                     return (
-                      <TouchableOpacity
+                      <Animated.View
                         key={activity}
+                        style={{ width: '100%' }}
+                        entering={enterListItem(staggerIndex++)}
+                        exiting={listItemExiting}
+                        layout={listLayout}>
+                      <TouchableOpacity
                         style={{ width: '100%' }}
                         activeOpacity={0.95}>
                         <LinearGradient
@@ -472,6 +513,21 @@ export default function Wishlist() {
                               </TouchableOpacity>
 
                               <TouchableOpacity
+                                onPress={() => handleShareEntry(activity, item, key)}
+                                accessibilityRole="button"
+                                accessibilityLabel={`Share ${item.title} to chat`}
+                                style={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: 16,
+                                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                }}>
+                                <Send size={16} color="#FFFFFF" />
+                              </TouchableOpacity>
+
+                              <TouchableOpacity
                                 onPress={() => handleDeleteEntry(activity, categoryKey)}
                                 style={{
                                   width: 32,
@@ -529,10 +585,16 @@ export default function Wishlist() {
                           )}
                         </LinearGradient>
                       </TouchableOpacity>
+                      </Animated.View>
                     );
                   })}
 
-                  {index !== Object.keys(filteredWishlist).length - 1 && <Divider />}
+                  {/* Layout-only wrapper so the divider slides with the cards around it */}
+                  {index !== Object.keys(filteredWishlist).length - 1 && (
+                    <Animated.View style={{ width: '100%' }} layout={listLayout}>
+                      <Divider />
+                    </Animated.View>
+                  )}
                 </Fragment>
               );
             })}
@@ -612,7 +674,7 @@ export default function Wishlist() {
             </Box>
           )}
       </ScrollView>
-      <Modal isOpen={modalOpen}>
+      <KeyboardAwareModal isOpen={modalOpen}>
         <ModalBackdrop onPress={handleCloseModal} />
 
         <ModalContent>
@@ -734,7 +796,7 @@ export default function Wishlist() {
             </Button>
           </Box>
         </ModalContent>
-      </Modal>
+      </KeyboardAwareModal>
     </View>
   );
 }

@@ -3,7 +3,7 @@ import { Image, TouchableOpacity, View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAppTheme } from '../../hooks';
-import { applyOpacity } from '../../config/theme';
+import { applyOpacity, type GradientColors } from '../../config/theme';
 
 export type Person = { name: string; photoURL?: string | null };
 
@@ -23,7 +23,7 @@ const Avatar = ({
   style,
 }: {
   person: Person;
-  colors: string[];
+  colors: GradientColors;
   onColor: string;
   style?: object;
 }) => {
@@ -48,7 +48,7 @@ const Avatar = ({
 
   return (
     <LinearGradient
-      colors={colors as [string, string, ...string[]]}
+      colors={colors}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={{ ...frame, justifyContent: 'center', alignItems: 'center' }}>

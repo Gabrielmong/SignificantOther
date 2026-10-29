@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Modal,
   ModalBackdrop,
   ModalContent,
   ModalCloseButton,
@@ -16,7 +15,7 @@ import {
 import { ActivityIndicator, Alert, Image, ScrollView, TouchableOpacity } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
-import { useAppTheme } from '../../hooks';
+import { useAppTheme, useShareToChat } from '../../hooks';
 import type { MilestoneInput, PhotoChange } from '../../hooks/useMilestones';
 import { CountdownObject, Milestone, MilestoneKind, Place, SpecialKind } from '../../types';
 import type { PlaceInput } from '../../hooks/usePlaces';
@@ -28,6 +27,7 @@ import {
   parseDay,
   toDay,
 } from '../../utils/milestones';
+import { KeyboardAwareModal } from '../KeyboardAwareModal';
 
 const EMOJIS = ['👋', '💕', '💍', '💒', '✈️', '🏠', '🎉', '🍽️', '🌅', '🎂', '🐶', '⭐'];
 
@@ -80,6 +80,7 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
   savePlace,
 }) => {
   const { theme } = useAppTheme();
+  const shareToChat = useShareToChat();
 
   const [kind, setKind] = useState<MilestoneKind>('custom');
   const [title, setTitle] = useState('');
@@ -182,6 +183,23 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
     if (ok) onClose();
   };
 
+  // Shares the saved milestone, not unsaved edits in the form
+  const handleShare = () => {
+    if (!milestone) return;
+    shareToChat({
+      kind: 'milestone',
+      id: milestone.id,
+      title: milestone.title,
+      subtitle: parseDay(milestone.day).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+      emoji: milestone.emoji,
+    });
+    onClose();
+  };
+
   const handleDelete = async () => {
     if (!milestone) return;
     const confirmed = await ask(
@@ -213,7 +231,7 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
   });
 
   return (
-    <Modal isOpen={isOpen}>
+    <KeyboardAwareModal isOpen={isOpen}>
       <ModalBackdrop onPress={onClose} />
       <ModalContent style={{ backgroundColor: theme.colors.surface }}>
         <ModalCloseButton onPress={onClose} />
@@ -419,9 +437,22 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
                 )}
               </TouchableOpacity>
             </Box>
+
+            {milestone && (
+              <TouchableOpacity
+                onPress={handleShare}
+                disabled={saving}
+                accessibilityRole="button"
+                accessibilityLabel="Share milestone to chat"
+                style={{ alignItems: 'center', paddingVertical: 4 }}>
+                <Text style={{ color: theme.colors.primary, fontWeight: theme.fontWeight.semibold }}>
+                  Share to chat
+                </Text>
+              </TouchableOpacity>
+            )}
           </Box>
         </ModalBody>
       </ModalContent>
-    </Modal>
+    </KeyboardAwareModal>
   );
 };

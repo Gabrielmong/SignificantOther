@@ -1,19 +1,27 @@
-import React, { useMemo } from 'react';
-import {
-  Image,
-  LayoutAnimation,
-  SectionList,
-  TouchableOpacity,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import React, { useCallback, useLayoutEffect, useMemo, useRef } from 'react';
+import { Image, SectionList, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { useAppTheme } from '../../hooks';
 import { Photo } from '../../types';
 import { Columns, groupPhotos, nextColumns } from '../../utils/photos';
+import { selectionFeedback } from '../../utils/haptics';
 
 const GAP = 2;
+// How far the pinch must go to change the column count
+const ZOOM_OUT_AT = 1.15;
+const ZOOM_IN_AT = 0.87;
+// Past the last zoom step the grid only gives a little, like a rubber band
+const LIMIT_STRETCH = 0.05;
+const SPRING = { damping: 20, stiffness: 220, mass: 0.6 };
 
 interface PhotoGridProps {
   photos: Photo[]; // Already sorted and filtered
@@ -49,65 +57,112 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({
     [photos, columns],
   );
 
+  // The grid scales live with the fingers. On release it either springs back,
+  // or swaps to the new column count starting at the size the fingers left the
+  // tiles at, then springs to rest, so the change reads as one continuous zoom.
+  const scale = useSharedValue(1);
+  const pendingScale = useRef<number | null>(null);
+
+  const commitColumns = useCallback(
+    (next: Columns, releasedAt: number) => {
+      // Tiles are columns/next times bigger in the new layout
+      pendingScale.current = (releasedAt * next) / columns;
+      // A tick per zoom level, like stepping a dial
+      selectionFeedback();
+      onColumnsChange(next);
+    },
+    [columns, onColumnsChange],
+  );
+
+  // Before the new layout paints, show it at the old visual size, then settle
+  useLayoutEffect(() => {
+    if (pendingScale.current === null) return;
+    scale.value = withSequence(
+      withTiming(pendingScale.current, { duration: 0 }),
+      withSpring(1, SPRING),
+    );
+    pendingScale.current = null;
+  }, [columns, scale]);
+
   // Pinch runs alongside the list's own scrolling, so Android's scroll
   // view doesn't swallow it
   const gesture = useMemo(() => {
+    const zoomOutTo = nextColumns(columns, 'out');
+    const zoomInTo = nextColumns(columns, 'in');
+    const maxScale = zoomOutTo === columns ? 1 + LIMIT_STRETCH : Infinity;
+    const minScale = zoomInTo === columns ? 1 - LIMIT_STRETCH : 0;
+
     const pinch = Gesture.Pinch()
-      .runOnJS(true)
+      .onUpdate((event) => {
+        scale.value = Math.min(Math.max(event.scale, minScale), maxScale);
+      })
       .onEnd((event) => {
         const next =
-          event.scale > 1.15
-            ? nextColumns(columns, 'out')
-            : event.scale < 0.87
-              ? nextColumns(columns, 'in')
-              : columns;
+          event.scale > ZOOM_OUT_AT ? zoomOutTo : event.scale < ZOOM_IN_AT ? zoomInTo : columns;
         if (next !== columns) {
-          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-          onColumnsChange(next);
+          runOnJS(commitColumns)(next, scale.value);
+        } else {
+          scale.value = withSpring(1, SPRING);
         }
       });
     return Gesture.Simultaneous(pinch, Gesture.Native());
-  }, [columns, onColumnsChange]);
+  }, [columns, commitColumns, scale]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    flex: 1,
+    // Anchored top-left like Google Photos, so tiles never drift off the left edge
+    transformOrigin: 'top left',
+    transform: [{ scale: scale.value }],
+  }));
 
   return (
     <GestureDetector gesture={gesture}>
-      <SectionList
-        sections={sections}
-        keyExtractor={(row) => row[0].id}
-        stickySectionHeadersEnabled={false}
-        ListHeaderComponent={ListHeaderComponent}
-        contentContainerStyle={{ paddingBottom: 32 }}
-        renderSectionHeader={({ section }) => (
-          <Text
-            style={{
-              paddingHorizontal: 12,
-              paddingTop: 16,
-              paddingBottom: 8,
-              fontSize: theme.fontSize.sm,
-              fontWeight: theme.fontWeight.semibold,
-              color: theme.colors.textSecondary,
-            }}>
-            {section.title}
-          </Text>
-        )}
-        renderItem={({ item: row }) => (
-          <View style={{ flexDirection: 'row', gap: GAP, marginBottom: GAP }}>
-            {row.map((photo) => (
-              <TouchableOpacity
-                key={photo.id}
-                activeOpacity={0.85}
-                onPress={() => onPhotoPress(photo, photos)}
-                accessibilityRole="imagebutton"
-                accessibilityLabel={photo.label || 'Photo'}>
-                <Image
-                  source={{ uri: photo.thumbUrl ?? photo.url }}
-                  style={{ width: tile, height: tile, backgroundColor: theme.colors.surfaceElevated }}
-                />
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-      />
+      {/* Clips the scaled grid so it never draws over the screen header */}
+      <View style={{ flex: 1, overflow: 'hidden' }}>
+        <Animated.View style={animatedStyle}>
+          <SectionList
+            sections={sections}
+            keyExtractor={(row) => row[0].id}
+            stickySectionHeadersEnabled={false}
+            ListHeaderComponent={ListHeaderComponent}
+            contentContainerStyle={{ paddingBottom: 32 }}
+            renderSectionHeader={({ section }) => (
+              <Text
+                style={{
+                  paddingHorizontal: 12,
+                  paddingTop: 16,
+                  paddingBottom: 8,
+                  fontSize: theme.fontSize.sm,
+                  fontWeight: theme.fontWeight.semibold,
+                  color: theme.colors.textSecondary,
+                }}>
+                {section.title}
+              </Text>
+            )}
+            renderItem={({ item: row }) => (
+              <View style={{ flexDirection: 'row', gap: GAP, marginBottom: GAP }}>
+                {row.map((photo) => (
+                  <TouchableOpacity
+                    key={photo.id}
+                    activeOpacity={0.85}
+                    onPress={() => onPhotoPress(photo, photos)}
+                    accessibilityRole="imagebutton"
+                    accessibilityLabel={photo.label || 'Photo'}>
+                    <Image
+                      source={{ uri: photo.thumbUrl ?? photo.url }}
+                      style={{
+                        width: tile,
+                        height: tile,
+                        backgroundColor: theme.colors.surfaceElevated,
+                      }}
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          />
+        </Animated.View>
+      </View>
     </GestureDetector>
   );
 };

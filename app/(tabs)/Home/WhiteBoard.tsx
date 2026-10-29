@@ -16,7 +16,7 @@ import {
 } from '@gluestack-ui/themed';
 import { StatusBar } from 'expo-status-bar';
 import { useAppTheme, useAuth, useFirebase } from '../../../hooks';
-import { IconButton, PathData, Whiteboard } from '../../../components';
+import { IconButton, PathData, Whiteboard, KeyboardAwareModal } from '../../../components';
 import { router } from 'expo-router';
 import { Alert, Dimensions, TouchableOpacity } from 'react-native';
 import { ArrowLeft, Bookmark, Clock, Edit, Eye, X } from 'lucide-react-native';
@@ -221,7 +221,7 @@ export default function WhiteBoard() {
       )}
 
       {/* Edit Board Name Modal */}
-      <Modal isOpen={editNameModal}>
+      <KeyboardAwareModal isOpen={editNameModal}>
         <ModalBackdrop onPress={() => setEditNameModal(false)} />
         <ModalContent>
           <ModalCloseButton onPress={() => setEditNameModal(false)} />
@@ -246,7 +246,7 @@ export default function WhiteBoard() {
             </Button>
           </Box>
         </ModalContent>
-      </Modal>
+      </KeyboardAwareModal>
 
       {/* Snapshot Gallery Modal */}
       <Modal isOpen={galleryOpen}>

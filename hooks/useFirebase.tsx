@@ -12,13 +12,23 @@ import {
   onValue,
   update,
   get,
-  child,
   remove,
   push,
   query,
   orderByKey,
+  orderByChild,
   limitToLast,
+  startAt,
+  startAfter,
+  endBefore,
+  onDisconnect,
+  onChildAdded,
+  onChildChanged,
+  onChildRemoved,
+  serverTimestamp,
   set,
+  DataSnapshot,
+  Query,
 } from 'firebase/database';
 import { PathData } from '../components';
 import { useAuth } from './useAuth';
@@ -38,6 +48,9 @@ import {
   PhotoObject,
   Place,
   PlaceObject,
+  MessageAttachment,
+  MessageReply,
+  MessageType,
 } from '../types';
 import { monthKey } from '../utils/feelingHistory';
 import { Journal, JournalObject } from '../types/Journal';
@@ -226,68 +239,185 @@ export const useFirebase = () => {
     });
   };
 
-  const sendMessage = async ({
+  // Chat
+  // Messages are ordered by their `timestamp` child, never their key: newer
+  // messages use push() keys and older ones are keyed by timestamp, and the two
+  // key styles don't sort together. Needs ".indexOn": ["timestamp"] on
+  // rooms/$roomId/messages in the database rules, or Firebase downloads the
+  // whole chat and filters on the phone.
+  const messagesRef = (roomId: string) => databaseRef(db, `rooms/${roomId}/messages`);
+
+  const toMessage = (snapshot: DataSnapshot): MessageType => ({
+    id: snapshot.key as string,
+    ...snapshot.val(),
+  });
+
+  // One read of a query. Unlike get(), which the server rejects for a query
+  // with no index ("Index not defined"), a one-off listener falls back to
+  // filtering on the phone, so chat keeps working before the index is added.
+  const readOnce = (q: Query) =>
+    new Promise<DataSnapshot>((resolve, reject) => {
+      onValue(q, resolve, reject, { onlyOnce: true });
+    });
+
+  // forEach walks the children in query order (oldest first)
+  const toMessages = (snapshot: DataSnapshot) => {
+    const messages: MessageType[] = [];
+    snapshot.forEach((child) => {
+      messages.push(toMessage(child));
+    });
+    return messages;
+  };
+
+  // The key exists the moment push() runs, so the message can show right away;
+  // `delivered` settles once the server has it (it stays pending while offline)
+  const sendMessage = ({
     roomId,
     uid,
     message,
     replyingTo,
+    attachment,
   }: {
     roomId: string;
     uid: string;
     message: string;
-    replyingTo?: {
-      messageId: number;
-      message: string;
-      uid: string;
-    };
+    replyingTo?: MessageReply;
+    attachment?: MessageAttachment;
   }) => {
-    const roomRef = databaseRef(db, `rooms/${roomId}/messages`);
-    const id = Date.now().toString();
-
-    await update(roomRef, {
-      [id]: {
-        message,
-        uid,
-        timestamp: Date.now(),
-        ...(replyingTo && { replyingTo }),
-      },
+    const messageRef = push(messagesRef(roomId));
+    const delivered = set(messageRef, {
+      message,
+      uid,
+      timestamp: serverTimestamp(),
+      ...(replyingTo && { replyingTo }),
+      ...(attachment && { attachment }),
     });
+
+    return { id: messageRef.key as string, delivered };
   };
 
-  const listenToMessages = (
-    messageCallback: (
-      messages: {
-        message: string;
-        uid: string;
-        timestamp: number;
-      }[],
-    ) => void,
+  const getLatestMessages = async (roomId: string, limit: number) => {
+    const snapshot = await readOnce(
+      query(messagesRef(roomId), orderByChild('timestamp'), limitToLast(limit)),
+    );
+    return toMessages(snapshot);
+  };
+
+  // The page just before `oldest`; the key breaks ties between equal timestamps
+  const getMessagesBefore = async (roomId: string, oldest: MessageType, limit: number) => {
+    const snapshot = await readOnce(
+      query(
+        messagesRef(roomId),
+        orderByChild('timestamp'),
+        endBefore(oldest.timestamp, oldest.id),
+        limitToLast(limit),
+      ),
+    );
+    return toMessages(snapshot);
+  };
+
+  // Live adds, edits and deletes for every message from `fromTimestamp` on: the
+  // loaded window plus anything new. No limit, so a new message never pushes an
+  // old one out of the query (which would look like a delete).
+  const listenToMessageChanges = (
     roomId: string,
+    fromTimestamp: number | null,
+    handlers: {
+      onAdded: (message: MessageType) => void;
+      onChanged: (message: MessageType) => void;
+      onRemoved: (id: string) => void;
+    },
   ) => {
-    const roomRef = databaseRef(db, `rooms/${roomId}`);
+    const live =
+      fromTimestamp === null
+        ? query(messagesRef(roomId), orderByChild('timestamp'))
+        : query(messagesRef(roomId), orderByChild('timestamp'), startAt(fromTimestamp));
 
-    onValue(child(roomRef, 'messages'), (snapshot) => {
-      const data = snapshot.val();
+    const unsubscribes = [
+      onChildAdded(live, (snapshot) => handlers.onAdded(toMessage(snapshot))),
+      onChildChanged(live, (snapshot) => handlers.onChanged(toMessage(snapshot))),
+      onChildRemoved(live, (snapshot) => handlers.onRemoved(snapshot.key as string)),
+    ];
 
-      if (data) {
-        const messages = Object.keys(data).map((key) => data[key]);
-
-        messageCallback(messages);
-      }
-    });
+    return () => unsubscribes.forEach((unsubscribe) => unsubscribe());
   };
 
-  const getMessages = async (roomId: string) => {
-    const roomRef = databaseRef(db, `rooms/${roomId}`);
-
-    return get(child(roomRef, 'messages'));
+  const deleteMessage = async (roomId: string, messageId: string): Promise<void> => {
+    return remove(databaseRef(db, `rooms/${roomId}/messages/${messageId}`));
   };
 
-  const deleteMessage = async (roomId: string, messageId: number): Promise<void> => {
-    const roomRef = databaseRef(db, `rooms/${roomId}/messages/${messageId}`);
-
-    return remove(roomRef);
+  // Reactions live on the message (reactions/{uid}: emoji), so they arrive
+  // through the same live child-changed events as edits; null removes yours
+  const setMessageReaction = async (
+    roomId: string,
+    messageId: string,
+    uid: string,
+    emoji: string | null,
+  ) => {
+    const reactionRef = databaseRef(db, `rooms/${roomId}/messages/${messageId}/reactions/${uid}`);
+    await (emoji ? set(reactionRef, emoji) : remove(reactionRef));
   };
+
+  // Server time of when each partner last had the chat open
+  const markChatRead = async (roomId: string, uid: string) => {
+    await set(databaseRef(db, `rooms/${roomId}/chatReads/${uid}`), serverTimestamp());
+  };
+
+  const listenToChatReads = (
+    roomId: string,
+    callback: (reads: Record<string, number>) => void,
+  ) => onValue(databaseRef(db, `rooms/${roomId}/chatReads`), (s) => callback(s.val() || {}));
+
+  // Partner messages newer than your last read. Re-queries whenever your read
+  // marker moves, and never-read counts as nothing unread rather than the
+  // whole history.
+  const listenToUnreadCount = (roomId: string, uid: string, callback: (count: number) => void) => {
+    let unsubscribeMessages = () => {};
+
+    const unsubscribeRead = onValue(
+      databaseRef(db, `rooms/${roomId}/chatReads/${uid}`),
+      (readSnapshot) => {
+        unsubscribeMessages();
+        const lastRead = readSnapshot.val();
+        if (typeof lastRead !== 'number') {
+          unsubscribeMessages = () => {};
+          callback(0);
+          return;
+        }
+
+        unsubscribeMessages = onValue(
+          query(messagesRef(roomId), orderByChild('timestamp'), startAfter(lastRead)),
+          (snapshot) => {
+            let count = 0;
+            snapshot.forEach((child) => {
+              if (child.val()?.uid !== uid) count += 1;
+            });
+            callback(count);
+          },
+        );
+      },
+    );
+
+    return () => {
+      unsubscribeRead();
+      unsubscribeMessages();
+    };
+  };
+
+  // typing/{uid} holds when you last typed; it's removed when you stop, and
+  // by the server if the app drops offline mid-sentence
+  const setTyping = async (roomId: string, uid: string, typing: boolean) => {
+    const typingRef = databaseRef(db, `rooms/${roomId}/typing/${uid}`);
+    if (typing) {
+      await set(typingRef, serverTimestamp());
+      await onDisconnect(typingRef).remove();
+    } else {
+      await remove(typingRef);
+    }
+  };
+
+  const listenToTyping = (roomId: string, callback: (typing: Record<string, number>) => void) =>
+    onValue(databaseRef(db, `rooms/${roomId}/typing`), (s) => callback(s.val() || {}));
 
   const getFlower = async (roomId: string, uid: string) => {
     const roomRef = databaseRef(db, `rooms/${roomId}/users/${uid}`);
@@ -1032,9 +1162,16 @@ export const useFirebase = () => {
     createRoom,
     updateWhiteBoardName,
     sendMessage,
-    listenToMessages,
-    getMessages,
+    getLatestMessages,
+    getMessagesBefore,
+    listenToMessageChanges,
     deleteMessage,
+    setMessageReaction,
+    markChatRead,
+    listenToChatReads,
+    listenToUnreadCount,
+    setTyping,
+    listenToTyping,
     getFlower,
     updateFlower,
     listenToFlowerChanges,

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
   Box,
   Button,
-  Modal,
   ModalBackdrop,
   ModalBody,
   ModalCloseButton,
@@ -15,6 +14,8 @@ import { useAppTheme } from '../../hooks';
 import { DailyQuestionStatus } from '../../hooks/useDailyQuestion';
 import { DailyAnswer } from '../../types';
 import { MAX_ANSWER_LENGTH } from '../../utils/dailyQuestion';
+import { KeyboardAwareModal } from '../KeyboardAwareModal';
+import { PressableScale } from '../styled/PressableScale';
 
 interface DailyQuestionCardProps {
   question: string;
@@ -51,7 +52,7 @@ function AnswerModal({
   const canSave = text.trim().length > 0;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <KeyboardAwareModal isOpen={isOpen} onClose={onClose}>
       <ModalBackdrop onPress={onClose} />
       <ModalContent>
         <ModalCloseButton onPress={onClose} />
@@ -115,7 +116,7 @@ function AnswerModal({
           </Text>
         </Button>
       </ModalContent>
-    </Modal>
+    </KeyboardAwareModal>
   );
 }
 
@@ -183,9 +184,9 @@ export const DailyQuestionCard = ({
 
   return (
     <>
-      <TouchableOpacity
-        activeOpacity={0.85}
+      <PressableScale
         onPress={onOpenHistory}
+        accessibilityRole="button"
         style={{
           width: '100%',
           padding: theme.commonSpacing.cardPaddingCompact,
@@ -247,7 +248,7 @@ export const DailyQuestionCard = ({
           }}>
           Past questions →
         </Text>
-      </TouchableOpacity>
+      </PressableScale>
 
       <AnswerModal
         isOpen={modalOpen}

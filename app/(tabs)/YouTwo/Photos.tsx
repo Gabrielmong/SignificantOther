@@ -1,14 +1,26 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { ScrollView, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { router, useLocalSearchParams, Href } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Text } from '@gluestack-ui/themed';
 import { ArrowLeft, Plus } from 'lucide-react-native';
 import { useAppTheme, useAppToast, useGallery, usePlaces } from '../../../hooks';
 import type { PendingPhoto } from '../../../hooks/useGallery';
-import { PhotoAddSheet, PhotoGrid, PhotoViewer, pickPhotosForGallery } from '../../../components';
+import {
+  PhotoAddSheet,
+  PhotoGrid,
+  PhotoViewer,
+  Skeleton,
+  pickPhotosForGallery,
+} from '../../../components';
 import { Photo } from '../../../types';
 import { photosWithTag } from '../../../utils/photos';
+import { fadeEntering } from '../../../utils/motion';
+
+// Matches PhotoGrid's tile spacing, so the placeholders line up with the photos
+const GRID_GAP = 2;
+const SKELETON_ROWS = 5;
 
 export default function Photos() {
   const { theme, colorMode } = useAppTheme();
@@ -16,6 +28,8 @@ export default function Photos() {
     useGallery();
   const { places, savePlace } = usePlaces();
   const { showToast } = useAppToast();
+  const { width } = useWindowDimensions();
+  const tile = (width - GRID_GAP * (columns - 1)) / columns;
   // Opened from a tag on the You Two tab: start filtered by it
   const params = useLocalSearchParams<{ tag?: string }>();
   const [activeTag, setActiveTag] = useState<string | null>(
@@ -113,7 +127,21 @@ export default function Photos() {
         </ScrollView>
       )}
 
-      {!loading && photos.length === 0 ? (
+      {loading ? (
+        // A grid of squares shaped like the gallery while the photos load
+        <View accessibilityLabel="Loading photos">
+          <Skeleton
+            width={90}
+            height={theme.fontSize.sm}
+            style={{ marginLeft: 12, marginTop: 16, marginBottom: 8 }}
+          />
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: GRID_GAP }}>
+            {Array.from({ length: columns * SKELETON_ROWS }, (_, i) => (
+              <Skeleton key={i} width={tile} height={tile} borderRadius={0} />
+            ))}
+          </View>
+        </View>
+      ) : photos.length === 0 ? (
         <TouchableOpacity
           onPress={handleAdd}
           style={{
@@ -128,12 +156,15 @@ export default function Photos() {
           <Text style={{ color: theme.colors.textSecondary }}>Add your first photo</Text>
         </TouchableOpacity>
       ) : (
-        <PhotoGrid
-          photos={visible}
-          columns={columns}
-          onColumnsChange={setColumns}
-          onPhotoPress={handlePhotoPress}
-        />
+        // Fades the photos in over where the placeholders were
+        <Animated.View entering={fadeEntering} style={{ flex: 1 }}>
+          <PhotoGrid
+            photos={visible}
+            columns={columns}
+            onColumnsChange={setColumns}
+            onPhotoPress={handlePhotoPress}
+          />
+        </Animated.View>
       )}
 
       <PhotoAddSheet

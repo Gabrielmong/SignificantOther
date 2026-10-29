@@ -22,9 +22,11 @@ import {
   PhotoViewer,
   PlacesPreview,
   OnThisDayCard,
+  Skeleton,
   YouTwoHeader,
   pickPhotosForGallery,
 } from '../../../components';
+import { PressableScale } from '../../../components/styled';
 import { Milestone, MilestoneKind, SpecialKind } from '../../../types';
 import { formatCounter, pickCounterMilestone } from '../../../utils/milestones';
 import { buildStory, memoriesOn, pickHighlight } from '../../../utils/story';
@@ -169,7 +171,7 @@ export default function YouTwo() {
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <StatusBar style={colorMode === 'dark' ? 'light' : 'dark'} />
-      <ScrollView contentContainerStyle={{ paddingBottom: 96 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: theme.spacing[5] }}>
         <YouTwoHeader
           me={me}
           partner={partner}
@@ -243,9 +245,17 @@ export default function YouTwo() {
             </TouchableOpacity>
           </View>
 
-          {milestones.length === 0 ? (
-            <TouchableOpacity
+          {milestonesLoading && user.roomId ? (
+            // Row-shaped placeholders, so "Add your first milestone" doesn't flash while loading
+            // (without a room nothing loads, so the empty state shows instead)
+            <>
+              <Skeleton height={68} />
+              <Skeleton height={68} />
+            </>
+          ) : milestones.length === 0 ? (
+            <PressableScale
               onPress={() => setModal({ open: true, milestone: null })}
+              accessibilityRole="button"
               style={{
                 padding: 24,
                 alignItems: 'center',
@@ -255,7 +265,7 @@ export default function YouTwo() {
                 borderColor: theme.colors.border,
               }}>
               <Text style={{ color: theme.colors.textSecondary }}>Add your first milestone</Text>
-            </TouchableOpacity>
+            </PressableScale>
           ) : (
             <>
               {recentMilestones.map((m) => (

@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { successFeedback } from '../utils/haptics';
+import type { Unsubscribe } from 'firebase/database';
 
 interface UseFeelingsProps {
   roomId: string | null;
@@ -14,7 +16,7 @@ interface UseFeelingsProps {
     callback: (data: { feeling: string }) => void,
     roomId: string,
     userId: string,
-  ) => void;
+  ) => Unsubscribe;
   showToast: (options: { title: string; description: string; status: 'success' | 'error' }) => void;
 }
 
@@ -114,6 +116,7 @@ export const useFeelings = ({
         }
 
         await updateFeeling(roomId, userId, selectedFeeling);
+        successFeedback();
 
         setShowFeelingModal(false);
 
@@ -131,8 +134,8 @@ export const useFeelings = ({
 
   const loadFeelingData = useCallback(
     async (
-      ownFeelingSnapshot?: { val: () => { selectedFeeling: string } | null },
-      partnerFeelingSnapshot?: { val: () => { selectedFeeling: string } | null },
+      ownFeelingSnapshot?: { val: () => { selectedFeeling: string } | null } | null,
+      partnerFeelingSnapshot?: { val: () => { selectedFeeling: string } | null } | null,
     ) => {
       if (ownFeelingSnapshot?.val()) {
         setOwnFeeling(ownFeelingSnapshot.val()!.selectedFeeling);

@@ -13,6 +13,7 @@ import {
   useDailyQuestion,
   useWhiteboard,
   useZones,
+  useShareToChat,
 } from '../../../hooks';
 import {
   FeelingModal,
@@ -25,8 +26,7 @@ import {
   GradientButton,
   LocationAndZonesSection,
   CountdownsSection,
-  DailyQuestionCard,
-} from '../../../components';
+  DailyQuestionCard, KeyboardAwareModal, Skeleton } from '../../../components';
 import { GradientCard } from '../../../components/styled';
 import {
   Box,
@@ -34,7 +34,6 @@ import {
   HStack,
   Input,
   InputField,
-  Modal,
   ModalBackdrop,
   ModalCloseButton,
   ModalContent,
@@ -47,9 +46,14 @@ import {
 import { ScrollView } from '@gluestack-ui/themed';
 import { useAppSelector } from '../../../state';
 import { TouchableOpacity, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { calculateDistance, formatDistance } from '../../../utils';
 import { setLocationTaskUserInfo } from '../../../services/locationTask';
+import { fadeEntering } from '../../../utils/motion';
+
+// Flower/feeling card height: 100px image plus the card's padding
+const PRESSABLE_CARD_HEIGHT = 140;
 
 export default function Home() {
   const { theme } = useAppTheme();
@@ -206,6 +210,24 @@ export default function Home() {
     listenToCountdownChanges,
     showToast,
   });
+
+  const shareToChat = useShareToChat();
+  // Snapshot of the saved countdown (not unsaved edits in the modal)
+  const handleShareCountdown = () => {
+    if (!editingCountdown?.id) return;
+    shareToChat({
+      kind: 'countdown',
+      id: editingCountdown.id,
+      title: editingCountdown.title,
+      subtitle: new Date(editingCountdown.date).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+      emoji: editingCountdown.icon,
+    });
+    handleCloseCountdownModal();
+  };
 
   const { zones, partnerCurrentZone, partnerApproachingZone, partnerCurrentZoneObject } = useZones({
     roomId: user.roomId || null,
@@ -550,43 +572,25 @@ export default function Home() {
         }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} />}>
         {loading ? (
+          // Placeholders shaped like the cards below, so the board doesn't jump when it loads
           <Box
-            style={{
-              flex: 1,
-              width: '100%',
-              minHeight: 400,
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: theme?.spacing[5] || 20,
-              paddingVertical: theme?.spacing[10] || 40,
-            }}>
-            {/* Animated Heart */}
-            <AnimatedHeartLoader />
-
-            {/* Spinner */}
-            <Spinner size="large" color={theme.colors.primary} />
-
-            {/* Loading text */}
-            <Box style={{ alignItems: 'center', gap: theme?.spacing?.[2] || 8 }}>
-              <Text
-                style={{
-                  fontSize: theme?.fontSize?.lg || 18,
-                  fontWeight: theme?.fontWeight?.semibold || '600',
-                  color: theme?.colors?.text || '#000000',
-                }}>
-                Loading your board
-              </Text>
-              <Text
-                style={{
-                  fontSize: theme?.fontSize?.sm || 14,
-                  color: theme?.colors?.textSecondary || '#6B7280',
-                }}>
-                Syncing with your significant other...
-              </Text>
-            </Box>
+            accessibilityLabel="Loading your board"
+            style={{ width: '100%', gap: theme?.spacing?.[4] || 16 }}>
+            <Skeleton height={180} borderRadius={theme.radii.xl} />
+            <Skeleton height={PRESSABLE_CARD_HEIGHT} />
+            <Skeleton height={PRESSABLE_CARD_HEIGHT} />
+            <Skeleton height={120} borderRadius={theme.radii.lg} />
+            <HStack style={{ width: '100%', gap: theme?.spacing?.[3] || 12 }}>
+              <Skeleton height={96} borderRadius={theme.radii.lg} style={{ flex: 1 }} />
+              <Skeleton height={96} borderRadius={theme.radii.lg} style={{ flex: 1 }} />
+              <Skeleton height={96} borderRadius={theme.radii.lg} style={{ flex: 1 }} />
+            </HStack>
           </Box>
         ) : (
-          <>
+          // Fades the loaded board in over where the placeholders were
+          <Animated.View
+            entering={fadeEntering}
+            style={{ width: '100%', alignItems: 'center', gap: theme?.spacing[4] }}>
             {user.roomId && (
               <>
                 {/* Whiteboard Preview - Large Feature Card with Gradient */}
@@ -600,7 +604,6 @@ export default function Home() {
                     paths={storedPaths}
                     canvasColor={storedCanvasColor}
                     height={180}
-                    onPress={handleOpenWhiteboard}
                     loading={loading}
                   />
                 </GradientCard>
@@ -761,11 +764,11 @@ export default function Home() {
                 </GradientCard>
               </Box>
             )}
-          </>
+          </Animated.View>
         )}
       </ScrollView>
 
-      <Modal isOpen={showModal}>
+      <KeyboardAwareModal isOpen={showModal}>
         <ModalBackdrop onPress={() => setShowModal(false)} />
 
         <ModalContent>
@@ -797,7 +800,7 @@ export default function Home() {
             </Button>
           </Box>
         </ModalContent>
-      </Modal>
+      </KeyboardAwareModal>
       <FlowerModal
         showFlowerModal={showFlowerModal}
         onClose={handleFlowerClosePress}
@@ -828,9 +831,14 @@ export default function Home() {
                 recurrence: editingCountdown.recurrence,
                 recurrenceInterval: editingCountdown.recurrenceInterval,
                 recurrenceUnit: editingCountdown.recurrenceUnit,
+                milestoneId: editingCountdown.milestoneId,
               }
             : undefined
         }
+        onDelete={
+          editingCountdown?.id ? () => handleDeleteCountdown(editingCountdown.id!) : undefined
+        }
+        onShare={editingCountdown?.id ? handleShareCountdown : undefined}
       />
 
       <StatusBar

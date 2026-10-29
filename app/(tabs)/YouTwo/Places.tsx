@@ -1,14 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Modal, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Alert, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { router, useLocalSearchParams, Href } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Text } from '@gluestack-ui/themed';
 import { ArrowLeft, Plus } from 'lucide-react-native';
-import { useAppTheme, useGallery, useMilestones, usePlaces } from '../../../hooks';
+import { useAppTheme, useGallery, useMilestones, usePlaces, useShareToChat } from '../../../hooks';
 import type { PlaceInput } from '../../../hooks/usePlaces';
 import { PlaceCard, PlaceEditor, PlaceMap, PlaceSearch, PhotoViewer } from '../../../components';
 import { Milestone, Place } from '../../../types';
 import { addDraftAt, linkedTo } from '../../../utils/places';
+import { parseDay } from '../../../utils/milestones';
+import { listItemEntering, listItemExiting } from '../../../utils/motion';
 
 export default function Places() {
   const { theme, colorMode } = useAppTheme();
@@ -16,6 +19,7 @@ export default function Places() {
   const { milestones } = useMilestones();
   const gallery = useGallery();
   const params = useLocalSearchParams<{ focus?: string }>();
+  const shareToChat = useShareToChat();
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [focus, setFocus] = useState<[number, number] | null>(null);
@@ -58,6 +62,20 @@ export default function Places() {
         },
       },
     ]);
+
+  // Same venue · date line the card shows
+  const handleShare = (p: Place) => {
+    const date = p.day
+      ? parseDay(p.day).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      : null;
+    shareToChat({
+      kind: 'place',
+      id: p.id,
+      title: p.name,
+      subtitle: [p.venue, date].filter(Boolean).join(' · ') || undefined,
+      emoji: p.emoji,
+    });
+  };
 
   // navigate (not push) returns to the existing You Two screen instead of
   // stacking a second one
@@ -137,17 +155,27 @@ export default function Places() {
           </View>
         )}
 
+        {/* The card pins itself to the bottom, so the wrapper fills the map and
+            lets touches through; keyed by place so switching pins fades it anew */}
         {selected && (
-          <PlaceCard
-            place={selected}
-            milestones={linked.milestones}
-            photos={linked.photos}
-            onEdit={() => openEditor({ ...selected })}
-            onDelete={() => handleDelete(selected)}
-            onMilestonePress={openMilestone}
-            onPhotoPress={setViewingIndex}
-            onClose={() => setSelectedId(null)}
-          />
+          <Animated.View
+            key={selected.id}
+            pointerEvents="box-none"
+            style={StyleSheet.absoluteFill}
+            entering={listItemEntering()}
+            exiting={listItemExiting}>
+            <PlaceCard
+              place={selected}
+              milestones={linked.milestones}
+              photos={linked.photos}
+              onEdit={() => openEditor({ ...selected })}
+              onDelete={() => handleDelete(selected)}
+              onShare={() => handleShare(selected)}
+              onMilestonePress={openMilestone}
+              onPhotoPress={setViewingIndex}
+              onClose={() => setSelectedId(null)}
+            />
+          </Animated.View>
         )}
       </View>
 

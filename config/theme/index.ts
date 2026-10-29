@@ -68,7 +68,13 @@ import {
   type DurationKey,
 } from './animations';
 
-import { buildGradients, type GradientKey, type GradientConfig } from './gradients';
+import {
+  buildGradients,
+  type GradientKey,
+  type GradientConfig,
+  type GradientColors,
+  type GradientLocations,
+} from './gradients';
 
 /**
  * Complete Theme Object
@@ -207,6 +213,8 @@ export type {
   DurationKey,
   GradientKey,
   GradientConfig,
+  GradientColors,
+  GradientLocations,
   AccentId,
   AccentTheme,
   AccentShades,

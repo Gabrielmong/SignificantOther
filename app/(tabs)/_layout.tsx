@@ -13,19 +13,22 @@ import { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TAB_HIDDEN_ROUTES } from '../../constants';
 import { AnimatedTabIcon } from '../../components';
-import { useAppTheme, useOnThisDayNotifications } from '../../hooks';
+import { useAppTheme, useOnThisDayNotifications, useUnreadCount } from '../../hooks';
+import { useAppSelector } from '../../state';
 
 export default function HomeLayout() {
   const pathname = usePathname();
   const { theme, colorMode, gluestackConfig } = useAppTheme();
   useOnThisDayNotifications();
+  const user = useAppSelector((state) => state.user);
+  const unreadCount = useUnreadCount(user.roomId || null, user.uid || null);
   const [tabHidden, setTabHidden] = useState(false);
   const insets = useSafeAreaInsets();
   // Gesture nav has a small inset the bar can overlap; 3-button nav needs clearing
   const tabBarBottom = insets.bottom > 30 ? insets.bottom + 4 : 22;
 
   useEffect(() => {
-    if (TAB_HIDDEN_ROUTES.includes(pathname)) {
+    if (TAB_HIDDEN_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`))) {
       setTabHidden(true);
     } else {
       setTabHidden(false);
@@ -40,8 +43,13 @@ export default function HomeLayout() {
           tabBarInactiveBackgroundColor: theme.colors.surface,
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.textTertiary,
+          // Soft cross-fade between tabs; the themed sceneStyle below keeps it from flashing white
+          animation: 'fade',
           // Screens without the tab bar still need to clear the system nav
-          sceneStyle: { paddingBottom: tabHidden ? insets.bottom : 0 },
+          sceneStyle: {
+            paddingBottom: tabHidden ? insets.bottom : 0,
+            backgroundColor: theme.colors.background,
+          },
           tabBarStyle: {
             borderTopWidth: 0,
             borderRadius: 20,
@@ -60,6 +68,7 @@ export default function HomeLayout() {
             overflow: 'hidden',
           },
           tabBarShowLabel: false,
+          tabBarHideOnKeyboard: true,
         }}>
         <Tabs.Screen
           name="Home"
@@ -139,7 +148,12 @@ export default function HomeLayout() {
               </View>
             ),
             headerShown: false,
-            tabBarHideOnKeyboard: true,
+            tabBarBadge: unreadCount > 0 ? (unreadCount > 99 ? '99+' : unreadCount) : undefined,
+            tabBarBadgeStyle: {
+              backgroundColor: theme.colors.primary,
+              color: theme.colors.onPrimary,
+              fontSize: 10,
+            },
           }}
         />
         <Tabs.Screen

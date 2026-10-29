@@ -8,11 +8,18 @@ import { buildScale } from './colorMath';
 import type { ColorPair } from './accentThemes';
 import type { ColorMode } from './colors';
 
+/**
+ * Shapes match expo-linear-gradient's `colors` / `locations` props, which
+ * require at least two stops.
+ */
+export type GradientColors = readonly [string, string, ...string[]];
+export type GradientLocations = readonly [number, number, ...number[]];
+
 export interface GradientConfig {
-  colors: string[];
+  colors: GradientColors;
   start?: { x: number; y: number };
   end?: { x: number; y: number };
-  locations?: number[];
+  locations?: GradientLocations;
 }
 
 export type GradientKey =

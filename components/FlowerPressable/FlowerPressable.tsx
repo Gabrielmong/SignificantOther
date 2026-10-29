@@ -18,6 +18,8 @@ export const FlowerPressable = ({
       content={loading ? 'Loading...' : flowerMessage}
       imageSource={FLOWER_MAP[flower] || FLOWER_MAP['daisy']}
       imageAlt="flower"
+      // Fades the card when the partner sends a new flower or message
+      contentKey={`${flower}|${flowerMessage}`}
       imagePosition="right"
       contentAlign="flex-start"
       loading={loading}
