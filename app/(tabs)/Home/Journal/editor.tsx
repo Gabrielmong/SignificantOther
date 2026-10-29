@@ -35,6 +35,8 @@ export default function JournalEditor() {
     if (params.id && user.roomId) {
       loadEntry();
     }
+    // Load once per entry; reloading later would overwrite in-progress edits
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
   const loadEntry = async () => {
@@ -44,7 +46,7 @@ export default function JournalEditor() {
         setTitle(data.title);
         setDescription(data.description);
         setInitialData({ title: data.title, description: data.description });
-      } catch (error) {
+      } catch {
         showToast({ title: 'Error', description: 'Failed to load entry', status: 'error' });
       }
     }
@@ -117,7 +119,7 @@ export default function JournalEditor() {
           ],
         );
       }
-    } catch (error) {
+    } catch {
       showToast({ title: 'Error', description: 'Failed to save entry', status: 'error' });
       setLoading(false);
     }

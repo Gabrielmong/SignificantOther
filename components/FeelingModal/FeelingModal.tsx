@@ -40,6 +40,8 @@ export const FeelingModal = ({
     if (isOpen) {
       setInternalFeeling(ownFeeling);
     }
+    // Reset to the saved value on open only, so a prop change can't clobber a pick in progress
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
   const { theme } = useAppTheme();
 

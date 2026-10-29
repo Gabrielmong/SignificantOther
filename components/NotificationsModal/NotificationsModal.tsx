@@ -8,7 +8,6 @@ import {
   Text,
   Button,
   Switch,
-  ModalBody,
 } from '@gluestack-ui/themed';
 import * as Notifications from 'expo-notifications';
 import { Minus, Plus } from 'lucide-react-native';
@@ -118,6 +117,7 @@ export const NotificationsModal = ({
     };
 
     checkPermission();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleTimeMinus = () => {
@@ -147,7 +147,7 @@ export const NotificationsModal = ({
         setCheckingChanged(true);
       }
     }
-  }, [notificationTime]);
+  }, [notificationTime, notifications?.checkin]);
 
   const handleSave = async () => {
     await editExtraProfile({

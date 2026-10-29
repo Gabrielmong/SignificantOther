@@ -1,10 +1,9 @@
 import { Box, Text } from '@gluestack-ui/themed';
-import { useState, useEffect } from 'react';
 import { View } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
 
 import { PathData } from './Whiteboard';
-import { useAppTheme, useAuth, useFirebase } from '../../hooks';
+import { useAppTheme } from '../../hooks';
 import { Skeleton } from '../Skeleton';
 import { PressableScale } from '../styled/PressableScale';
 
@@ -25,7 +24,6 @@ export const WhiteBoardPreview = ({
   boardName,
   loading,
 }: WhiteBoardPreviewProps) => {
-  const { user } = useAuth();
   const { theme } = useAppTheme();
   // Without onPress a plain View, so a pressable parent card gets the touch
   // (and its press animation) instead of this preview swallowing it

@@ -36,7 +36,6 @@ import type { GradientColors } from '../../../config/theme';
 import { useAppTheme, useAppToast, useAuth, useFirebase, useShareToChat } from '../../../hooks';
 import { useAppSelector } from '../../../state';
 import { FavoriteThing, FavoriteThings as FavoriteThingsType } from '../../../types';
-
 import { listItemExiting, listLayout, useListEntering } from '../../../utils/motion';
 
 export default function FavoriteThings() {
@@ -87,7 +86,7 @@ export default function FavoriteThings() {
   useEffect(() => {
     if (user.roomId && user.uid) {
       loadData();
-      listenToFavoriteThingsChanges(
+      return listenToFavoriteThingsChanges(
         (data) => {
           setFavoriteThings(data.favoriteThings);
         },
@@ -95,7 +94,9 @@ export default function FavoriteThings() {
         user.uid,
       );
     }
-  }, []);
+    // useFirebase() functions are recreated every render; resubscribe only on room/user change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user.roomId, user.uid]);
 
   const handleNewEntry = async ({
     title,

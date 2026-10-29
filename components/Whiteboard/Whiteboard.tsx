@@ -3,7 +3,6 @@ import {
   SliderFilledTrack,
   SliderThumb,
   SliderTrack,
-  Button,
   Modal,
   CloseIcon,
   Heading,
@@ -15,9 +14,9 @@ import {
   Text,
   ModalContent,
 } from '@gluestack-ui/themed';
-import { Brush, Eraser, PaintBucket, Palette, Pipette, UndoDot } from 'lucide-react-native';
+import { Brush, Eraser, PaintBucket, Palette, UndoDot } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Animated, GestureResponderEvent } from 'react-native';
+import { Animated, GestureResponderEvent } from 'react-native';
 import { runOnJS } from 'react-native-reanimated';
 import { Svg, Path } from 'react-native-svg';
 import ColorPicker, {
@@ -151,12 +150,15 @@ export const Whiteboard = ({
         setPreviousPaths(incomingPaths);
       }
     }
+    // Sync only when the incoming value changes; local edits must not trigger a reset
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [incomingPaths]);
 
   useEffect(() => {
     if (incomingCanvasColor && incomingCanvasColor !== canvasColor) {
       setCanvasColor(incomingCanvasColor);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [incomingCanvasColor]);
 
   const handleOpenBrushWidth = () => {

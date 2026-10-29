@@ -1,6 +1,5 @@
 import { GluestackUIProvider, StatusBar } from '@gluestack-ui/themed';
 import { getMessaging, onMessage, onNotificationOpenedApp } from '@react-native-firebase/messaging';
-import * as Notifications from 'expo-notifications';
 import { Slot } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { AppRegistry, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
@@ -11,8 +10,6 @@ import { Provider } from 'react-redux';
 import { EntryCheckerWrapper } from '../components';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { useAppTheme } from '../hooks/';
-
-
 import { useChatNotificationTaps } from '../services/chatNotifications';
 import { handlePushMessage } from '../services/pushMessages';
 import { store } from '../state';

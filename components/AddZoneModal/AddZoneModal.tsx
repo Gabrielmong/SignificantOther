@@ -167,6 +167,8 @@ export const AddZoneModal: React.FC<AddZoneModalProps> = ({
         clearInterval(locationUpdateInterval.current);
       }
     };
+    // useFirebase()'s updateLocation is recreated every render; listing it would restart the interval
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, user.roomId, user.uid, selectedLocation, initialData]);
 
   const handleMapPress = (event: any) => {

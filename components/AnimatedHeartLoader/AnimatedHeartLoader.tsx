@@ -37,7 +37,7 @@ export const AnimatedHeartLoader: React.FC = () => {
       -1,
       false,
     );
-  }, []);
+  }, [scale, opacity]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],

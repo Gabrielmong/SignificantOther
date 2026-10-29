@@ -42,6 +42,8 @@ export const FlowerModal = ({
       setInternalFlower(ownFlower);
       setInternalFlowerMessage(ownFlowerMessage);
     }
+    // Reset to the saved values on open only, so a prop change can't clobber edits in progress
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showFlowerModal]);
   const { theme } = useAppTheme();
 

@@ -32,11 +32,9 @@ import uuid from 'react-native-uuid';
 
 import { useAppToast } from './useAppToast';
 import { PathData } from '../components';
-import { useAuth } from './useAuth';
 import { ensureFirebaseApp } from '../services/firebaseApp';
 import {
   Activity,
-  ActivityObject,
   Wishlist,
   Countdown,
   CountdownObject,
@@ -63,7 +61,7 @@ export const useFirebase = () => {
   const { showToast } = useAppToast();
   try {
     ({ app, auth } = ensureFirebaseApp());
-  } catch (error) {
+  } catch {
     showToast({
       title: 'Firebase',
       description: 'Firebase initialization failed',

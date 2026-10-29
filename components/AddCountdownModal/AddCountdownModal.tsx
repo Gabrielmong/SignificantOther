@@ -8,13 +8,6 @@ import {
   Button,
   Input,
   InputField,
-  Select,
-  SelectTrigger,
-  SelectInput,
-  SelectPortal,
-  SelectBackdrop,
-  SelectContent,
-  SelectItem,
 } from '@gluestack-ui/themed';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import React, { useState } from 'react';
@@ -101,7 +94,7 @@ export const AddCountdownModal: React.FC<AddCountdownModalProps> = ({
 
     // Only include recurrence fields if recurrence is 'custom'
     if (recurrence === 'custom') {
-      countdownData.recurrenceInterval = parseInt(recurrenceInterval) || 1;
+      countdownData.recurrenceInterval = parseInt(recurrenceInterval, 10) || 1;
       countdownData.recurrenceUnit = recurrenceUnit;
     }
 

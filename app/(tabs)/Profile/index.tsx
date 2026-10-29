@@ -10,7 +10,6 @@ import {
   Pressable,
 } from '@gluestack-ui/themed';
 import * as Clipboard from 'expo-clipboard';
-import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Edit, Copy, Moon, Sun, Palette } from 'lucide-react-native';

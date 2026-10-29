@@ -74,14 +74,20 @@ export default function WhiteBoard() {
     };
 
     loadData();
-  }, []);
+    // useFirebase() functions are recreated every render; reload only on room change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomId]);
 
   useEffect(() => {
-    listenToWhiteboardEvents((data) => {
+    if (!roomId) return;
+
+    return listenToWhiteboardEvents((data) => {
       setStoredPaths(data.paths);
       setStoredCanvasColor(data.canvasColor || 'white');
       setBoardName(data.name || '');
     }, roomId);
+    // useFirebase() functions are recreated every render; resubscribe only on room change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
 
   const pathsCallback = (paths: PathData[]) => {

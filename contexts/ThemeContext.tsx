@@ -61,6 +61,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, defaultM
   // Load saved theme preference on mount
   useEffect(() => {
     Promise.all([loadThemePreference(), loadAccentPreference()]).finally(() => setIsLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadThemePreference = async () => {

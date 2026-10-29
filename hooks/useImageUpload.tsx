@@ -5,7 +5,6 @@ import {
 } from 'expo-image-picker';
 
 import { useAppToast } from './useAppToast';
-import { useFirebase } from './useFirebase';
 
 export const useImageUpload = () => {
   const { showToast } = useAppToast();

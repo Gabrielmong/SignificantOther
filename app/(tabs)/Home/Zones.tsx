@@ -14,8 +14,7 @@ export default function Zones() {
   const { user } = useAuth();
   const { showToast } = useAppToast();
   const { getCurrentLocation } = useLocation();
-  const { getZones, createZone, updateZone, deleteZone, listenToZoneChanges, getZoneStatus } =
-    useFirebase();
+  const { createZone, updateZone, deleteZone, listenToZoneChanges, getZoneStatus } = useFirebase();
 
   const [zones, setZones] = useState<ZoneObject>({});
   const [zoneStatus, setZoneStatus] = useState<any>({});
@@ -35,15 +34,18 @@ export default function Zones() {
       }
     };
     loadLocation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Listen to zone changes
   useEffect(() => {
     if (!user.roomId) return;
 
-    listenToZoneChanges((data) => {
+    return listenToZoneChanges((data) => {
       setZones(data.zones);
     }, user.roomId);
+    // useFirebase() functions are recreated every render; resubscribe only on room change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.roomId]);
 
   // Load zone status
@@ -58,6 +60,7 @@ export default function Zones() {
       }
     };
     loadStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.roomId, user.uid]);
 
   const handleAddZone = () => {

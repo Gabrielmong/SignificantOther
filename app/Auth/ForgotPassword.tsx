@@ -1,18 +1,8 @@
-import {
-  Input,
-  InputField,
-  ButtonSpinner,
-  Box,
-  View,
-  Button,
-  Text,
-  Icon,
-} from '@gluestack-ui/themed';
+import { Input, InputField, ButtonSpinner, Box, View, Button, Text } from '@gluestack-ui/themed';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ArrowLeft } from 'lucide-react-native';
 import { useState } from 'react';
-import { TouchableOpacity } from 'react-native';
 
 import { AuthFooter, IconButton } from '../../components';
 import { useAppTheme, useAuth } from '../../hooks';
@@ -25,7 +15,7 @@ export default function ForgotPassword() {
 
   const handleForgotPassword = async () => {
     setLoading(true);
-    const success = await forgotPassword(email);
+    await forgotPassword(email);
 
     setLoading(false);
   };

@@ -12,7 +12,7 @@ import {
 import { Link, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Eye, EyeOff } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { TouchableOpacity } from 'react-native';
 
 import { AuthFooter } from '../../components';

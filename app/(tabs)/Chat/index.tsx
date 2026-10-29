@@ -10,9 +10,6 @@ import {
   AvatarImage,
   AvatarFallbackText,
 } from '@gluestack-ui/themed';
-
-// Not in the hooks index: expo-audio is a native module, and importing it
-// everywhere would crash a build made before it was added at startup
 import { FlashList, type FlashListRef } from '@shopify/flash-list';
 import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
@@ -27,7 +24,6 @@ import {
   Pressable,
   TextInput,
 } from 'react-native';
-
 import Animated, {
   useAnimatedStyle,
   useReducedMotion,
@@ -54,6 +50,8 @@ import {
   useChatStars,
   useFirebase,
 } from '../../../hooks';
+// Not in the hooks index: expo-audio is a native module, and importing it
+// everywhere would crash a build made before it was added at startup
 import { useVoiceRecorder } from '../../../hooks/useVoiceRecorder';
 import { setChatOnScreen } from '../../../services/chatPresence';
 import { useAppSelector } from '../../../state';

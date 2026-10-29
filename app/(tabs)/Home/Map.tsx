@@ -44,7 +44,7 @@ export default function Map() {
   } = useFirebase();
 
   // Enable smart location tracking with motion detection
-  const { isMoving, movementIntensity, isMotionDetectionActive } = useSmartLocationTracking();
+  const { movementIntensity, isMotionDetectionActive } = useSmartLocationTracking();
 
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(
     null,
@@ -210,6 +210,7 @@ export default function Map() {
     };
 
     loadLocations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Real-time location updates while map is open (every 2 seconds)
@@ -285,9 +286,11 @@ export default function Map() {
   useEffect(() => {
     if (!user.roomId) return;
 
+    const unsubscribes: (() => void)[] = [];
+
     // Listen to user's own location changes (from background updates)
     if (user.uid) {
-      listenToLocationChanges(
+      const unsubscribe = listenToLocationChanges(
         (location) => {
           if (location) {
             setUserLocation({
@@ -299,11 +302,12 @@ export default function Map() {
         user.roomId,
         user.uid,
       );
+      unsubscribes.push(unsubscribe);
     }
 
     // Listen to partner's location changes
     if (partnerId) {
-      listenToLocationChanges(
+      const unsubscribe = listenToLocationChanges(
         (location) => {
           if (location) {
             setPartnerLocation({
@@ -315,7 +319,12 @@ export default function Map() {
         user.roomId,
         partnerId,
       );
+      unsubscribes.push(unsubscribe);
     }
+
+    return () => unsubscribes.forEach((unsubscribe) => unsubscribe());
+    // useFirebase() functions are recreated every render; resubscribe only on id changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.roomId, user.uid, partnerId]);
 
   // Listen to user's own zone status
@@ -333,6 +342,8 @@ export default function Map() {
     return () => {
       if (unsubscribe) unsubscribe();
     };
+    // useFirebase() functions are recreated every render; resubscribe only on id changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.roomId, user.uid]);
 
   const handleBack = () => router.back();

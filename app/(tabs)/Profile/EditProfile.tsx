@@ -7,7 +7,6 @@ import {
   Button,
   Spinner,
   Image,
-  set,
   Card,
 } from '@gluestack-ui/themed';
 import { router } from 'expo-router';
@@ -62,7 +61,7 @@ export default function EditProfile() {
     } else {
       setHasChanged(false);
     }
-  }, [displayName, photoURL]);
+  }, [displayName, photoURL, user?.displayName, user?.photoURL]);
 
   return (
     <View

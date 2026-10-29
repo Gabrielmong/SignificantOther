@@ -104,11 +104,13 @@ export default function Wishlist() {
   useEffect(() => {
     if (user.roomId) {
       loadData();
-      listenToWishlistChanges((data) => {
+      return listenToWishlistChanges((data) => {
         setWishlist(data.wishlist);
       }, user.roomId);
     }
-  }, []);
+    // useFirebase() functions are recreated every render; resubscribe only on room change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user.roomId]);
 
   const handleNewEntry = async ({
     description,

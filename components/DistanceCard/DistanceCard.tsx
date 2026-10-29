@@ -5,7 +5,7 @@
 
 import { Box, Spinner } from '@gluestack-ui/themed';
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity } from 'react-native';
 
 import { useAppTheme } from '../../hooks';
 import { Card } from '../styled';

@@ -1,7 +1,6 @@
 import { getMessaging, onMessage } from '@react-native-firebase/messaging';
-import { Slot, useLocalSearchParams, useSegments, router } from 'expo-router';
+import { useSegments, router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { PermissionsAndroid, Alert } from 'react-native';
 
 import { useAuth } from '../../hooks';
 import { useAppSelector } from '../../state';
@@ -13,6 +12,8 @@ export const EntryCheckerWrapper = ({ children }: { children: React.ReactNode })
   const [currentRoute, setCurrentRoute] = useState<string | null>(null);
 
   // Returns the auth listener's unsubscribe, so route changes don't stack listeners
+  // initialize comes from useAuth() and is recreated every render; re-run only on route change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => initialize(), [currentRoute]);
 
   useEffect(() => {
@@ -35,6 +36,8 @@ export const EntryCheckerWrapper = ({ children }: { children: React.ReactNode })
     } else {
       router.replace('/Auth/Signin');
     }
+    // Redirect only when login state changes, not on every route change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLogged]);
 
   useEffect(() => {

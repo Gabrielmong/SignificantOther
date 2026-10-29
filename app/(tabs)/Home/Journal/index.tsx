@@ -55,7 +55,7 @@ export default function Journal() {
   useEffect(() => {
     if (user.roomId) {
       loadData();
-      listenToJournalChanges(({ journal }) => {
+      return listenToJournalChanges(({ journal }) => {
         const parsedJournal = Object.keys(journal).map((key) => {
           return {
             id: key,
@@ -72,7 +72,9 @@ export default function Journal() {
         setJournal(orderedData);
       }, user.roomId);
     }
-  }, []);
+    // useFirebase() functions are recreated every render; resubscribe only on room change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user.roomId]);
 
   const handleCreateEntry = () => {
     router.push('/(tabs)/Home/Journal/editor');

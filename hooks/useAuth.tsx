@@ -14,9 +14,8 @@ import {
   sendPasswordResetEmail,
   updateProfile,
 } from 'firebase/auth';
-import { get, getDatabase, onValue, ref, update } from 'firebase/database';
-import { useEffect } from 'react';
-import { PermissionsAndroid, Linking, Platform } from 'react-native';
+import { get, getDatabase, ref, update } from 'firebase/database';
+import { PermissionsAndroid, Platform } from 'react-native';
 import {
   BatteryOptEnabled,
   RequestDisableOptimization,
