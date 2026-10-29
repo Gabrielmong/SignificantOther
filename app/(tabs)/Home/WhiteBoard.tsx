@@ -63,13 +63,16 @@ export default function WhiteBoard() {
   useEffect(() => {
     const loadData = async () => {
       if (roomId) {
-        getWhiteboard(roomId).then((snapshot) => {
-          const data = snapshot.val();
-          setStoredPaths(data.paths);
-          setStoredCanvasColor(data.canvasColor || 'white');
-          setBoardName(data.name || '');
-          setLoading(false);
-        });
+        getWhiteboard(roomId)
+          .then((snapshot) => {
+            // A room can have no board yet; start it empty rather than crash
+            const data = snapshot.val();
+            setStoredPaths(data?.paths || []);
+            setStoredCanvasColor(data?.canvasColor || 'white');
+            setBoardName(data?.name || '');
+          })
+          .catch((error) => console.error('Error loading whiteboard:', error))
+          .finally(() => setLoading(false));
       }
     };
 

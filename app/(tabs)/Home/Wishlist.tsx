@@ -48,6 +48,7 @@ import {
   useAuth,
   useFirebase,
   useImageUpload,
+  usePullToRefresh,
   useShareToChat,
 } from '../../../hooks';
 import { Activity, Wishlist as WishlistType } from '../../../types';
@@ -81,7 +82,6 @@ export default function Wishlist() {
     uploadToFirebaseStorage,
     deleteWishlistEntry,
   } = useFirebase();
-  const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalValues, setModalValues] = useState({
@@ -101,6 +101,8 @@ export default function Wishlist() {
       setLoading(false);
     }
   };
+
+  const { refreshing, onRefresh } = usePullToRefresh(loadData);
   useEffect(() => {
     if (user.roomId) {
       loadData();
@@ -379,7 +381,7 @@ export default function Wishlist() {
           paddingHorizontal: theme.commonSpacing.screenPadding,
           gap: theme.spacing[4],
         }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} />}>
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         {filteredWishlist && !loading && (
           <View
             style={{

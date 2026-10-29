@@ -213,6 +213,12 @@ export default function Map() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // The interval below reads these through a ref: both are new functions on
+  // every render, and as dependencies they restarted the interval on every
+  // tick, which reset the upload throttle so it uploaded every 2 seconds
+  const locationFnsRef = useRef({ getCurrentLocation, updateLocation });
+  locationFnsRef.current = { getCurrentLocation, updateLocation };
+
   // Real-time location updates while map is open (every 2 seconds)
   useEffect(() => {
     const LOCAL_UPDATE_INTERVAL = 2000; // Update display every 2 seconds
@@ -222,7 +228,7 @@ export default function Map() {
 
     const intervalId = setInterval(async () => {
       try {
-        const currentLoc = await getCurrentLocation();
+        const currentLoc = await locationFnsRef.current.getCurrentLocation();
         if (currentLoc) {
           // Always update local display immediately for smooth real-time updates
           setUserLocation({
@@ -239,9 +245,11 @@ export default function Map() {
           const now = Date.now();
           if (now - lastFirebaseUpdate >= FIREBASE_UPDATE_INTERVAL) {
             if (user.roomId && user.uid) {
-              updateLocation(user.roomId, user.uid, currentLoc).catch((e) => {
-                console.error('Error uploading location to Firebase:', e);
-              });
+              locationFnsRef.current
+                .updateLocation(user.roomId, user.uid, currentLoc)
+                .catch((e) => {
+                  console.error('Error uploading location to Firebase:', e);
+                });
               lastFirebaseUpdate = now;
             }
           }
@@ -252,7 +260,7 @@ export default function Map() {
     }, LOCAL_UPDATE_INTERVAL);
 
     return () => clearInterval(intervalId);
-  }, [user.roomId, user.uid, getCurrentLocation, updateLocation]);
+  }, [user.roomId, user.uid]);
 
   // Fetch partner's profile photo
   useEffect(() => {

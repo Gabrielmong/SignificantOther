@@ -19,7 +19,13 @@ import { useCallback, useState } from 'react';
 import { StatusBar, TouchableOpacity } from 'react-native';
 
 import { applyOpacity } from '../../../../config/theme';
-import { useAppTheme, useAuth, useFirebase, useShareToChat } from '../../../../hooks';
+import {
+  useAppTheme,
+  useAuth,
+  useFirebase,
+  usePullToRefresh,
+  useShareToChat,
+} from '../../../../hooks';
 import { Journal } from '../../../../types';
 
 export default function Note() {
@@ -29,7 +35,6 @@ export default function Note() {
   console.log(params.id);
   const { getEntryInJournal, deleteEntryInJournal, markJournalEntryAsRead } = useFirebase();
   const [note, setNote] = useState<Journal | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const shareToChat = useShareToChat();
@@ -47,7 +52,8 @@ export default function Note() {
 
   const loadData = async () => {
     if (params.id && user.roomId) {
-      getEntryInJournal(user.roomId, String(params.id)).then((data) => {
+      // Returned so pull-to-refresh waits for the entry
+      return getEntryInJournal(user.roomId, String(params.id)).then((data) => {
         setNote(data);
         if (data && data.authorId !== user.uid && !data.readAt) {
           markJournalEntryAsRead(user.roomId!, String(params.id)).catch(() => {});
@@ -56,6 +62,8 @@ export default function Note() {
       });
     }
   };
+
+  const { refreshing, onRefresh } = usePullToRefresh(loadData);
 
   const createdDate = new Date(String(note?.createdAt));
   const updatedDate = new Date(String(note?.updatedAt));
@@ -170,7 +178,7 @@ export default function Note() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={loadData}
+            onRefresh={onRefresh}
             tintColor={theme.colors.primary}
             colors={[theme.colors.primary]}
           />

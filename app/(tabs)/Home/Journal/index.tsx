@@ -15,7 +15,7 @@ import { TouchableOpacity } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { applyOpacity } from '../../../../config/theme';
-import { useAppTheme, useAuth, useFirebase } from '../../../../hooks';
+import { useAppTheme, useAuth, useFirebase, usePullToRefresh } from '../../../../hooks';
 import { Journal as JournalEntry, JournalObject } from '../../../../types';
 import { listItemExiting, listLayout, useListEntering } from '../../../../utils/motion';
 
@@ -28,13 +28,13 @@ export default function Journal() {
   const { user } = useAuth();
   const [journal, setJournal] = useState<ParsedJournal[] | null>(null);
   const { getJournal, listenToJournalChanges } = useFirebase();
-  const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const enterListItem = useListEntering(!!journal?.length);
 
   const loadData = async () => {
     if (user.roomId) {
-      const data = (await getJournal(user.roomId)) as JournalObject;
+      // No entries yet means no journal node at all
+      const data = ((await getJournal(user.roomId)) || {}) as JournalObject;
 
       const orderedData = Object.keys(data)
         .map((key) => {
@@ -52,6 +52,8 @@ export default function Journal() {
       setLoading(false);
     }
   };
+
+  const { refreshing, onRefresh } = usePullToRefresh(loadData);
   useEffect(() => {
     if (user.roomId) {
       loadData();
@@ -162,7 +164,7 @@ export default function Journal() {
           paddingBottom: 60,
           gap: theme.spacing[3],
         }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} />}>
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         {journal &&
           journal.length > 0 &&
           journal.map(({ id, authorId, title, description, author, createdAt, readAt }, index) => {

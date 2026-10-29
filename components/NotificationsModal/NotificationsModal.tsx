@@ -120,33 +120,23 @@ export const NotificationsModal = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleTimeMinus = () => {
-    if (notificationTime[1] === 0) {
-      setNotificationTime((prev) => [notificationTime[0] - 1, 15]);
-    } else {
-      setNotificationTime((prev) => [notificationTime[0], notificationTime[1] - 15]);
-    }
-  };
+  // Steps in 15-minute increments, wrapping around midnight in both directions
+  const stepTime = (minutes: number) =>
+    setNotificationTime(([hour, minute]) => {
+      const total = (((hour * 60 + minute + minutes) % 1440) + 1440) % 1440;
+      return [Math.floor(total / 60), total % 60];
+    });
 
-  const handleTimePlus = () => {
-    if (notificationTime[1] === 45) {
-      setNotificationTime((prev) => [notificationTime[0] + 1, 0]);
-    } else {
-      setNotificationTime((prev) => [notificationTime[0], notificationTime[1] + 15]);
-    }
-  };
+  const handleTimeMinus = () => stepTime(-15);
 
+  const handleTimePlus = () => stepTime(15);
+
+  // Never saved counts as changed, so the first Save schedules the reminder
   useEffect(() => {
-    if (notifications?.checkin) {
-      if (
-        notificationTime[0] === notifications.checkin[0] &&
-        notificationTime[1] === notifications.checkin[1]
-      ) {
-        setCheckingChanged(false);
-      } else {
-        setCheckingChanged(true);
-      }
-    }
+    const saved = notifications?.checkin;
+    setCheckingChanged(
+      !saved || notificationTime[0] !== saved[0] || notificationTime[1] !== saved[1],
+    );
   }, [notificationTime, notifications?.checkin]);
 
   const handleSave = async () => {

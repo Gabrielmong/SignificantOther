@@ -33,7 +33,14 @@ import Animated from 'react-native-reanimated';
 
 import { KeyboardAwareModal } from '../../../components';
 import type { GradientColors } from '../../../config/theme';
-import { useAppTheme, useAppToast, useAuth, useFirebase, useShareToChat } from '../../../hooks';
+import {
+  useAppTheme,
+  useAppToast,
+  useAuth,
+  useFirebase,
+  usePullToRefresh,
+  useShareToChat,
+} from '../../../hooks';
 import { useAppSelector } from '../../../state';
 import { FavoriteThing, FavoriteThings as FavoriteThingsType } from '../../../types';
 import { listItemExiting, listLayout, useListEntering } from '../../../utils/motion';
@@ -64,7 +71,6 @@ export default function FavoriteThings() {
     createFavoriteThing,
     deleteFavoriteThing,
   } = useFirebase();
-  const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalValues, setModalValues] = useState({
@@ -82,6 +88,8 @@ export default function FavoriteThings() {
       setLoading(false);
     }
   };
+
+  const { refreshing, onRefresh } = usePullToRefresh(loadData);
 
   useEffect(() => {
     if (user.roomId && user.uid) {
@@ -323,7 +331,7 @@ export default function FavoriteThings() {
           paddingHorizontal: theme.commonSpacing.screenPadding,
           gap: theme.spacing[4],
         }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} />}>
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         {filteredFavoriteThings && !loading && (
           <View
             style={{
