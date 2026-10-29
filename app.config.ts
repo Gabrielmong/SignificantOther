@@ -1,11 +1,15 @@
 import 'dotenv/config';
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
+import { version } from './package.json';
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Significant Other',
   slug: 'SignificantOtherApp',
-  version: '1.13.0',
+  // Bump it in package.json only; the build number (versionCode) is managed
+  // by EAS (see eas.json appVersionSource)
+  version,
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
