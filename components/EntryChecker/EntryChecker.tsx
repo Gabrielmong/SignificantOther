@@ -11,10 +11,12 @@ export const EntryCheckerWrapper = ({ children }: { children: React.ReactNode })
   const segments = useSegments();
   const [currentRoute, setCurrentRoute] = useState<string | null>(null);
 
-  // Returns the auth listener's unsubscribe, so route changes don't stack listeners
-  // initialize comes from useAuth() and is recreated every render; re-run only on route change
+  // One auth listener for the app's lifetime; it already follows sign-in and
+  // sign-out. Re-registering it on every route change re-ran the profile reads
+  // and the notification permission request on each navigation, which made
+  // screens flicker. (initialize is recreated every render, hence no deps.)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => initialize(), [currentRoute]);
+  useEffect(() => initialize(), []);
 
   useEffect(() => {
     if (segments) {

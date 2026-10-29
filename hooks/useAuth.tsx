@@ -42,13 +42,17 @@ import {
   store,
 } from '../state';
 
-// Guards against re-registering onTokenRefresh() every time
-// initialize() runs (it's called on every route change via EntryChecker,
-// the same way auth.onAuthStateChanged is already re-registered there).
+// Guards against re-registering onTokenRefresh() if initialize() runs again
+// (e.g. the root layout remounting).
 let tokenRefreshListenerRegistered = false;
 
-// Guards against re-prompting for battery optimization exemption on every
-// route change — ask at most once per app session.
+// Ask for notification permission at most once per app session. Asking
+// briefly brings up Android's permission screen even when it returns at once
+// (permission previously denied), which pauses and resumes the app.
+let notificationPermissionRequested = false;
+
+// Guards against re-prompting for battery optimization exemption — ask at
+// most once per app session.
 let batteryOptimizationPrompted = false;
 
 // Persists an FCM token for a user as a plain array — the one shape every
@@ -87,7 +91,8 @@ export const useAuth = () => {
       permission === AuthorizationStatus.AUTHORIZED ||
       permission === AuthorizationStatus.PROVISIONAL;
 
-    if (!enabled) {
+    if (!enabled && !notificationPermissionRequested) {
+      notificationPermissionRequested = true;
       await requestPermission(getMessaging());
       requestUserPermission();
     }
@@ -108,9 +113,9 @@ export const useAuth = () => {
   };
 
   // Fires whenever the OS silently rotates the FCM token (independent of
-  // checkToken, which only runs on auth-state/route changes) and persists
-  // the new token the same way. Guarded so it's only registered once, even
-  // though initialize() (which calls this) re-runs on every route change.
+  // checkToken, which only runs on auth-state changes) and persists the new
+  // token the same way. Guarded so it's only registered once, even if
+  // initialize() (which calls this) runs again.
   const registerTokenRefreshListener = () => {
     if (tokenRefreshListenerRegistered) return;
     tokenRefreshListenerRegistered = true;
@@ -130,7 +135,7 @@ export const useAuth = () => {
   // Asks the user to exempt the app from battery optimization, so background
   // work (widget updates, location tracking) stays reliable even when the
   // app has been closed for a while. Only meaningful on Android, and only
-  // worth asking once per app session rather than on every route change.
+  // worth asking once per app session.
   const requestBatteryOptimizationExemption = async () => {
     if (Platform.OS !== 'android' || batteryOptimizationPrompted) return;
     batteryOptimizationPrompted = true;
@@ -390,17 +395,18 @@ export const useAuth = () => {
             return;
           }
 
-          const roomDocRef = ref(db, `rooms/${data.roomId}`);
+          // Only the users: the whole room includes the full chat history
+          const roomUsersRef = ref(db, `rooms/${data.roomId}/users`);
 
-          return get(roomDocRef).then((snapshot) => {
-            const roomData = snapshot.val();
+          return get(roomUsersRef).then((snapshot) => {
+            const roomUsers = snapshot.val();
 
-            if (roomData) {
-              const partnerId = Object.keys(roomData.users || {}).find((id) => id !== uid) || '';
+            if (roomUsers) {
+              const partnerId = Object.keys(roomUsers).find((id) => id !== uid) || '';
               const roomFields: RoomPayload = {
                 partnerId,
                 roomId: data.roomId,
-                partnerName: roomData.users?.[partnerId]?.name,
+                partnerName: roomUsers[partnerId]?.name,
               };
 
               dispatch(setRoom(roomFields));

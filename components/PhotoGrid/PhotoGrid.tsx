@@ -85,15 +85,19 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({
     pendingScale.current = null;
   }, [columns, scale]);
 
-  // Pinch runs alongside the list's own scrolling, so Android's scroll
-  // view doesn't swallow it
-  const gesture = useMemo(() => {
+  // The list's own scrolling, as a gesture the pinch can run alongside. It must
+  // wrap the SectionList directly (it attaches to the nearest native view);
+  // attached to a wrapper view instead, the list stops scrolling.
+  const listScroll = useMemo(() => Gesture.Native(), []);
+
+  const pinch = useMemo(() => {
     const zoomOutTo = nextColumns(columns, 'out');
     const zoomInTo = nextColumns(columns, 'in');
     const maxScale = zoomOutTo === columns ? 1 + LIMIT_STRETCH : Infinity;
     const minScale = zoomInTo === columns ? 1 - LIMIT_STRETCH : 0;
 
-    const pinch = Gesture.Pinch()
+    return Gesture.Pinch()
+      .simultaneousWithExternalGesture(listScroll)
       .onUpdate((event) => {
         scale.value = Math.min(Math.max(event.scale, minScale), maxScale);
       })
@@ -106,8 +110,7 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({
           scale.value = withSpring(1, SPRING);
         }
       });
-    return Gesture.Simultaneous(pinch, Gesture.Native());
-  }, [columns, commitColumns, scale]);
+  }, [columns, commitColumns, scale, listScroll]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     flex: 1,
@@ -117,51 +120,53 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({
   }));
 
   return (
-    <GestureDetector gesture={gesture}>
+    <GestureDetector gesture={pinch}>
       {/* Clips the scaled grid so it never draws over the screen header */}
       <View style={{ flex: 1, overflow: 'hidden' }}>
         <Animated.View style={animatedStyle}>
-          <SectionList
-            sections={sections}
-            keyExtractor={(row) => row[0].id}
-            stickySectionHeadersEnabled={false}
-            ListHeaderComponent={ListHeaderComponent}
-            contentContainerStyle={{ paddingBottom: 32 }}
-            renderSectionHeader={({ section }) => (
-              <Text
-                style={{
-                  paddingHorizontal: 12,
-                  paddingTop: 16,
-                  paddingBottom: 8,
-                  fontSize: theme.fontSize.sm,
-                  fontWeight: theme.fontWeight.semibold,
-                  color: theme.colors.textSecondary,
-                }}>
-                {section.title}
-              </Text>
-            )}
-            renderItem={({ item: row }) => (
-              <View style={{ flexDirection: 'row', gap: GAP, marginBottom: GAP }}>
-                {row.map((photo) => (
-                  <TouchableOpacity
-                    key={photo.id}
-                    activeOpacity={0.85}
-                    onPress={() => onPhotoPress(photo, photos)}
-                    accessibilityRole="imagebutton"
-                    accessibilityLabel={photo.label || 'Photo'}>
-                    <Image
-                      source={{ uri: photo.thumbUrl ?? photo.url }}
-                      style={{
-                        width: tile,
-                        height: tile,
-                        backgroundColor: theme.colors.surfaceElevated,
-                      }}
-                    />
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          />
+          <GestureDetector gesture={listScroll}>
+            <SectionList
+              sections={sections}
+              keyExtractor={(row) => row[0].id}
+              stickySectionHeadersEnabled={false}
+              ListHeaderComponent={ListHeaderComponent}
+              contentContainerStyle={{ paddingBottom: 32 }}
+              renderSectionHeader={({ section }) => (
+                <Text
+                  style={{
+                    paddingHorizontal: 12,
+                    paddingTop: 16,
+                    paddingBottom: 8,
+                    fontSize: theme.fontSize.sm,
+                    fontWeight: theme.fontWeight.semibold,
+                    color: theme.colors.textSecondary,
+                  }}>
+                  {section.title}
+                </Text>
+              )}
+              renderItem={({ item: row }) => (
+                <View style={{ flexDirection: 'row', gap: GAP, marginBottom: GAP }}>
+                  {row.map((photo) => (
+                    <TouchableOpacity
+                      key={photo.id}
+                      activeOpacity={0.85}
+                      onPress={() => onPhotoPress(photo, photos)}
+                      accessibilityRole="imagebutton"
+                      accessibilityLabel={photo.label || 'Photo'}>
+                      <Image
+                        source={{ uri: photo.thumbUrl ?? photo.url }}
+                        style={{
+                          width: tile,
+                          height: tile,
+                          backgroundColor: theme.colors.surfaceElevated,
+                        }}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            />
+          </GestureDetector>
         </Animated.View>
       </View>
     </GestureDetector>

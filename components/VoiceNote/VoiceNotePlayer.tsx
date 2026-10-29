@@ -10,10 +10,13 @@ import { useAppTheme } from '../../hooks/useAppTheme';
 // Only one voice note plays at a time: starting one pauses whichever was playing
 let pauseActive: (() => void) | null = null;
 
-// Message fields are untrusted: a missing or absurd duration shows as 0:00
-const MAX_DURATION_MS = 60 * 60 * 1000;
+// Message fields are untrusted, and early voice notes stored a broken
+// duration (an expo-audio bug), so anything longer than a voice note can be
+// counts as unknown: shown as --:-- until playback reports the real length.
+// Generous on purpose; recording stops at 2 minutes.
+const MAX_DURATION_MS = 10 * 60 * 1000;
 const safeDuration = (ms: unknown) =>
-  typeof ms === 'number' && Number.isFinite(ms) && ms > 0 ? Math.min(ms, MAX_DURATION_MS) : 0;
+  typeof ms === 'number' && Number.isFinite(ms) && ms > 0 && ms <= MAX_DURATION_MS ? ms : 0;
 
 export const formatDuration = (ms: number) => {
   const seconds = Math.max(0, Math.round(ms / 1000));
@@ -137,7 +140,11 @@ export const VoiceNotePlayer = ({ uri, durationMs, color }: VoiceNotePlayerProps
           <View style={{ width: `${progress * 100}%`, height: '100%', backgroundColor: color }} />
         </View>
         <Text style={{ color: applyOpacity(color, 0.8), fontSize: theme.fontSize.xs }}>
-          {formatDuration(playing || positionMs > 0 ? positionMs : totalMs)}
+          {playing || positionMs > 0
+            ? formatDuration(positionMs)
+            : totalMs > 0
+              ? formatDuration(totalMs)
+              : '--:--'}
         </Text>
       </View>
     </View>

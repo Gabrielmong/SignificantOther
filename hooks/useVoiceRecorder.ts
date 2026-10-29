@@ -104,9 +104,13 @@ export const useVoiceRecorder = (onRecorded: (uri: string, durationMs: number) =
     startedAtRef.current = null;
     setRecording(false);
 
-    // The recorder's own clock, falling back to the wall clock
+    // Not recorder.currentTime: despite its "seconds" type, expo-audio on
+    // Android returns the epoch time recording started (in ms). Use the
+    // status's durationMillis when it's plausible, else the wall clock.
+    const wallClockMs = Date.now() - startedAt;
+    const reportedMs = recorder.getStatus().durationMillis;
     const durationMs =
-      recorder.currentTime > 0 ? recorder.currentTime * 1000 : Date.now() - startedAt;
+      reportedMs > 0 && reportedMs <= wallClockMs + 1000 ? reportedMs : wallClockMs;
     try {
       await recorder.stop();
     } catch (error) {

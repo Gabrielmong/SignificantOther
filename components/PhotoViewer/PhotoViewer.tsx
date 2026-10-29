@@ -14,7 +14,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 
-import { useAppTheme } from '../../hooks';
+import { useAppTheme, useKeyboardHeight } from '../../hooks';
 import type { PhotoDetails } from '../../hooks/useGallery';
 import type { PlaceInput } from '../../hooks/usePlaces';
 import { Photo, Place } from '../../types';
@@ -58,6 +58,9 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
 }) => {
   const [pickingPlace, setPickingPlace] = useState(false);
   const { theme } = useAppTheme();
+  // The viewer is its own full-screen window that doesn't resize for the
+  // keyboard, so the details panel lifts itself above it while editing
+  const keyboardHeight = useKeyboardHeight();
   const { width, height } = useWindowDimensions();
   const listRef = useRef<FlatList<Photo>>(null);
   const [index, setIndex] = useState(startIndex);
@@ -214,10 +217,11 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
             position: 'absolute',
             left: 0,
             right: 0,
-            bottom: 0,
-            maxHeight: height * 0.6,
+            bottom: keyboardHeight,
+            // Above the keyboard there's less room; keep clear of the top bar
+            maxHeight: keyboardHeight ? height - keyboardHeight - 120 : height * 0.6,
             padding: 16,
-            paddingBottom: 32,
+            paddingBottom: keyboardHeight ? 16 : 32,
             backgroundColor: 'rgba(0,0,0,0.65)',
           }}>
           {editing ? (

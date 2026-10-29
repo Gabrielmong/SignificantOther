@@ -42,8 +42,9 @@ export default function HomeLayout() {
           tabBarInactiveBackgroundColor: theme.colors.surface,
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.textTertiary,
-          // Soft cross-fade between tabs; the themed sceneStyle below keeps it from flashing white
-          animation: 'fade',
+          // No tab animation: with 'fade', a tab opened for the first time
+          // drew one frame fully visible before fading in, which looked like
+          // flashing back to the previous screen
           // Screens without the tab bar still need to clear the system nav
           sceneStyle: {
             paddingBottom: tabHidden ? insets.bottom : 0,
