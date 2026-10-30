@@ -37,6 +37,15 @@ export const questionForDate = (dateKey: string): string => {
 };
 
 /**
+ * The date `days` days after `dateKey` (negative for before).
+ * @param dateKey - Date as YYYY-MM-DD
+ */
+export const addDays = (dateKey: string, days: number): string => {
+  const date = new Date(dateKeyToUtc(dateKey) + days * DAY_MS);
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
+};
+
+/**
  * History heading for a date, e.g. "Tue, 27 Oct".
  */
 export const formatDateKey = (dateKey: string): string => {

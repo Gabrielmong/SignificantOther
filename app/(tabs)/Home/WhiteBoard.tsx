@@ -18,16 +18,15 @@ import { StatusBar } from 'expo-status-bar';
 import { ArrowLeft, Bookmark, Clock, Edit, Eye, X } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Alert, Dimensions, TouchableOpacity } from 'react-native';
-import { Path, Svg } from 'react-native-svg';
 
-import { IconButton, PathData, Whiteboard, KeyboardAwareModal } from '../../../components';
+import { BoardCanvas, IconButton, Whiteboard, KeyboardAwareModal } from '../../../components';
 import { useAppTheme, useAuth, useFirebase } from '../../../hooks';
 import { useAppSelector } from '../../../state';
-import { WhiteboardSnapshot } from '../../../types';
+import { Stroke, WhiteboardSnapshot } from '../../../types';
 
 export default function WhiteBoard() {
   const { colorMode } = useAppTheme();
-  const [storedPaths, setStoredPaths] = useState<PathData[]>([]);
+  const [storedStrokes, setStoredStrokes] = useState<Stroke[]>([]);
   const [storedCanvasColor, setStoredCanvasColor] = useState<string>('white');
   const [boardName, setBoardName] = useState<string>('');
   const { user } = useAuth();
@@ -47,8 +46,10 @@ export default function WhiteBoard() {
 
   const {
     listenToWhiteboardEvents,
-    updateWhiteboard,
-    getWhiteboard,
+    addStroke,
+    removeStrokes,
+    restoreStrokes,
+    updateCanvasColor,
     updateWhiteBoardName,
     saveWhiteboardSnapshot,
     getWhiteboardSnapshots,
@@ -60,52 +61,17 @@ export default function WhiteBoard() {
     }
   }, [user.roomId]);
 
-  useEffect(() => {
-    const loadData = async () => {
-      if (roomId) {
-        getWhiteboard(roomId)
-          .then((snapshot) => {
-            // A room can have no board yet; start it empty rather than crash
-            const data = snapshot.val();
-            setStoredPaths(data?.paths || []);
-            setStoredCanvasColor(data?.canvasColor || 'white');
-            setBoardName(data?.name || '');
-          })
-          .catch((error) => console.error('Error loading whiteboard:', error))
-          .finally(() => setLoading(false));
-      }
-    };
-
-    loadData();
-    // useFirebase() functions are recreated every render; reload only on room change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomId]);
-
+  // The first event is the current board, converted from the pre-v2 format if needed
   useEffect(() => {
     if (!roomId) return;
 
-    return listenToWhiteboardEvents((data) => {
-      setStoredPaths(data.paths);
-      setStoredCanvasColor(data.canvasColor || 'white');
-      setBoardName(data.name || '');
+    return listenToWhiteboardEvents((board) => {
+      setStoredStrokes(board.strokes);
+      setStoredCanvasColor(board.canvasColor);
+      setBoardName(board.name);
+      setLoading(false);
     }, roomId);
-    // useFirebase() functions are recreated every render; resubscribe only on room change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomId]);
-
-  const pathsCallback = (paths: PathData[]) => {
-    setStoredPaths(paths);
-    if (roomId) {
-      updateWhiteboard(paths, roomId, storedCanvasColor);
-    }
-  };
-
-  const canvasCallback = (color: string) => {
-    setStoredCanvasColor(color);
-    if (roomId) {
-      updateWhiteboard(storedPaths, roomId, color);
-    }
-  };
+  }, [roomId, listenToWhiteboardEvents]);
 
   const handleEditWhiteboardName = () => {
     setNewBoardName(boardName);
@@ -119,7 +85,7 @@ export default function WhiteBoard() {
   const handleSaveSnapshot = async () => {
     if (!roomId || !user.uid) return;
     const snapshot: WhiteboardSnapshot = {
-      paths: storedPaths,
+      strokes: storedStrokes,
       canvasColor: storedCanvasColor,
       savedBy: user.uid,
       savedAt: new Date().toISOString(),
@@ -219,10 +185,12 @@ export default function WhiteBoard() {
 
           {roomId && (
             <Whiteboard
-              pathCallback={pathsCallback}
-              canvasColorCallback={canvasCallback}
-              incomingPaths={storedPaths}
-              incomingCanvasColor={storedCanvasColor}
+              strokes={storedStrokes}
+              canvasColor={storedCanvasColor}
+              onStrokeAdd={(stroke) => addStroke(roomId, stroke)}
+              onStrokesRemove={(ids) => removeStrokes(roomId, ids)}
+              onStrokesRestore={(strokes) => restoreStrokes(roomId, strokes)}
+              onCanvasColorChange={(color) => updateCanvasColor(roomId, color)}
               toolsVisible={toolsVisible}
               setToolsVisible={setToolsVisible}
             />
@@ -291,17 +259,11 @@ export default function WhiteBoard() {
                       borderWidth: 1,
                       borderColor: '#e0e0e0',
                     }}>
-                    <Svg height={120} width="100%" style={{ backgroundColor: snap.canvasColor }}>
-                      {snap.paths?.map((p, pi) => (
-                        <Path
-                          key={pi}
-                          d={p.path.join(' ')}
-                          fill="none"
-                          stroke={p.color}
-                          strokeWidth={p.width}
-                        />
-                      ))}
-                    </Svg>
+                    <BoardCanvas
+                      strokes={snap.strokes}
+                      canvasColor={snap.canvasColor}
+                      style={{ height: 120, width: '100%' }}
+                    />
                     <Box
                       style={{
                         flexDirection: 'row',
@@ -343,20 +305,11 @@ export default function WhiteBoard() {
 
           {selectedSnapshot && (
             <>
-              <Svg
-                height={Dimensions.get('window').height * 0.9}
-                width="100%"
-                style={{ backgroundColor: selectedSnapshot.canvasColor }}>
-                {selectedSnapshot.paths?.map((p, pi) => (
-                  <Path
-                    key={pi}
-                    d={p.path.join(' ')}
-                    fill="none"
-                    stroke={p.color}
-                    strokeWidth={p.width}
-                  />
-                ))}
-              </Svg>
+              <BoardCanvas
+                strokes={selectedSnapshot.strokes}
+                canvasColor={selectedSnapshot.canvasColor}
+                style={{ height: Dimensions.get('window').height * 0.9, width: '100%' }}
+              />
               <Box
                 style={{
                   flexDirection: 'row',

@@ -4,7 +4,8 @@
  * Consolidates FeelingPressable and FlowerPressable patterns
  */
 
-import { Box, Text, Image } from '@gluestack-ui/themed';
+import { Box, Text } from '@gluestack-ui/themed';
+import { Image } from 'expo-image';
 import React, { useEffect, useRef } from 'react';
 import { ViewStyle } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -91,7 +92,7 @@ export const PressableCard: React.FC<PressableCardProps> = ({
           <Animated.View key={fadeKey} entering={entering}>
             <Image
               source={imageSource}
-              alt={imageAlt}
+              accessibilityLabel={imageAlt}
               style={{
                 width: IMAGE_SIZE,
                 height: IMAGE_SIZE,

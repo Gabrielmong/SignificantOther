@@ -6,7 +6,7 @@ import {
   remove,
   serverTimestamp,
   set,
-} from 'firebase/database';
+} from '@react-native-firebase/database';
 import { useEffect, useState } from 'react';
 
 import { ensureFirebaseApp } from '../services/firebaseApp';

@@ -1,4 +1,8 @@
-import { getDatabase, ref as databaseRef, get } from 'firebase/database';
+// react-native-android-widget calls widget components as plain functions, so
+// React Compiler's memoization (which uses hooks) must stay out of this file
+'use no memo';
+
+import { getDatabase, ref as databaseRef, get } from '@react-native-firebase/database';
 import type React from 'react';
 import type { WidgetTaskHandlerProps } from 'react-native-android-widget';
 

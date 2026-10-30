@@ -1,13 +1,13 @@
+import type { Unsubscribe } from '@react-native-firebase/database';
 import { router } from 'expo-router';
-import type { Unsubscribe } from 'firebase/database';
 import { useState, useEffect, useCallback } from 'react';
 
-import { PathData } from '../components';
+import { Stroke, WhiteboardBoard } from '../types';
 
 interface UseWhiteboardProps {
   roomId: string | null;
   listenToWhiteboardEvents: (
-    callback: (data: { paths: PathData[]; canvasColor: string; name: string }) => void,
+    callback: (board: WhiteboardBoard) => void,
     roomId: string,
   ) => Unsubscribe;
   setShowModal: (show: boolean) => void;
@@ -18,7 +18,7 @@ export const useWhiteboard = ({
   listenToWhiteboardEvents,
   setShowModal,
 }: UseWhiteboardProps) => {
-  const [storedPaths, setStoredPaths] = useState<PathData[]>([]);
+  const [storedStrokes, setStoredStrokes] = useState<Stroke[]>([]);
   const [storedCanvasColor, setStoredCanvasColor] = useState<string>('white');
   const [boardName, setBoardName] = useState<string>('');
 
@@ -26,10 +26,10 @@ export const useWhiteboard = ({
   useEffect(() => {
     if (!roomId) return;
 
-    const unsubscribe = listenToWhiteboardEvents((data) => {
-      setStoredPaths(data.paths);
-      setStoredCanvasColor(data.canvasColor || 'white');
-      setBoardName(data.name || '');
+    const unsubscribe = listenToWhiteboardEvents((board) => {
+      setStoredStrokes(board.strokes);
+      setStoredCanvasColor(board.canvasColor);
+      setBoardName(board.name);
     }, roomId);
 
     // Cleanup Firebase listener on unmount or when dependencies change
@@ -50,25 +50,15 @@ export const useWhiteboard = ({
     setShowModal(false);
   }, [setShowModal]);
 
-  const loadWhiteboardData = useCallback(
-    async (whiteboardSnapshot?: {
-      val: () => { paths: PathData[]; canvasColor: string; name: string } | null;
-    }) => {
-      if (whiteboardSnapshot?.val()) {
-        const data = whiteboardSnapshot.val();
-        if (data) {
-          setStoredPaths(data.paths);
-          setStoredCanvasColor(data.canvasColor || 'white');
-          setBoardName(data.name || '');
-        }
-      }
-    },
-    [],
-  );
+  const loadWhiteboardData = useCallback((board: WhiteboardBoard) => {
+    setStoredStrokes(board.strokes);
+    setStoredCanvasColor(board.canvasColor);
+    setBoardName(board.name);
+  }, []);
 
   return {
     // State
-    storedPaths,
+    storedStrokes,
     storedCanvasColor,
     boardName,
 

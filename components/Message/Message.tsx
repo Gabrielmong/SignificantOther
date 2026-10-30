@@ -1,12 +1,16 @@
-import { Box, Pressable, Text } from '@gluestack-ui/themed';
+import { Text } from '@gluestack-ui/themed';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { ChevronRight, ImageOff, MoreHorizontal, Reply, Star } from 'lucide-react-native';
 import { useRef } from 'react';
+// Plain RN views: this renders once per chat bubble, and gluestack's Box and
+// Pressable resolve their styles at runtime on every render
 import {
   ActivityIndicator,
-  Image,
   Linking,
+  Pressable,
   Text as NativeText,
+  View,
   useWindowDimensions,
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -225,7 +229,7 @@ export const Message = ({
   return (
     <>
       {isNewDay && (
-        <Box
+        <View
           accessibilityRole="header"
           style={{
             flexDirection: 'row',
@@ -234,7 +238,7 @@ export const Message = ({
             paddingTop: theme.spacing[4],
             paddingHorizontal: theme.spacing[2],
           }}>
-          <Box style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }} />
+          <View style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }} />
           <Text
             style={{
               fontSize: theme.fontSize.xs,
@@ -243,11 +247,11 @@ export const Message = ({
             }}>
             {dayLabel(timestamp)}
           </Text>
-          <Box style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }} />
-        </Box>
+          <View style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }} />
+        </View>
       )}
       {showTimeLabel && (
-        <Box
+        <View
           style={{
             width: '100%',
             justifyContent: 'center',
@@ -261,7 +265,7 @@ export const Message = ({
             }}>
             {timeLabel(timestamp)}
           </Text>
-        </Box>
+        </View>
       )}
 
       <GestureDetector gesture={swipe}>
@@ -376,7 +380,7 @@ export const Message = ({
                   {attachment.emoji && (
                     <Text style={{ fontSize: theme.fontSize['2xl'] }}>{attachment.emoji}</Text>
                   )}
-                  <Box style={{ flexShrink: 1 }}>
+                  <View style={{ flexShrink: 1 }}>
                     <Text
                       style={{
                         color: applyOpacity(onColor, 0.7),
@@ -401,7 +405,7 @@ export const Message = ({
                         {attachment.subtitle}
                       </Text>
                     )}
-                  </Box>
+                  </View>
                   {attachmentTarget && (
                     <ChevronRight size={18} color={applyOpacity(onColor, 0.7)} />
                   )}
@@ -424,11 +428,12 @@ export const Message = ({
                     }}>
                     <Image
                       source={{ uri: bubbleImageUri ?? imageUri }}
-                      resizeMode="cover"
+                      recyclingKey={bubbleImageUri ?? imageUri}
+                      contentFit="cover"
                       style={{ width: '100%', height: '100%' }}
                     />
                     {status === 'sending' && (
-                      <Box
+                      <View
                         style={{
                           position: 'absolute',
                           top: 0,
@@ -440,11 +445,11 @@ export const Message = ({
                           backgroundColor: 'rgba(0, 0, 0, 0.3)',
                         }}>
                         <ActivityIndicator color="#ffffff" />
-                      </Box>
+                      </View>
                     )}
                   </Pressable>
                 ) : (
-                  <Box
+                  <View
                     style={{
                       width: imageWidth,
                       height: imageWidth * 0.6,
@@ -459,7 +464,7 @@ export const Message = ({
                       style={{ color: applyOpacity(onColor, 0.7), fontSize: theme.fontSize.xs }}>
                       Photo unavailable
                     </Text>
-                  </Box>
+                  </View>
                 ))}
 
               {/* Voice note */}
@@ -496,7 +501,7 @@ export const Message = ({
 
               {/* Small marks: starred by you, edited after sending */}
               {(starred || edited) && (
-                <Box
+                <View
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
@@ -516,7 +521,7 @@ export const Message = ({
                   {edited && (
                     <Text style={{ color: applyOpacity(onColor, 0.7), fontSize: 11 }}>edited</Text>
                   )}
-                </Box>
+                </View>
               )}
             </Pressable>
           </Animated.View>
@@ -524,7 +529,7 @@ export const Message = ({
       </GestureDetector>
 
       {reactionEmojis.length > 0 && (
-        <Box
+        <View
           style={{
             flexDirection: 'row',
             alignSelf: isOwnMessage ? 'flex-end' : 'flex-start',
@@ -539,7 +544,7 @@ export const Message = ({
             borderColor: theme.colors.background,
           }}>
           <Text style={{ fontSize: theme.fontSize.sm }}>{reactionEmojis.join('')}</Text>
-        </Box>
+        </View>
       )}
 
       {status === 'sending' && (

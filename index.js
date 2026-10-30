@@ -1,5 +1,9 @@
 'use strict';
 exports.__esModule = true;
+
+// Turns on the database's disk cache, which must happen before any other
+// Firebase call, including in headless launches
+require('./services/firebaseApp');
 require('expo-router/entry');
 
 const { registerWidgetTaskHandler } = require('react-native-android-widget');

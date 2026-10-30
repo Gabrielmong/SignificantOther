@@ -3,6 +3,7 @@ export * from './Wishlist';
 export * from './Journal';
 export * from './Countdown';
 export * from './Zone';
+export * from './Whiteboard';
 export * from './WhiteboardSnapshot';
 export * from './FavoriteThing';
 export * from './FeelingHistory';

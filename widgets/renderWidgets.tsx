@@ -1,3 +1,7 @@
+// react-native-android-widget calls widget components as plain functions, so
+// React Compiler's memoization (which uses hooks) must stay out of this file
+'use no memo';
+
 import { Platform } from 'react-native';
 import { requestWidgetUpdate } from 'react-native-android-widget';
 

@@ -1,6 +1,7 @@
 import { Text } from '@gluestack-ui/themed';
+import { Image } from 'expo-image';
 import React from 'react';
-import { Image, View } from 'react-native';
+import { View } from 'react-native';
 
 import { useAppTheme } from '../../hooks';
 import { Milestone } from '../../types';

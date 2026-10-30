@@ -1,4 +1,13 @@
-import { FirebaseError } from '@firebase/util';
+import type { ReactNativeFirebase } from '@react-native-firebase/app';
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  sendPasswordResetEmail,
+  updateProfile,
+} from '@react-native-firebase/auth';
+import { get, getDatabase, ref, update } from '@react-native-firebase/database';
 import {
   AuthorizationStatus,
   getMessaging,
@@ -8,13 +17,6 @@ import {
   requestPermission,
   unregisterDeviceForRemoteMessages,
 } from '@react-native-firebase/messaging';
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail,
-  updateProfile,
-} from 'firebase/auth';
-import { get, getDatabase, ref, update } from 'firebase/database';
 import { PermissionsAndroid, Platform } from 'react-native';
 import {
   BatteryOptEnabled,
@@ -157,7 +159,7 @@ export const useAuth = () => {
   const logout = (): Promise<void> => {
     if (!auth) return Promise.resolve();
 
-    return auth.signOut().then(async () => {
+    return signOut(auth).then(async () => {
       dispatch(stateLogout());
       dispatch(resetRoom());
       await clearLocationTaskUserInfo();
@@ -196,7 +198,7 @@ export const useAuth = () => {
 
         return true;
       })
-      .catch((error: FirebaseError) => {
+      .catch((error: ReactNativeFirebase.NativeFirebaseError) => {
         const errorMessage = error.message;
 
         showToast({
@@ -241,7 +243,7 @@ export const useAuth = () => {
 
         return true;
       })
-      .catch((error: FirebaseError): boolean => {
+      .catch((error: ReactNativeFirebase.NativeFirebaseError): boolean => {
         const errorMessage = error.message;
 
         showToast({
@@ -259,10 +261,8 @@ export const useAuth = () => {
 
     registerTokenRefreshListener();
 
-    return auth.onAuthStateChanged(async (user) => {
+    return onAuthStateChanged(auth, async (user) => {
       if (user) {
-        user?.getIdTokenResult().then((idTokenResult) => {});
-
         await getExtraProfile();
 
         await checkToken();
@@ -296,7 +296,7 @@ export const useAuth = () => {
 
         return true;
       })
-      .catch((error: FirebaseError) => {
+      .catch((error: ReactNativeFirebase.NativeFirebaseError) => {
         const errorMessage = error.message;
 
         showToast({
@@ -332,7 +332,7 @@ export const useAuth = () => {
           status: 'success',
         });
       })
-      .catch((error: FirebaseError) => {
+      .catch((error: ReactNativeFirebase.NativeFirebaseError) => {
         const errorMessage = error.message;
 
         showToast({

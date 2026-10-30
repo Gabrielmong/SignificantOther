@@ -30,16 +30,19 @@ interface DailyQuestionCardProps {
   onOpenHistory: () => void;
 }
 
-function AnswerModal({
+export function AnswerModal({
   isOpen,
   question,
   initialText,
+  note,
   onClose,
   onSave,
 }: {
   isOpen: boolean;
   question: string;
   initialText: string;
+  /** Shown above the input, e.g. that the answer will be marked late */
+  note?: string;
   onClose: () => void;
   onSave: (text: string) => void;
 }) {
@@ -69,6 +72,16 @@ function AnswerModal({
           </Text>
         </ModalHeader>
         <ModalBody>
+          {!!note && (
+            <Text
+              style={{
+                fontSize: theme.fontSize.sm,
+                color: theme.colors.warning,
+                marginBottom: theme.spacing[2],
+              }}>
+              {note}
+            </Text>
+          )}
           <TextInput
             value={text}
             onChangeText={setText}

@@ -5,13 +5,12 @@ import {
   serverTimestamp,
   set,
   update,
-} from 'firebase/database';
-import { getDownloadURL, getStorage, ref as storageRef, uploadBytes } from 'firebase/storage';
+} from '@react-native-firebase/database';
 
 import { firebaseConfig } from '../config';
 import { MessageAudio, MessageImage, MessageReply, MessageType } from '../types';
 import { ensureFirebaseApp } from './firebaseApp';
-import { deletePhoto, PickedPhoto, uploadPhotoWithThumb } from './photoUpload';
+import { deletePhoto, PickedPhoto, uploadLocalFile, uploadPhotoWithThumb } from './photoUpload';
 
 // Photos and voice notes in the chat: their Storage files and the messages
 // that carry them. Lives outside useFirebase so the media flow (reserve a key,
@@ -71,14 +70,9 @@ export const uploadVoiceNote = async (
   uri: string,
   durationMs: number,
 ): Promise<MessageAudio> => {
-  const blob = await (await fetch(uri)).blob();
   const path = `${chatFolder(roomId)}/${messageId}.m4a`;
-  const storage = getStorage();
-  // Fail within 30s instead of retrying for the default 10 minutes
-  storage.maxUploadRetryTime = 30000;
-  const fileRef = storageRef(storage, path);
-  await uploadBytes(fileRef, blob, { contentType: 'audio/mp4' });
-  return { url: await getDownloadURL(fileRef), durationMs: Math.round(durationMs), path };
+  const url = await uploadLocalFile(uri, path, 'audio/mp4');
+  return { url, durationMs: Math.round(durationMs), path };
 };
 
 /**

@@ -1,3 +1,4 @@
+import { getIdToken } from '@react-native-firebase/auth';
 import {
   getDatabase,
   ref as databaseRef,
@@ -11,8 +12,7 @@ import {
   orderByChild,
   limitToLast,
   startAt,
-  startAfter,
-  endBefore,
+  endAt,
   onDisconnect,
   onChildAdded,
   onChildChanged,
@@ -21,17 +21,19 @@ import {
   set,
   DataSnapshot,
   Query,
-} from 'firebase/database';
+} from '@react-native-firebase/database';
 import {
   getStorage,
-  uploadBytesResumable,
+  putFile,
   getDownloadURL,
   ref as storageRef,
-} from 'firebase/storage';
+} from '@react-native-firebase/storage';
+import { useMemo } from 'react';
+import { Dimensions } from 'react-native';
 import uuid from 'react-native-uuid';
 
 import { useAppToast } from './useAppToast';
-import { PathData } from '../components';
+import { firebaseConfig } from '../config';
 import { ensureFirebaseApp } from '../services/firebaseApp';
 import {
   Activity,
@@ -50,15 +52,28 @@ import {
   MessageAttachment,
   MessageReply,
   MessageType,
+  StoredStroke,
+  Stroke,
+  WhiteboardBoard,
 } from '../types';
 import { FavoriteThing, FavoriteThings } from '../types/FavoriteThing';
 import { Journal, JournalObject } from '../types/Journal';
-import { WhiteboardSnapshot } from '../types/WhiteboardSnapshot';
+import { StoredWhiteboardSnapshot, WhiteboardSnapshot } from '../types/WhiteboardSnapshot';
+import { todayKey } from '../utils/dailyQuestion';
 import { monthKey } from '../utils/feelingHistory';
+import { convertLegacyPaths, strokesFromStored, toStoredStroke } from '../utils/whiteboard';
 
+type ShowToast = ReturnType<typeof useAppToast>['showToast'];
+
+// Built once, so callers get stable functions they can list as effect
+// dependencies without the effect re-running on every render
 export const useFirebase = () => {
-  let app, auth;
   const { showToast } = useAppToast();
+  return useMemo(() => createFirebaseApi(showToast), [showToast]);
+};
+
+const createFirebaseApi = (showToast: ShowToast) => {
+  let app, auth;
   try {
     ({ app, auth } = ensureFirebaseApp());
   } catch {
@@ -76,13 +91,10 @@ export const useFirebase = () => {
     name?: string | null,
     onProgress?: (progress: string) => void,
   ): Promise<string | undefined> => {
-    const response = await fetch(uri);
-    const blob = await response.blob();
-    const storage = getStorage();
+    const FBref = storageRef(getStorage(), `images/${name}`);
 
-    const FBref = storageRef(storage, `images/${name}`);
-
-    const uploadTask = uploadBytesResumable(FBref, blob);
+    // Uploads natively, straight from the file on disk
+    const uploadTask = putFile(FBref, uri);
 
     return new Promise((resolve, reject) => {
       uploadTask.on(
@@ -102,7 +114,7 @@ export const useFirebase = () => {
           reject(error);
         },
         async () => {
-          const url = await getDownloadURL(uploadTask.snapshot.ref);
+          const url = await getDownloadURL(FBref);
 
           if (url) {
             showToast({
@@ -136,7 +148,6 @@ export const useFirebase = () => {
       whiteboard: {
         name: `Shared Board`,
         canvasColor: '#ffffff',
-        paths: [],
       },
       wishlist: {
         activities: [],
@@ -151,13 +162,67 @@ export const useFirebase = () => {
     return roomId;
   };
 
-  const updateWhiteboard = async (paths: PathData[], roomId: string, canvasColor: string) => {
-    const whiteboardRef = databaseRef(db, `rooms/${roomId}/whiteboard`);
+  // Whiteboard: one entry per stroke under `strokes`, in board units (see
+  // types/Whiteboard). Boards from before v2 keep screen-pixel `paths`, which
+  // are converted the first time they're read.
+  const whiteboardRef = (roomId: string) => databaseRef(db, `rooms/${roomId}/whiteboard`);
 
-    await update(whiteboardRef, {
-      paths,
-      canvasColor,
-    });
+  // Old boards were drawn on the whiteboard screen's canvas: the window width
+  // minus the screen's 20px padding on each side
+  const legacyCanvasWidth = () => Dimensions.get('window').width - 40;
+
+  // Converts a pre-v2 board in place. Its `paths` are left as they are, so
+  // older app versions keep working until both phones update.
+  const toBoard = (roomId: string, data: any): WhiteboardBoard => {
+    let stored = data?.strokes;
+    if (data?.paths && !data.migratedAt) {
+      const converted = convertLegacyPaths(data.paths, legacyCanvasWidth());
+      stored = { ...converted, ...stored };
+      update(whiteboardRef(roomId), {
+        ...Object.fromEntries(
+          Object.entries(converted).map(([id, stroke]) => [`strokes/${id}`, stroke]),
+        ),
+        migratedAt: serverTimestamp(),
+      }).catch((error) => console.error('Error converting whiteboard:', error));
+    }
+
+    return {
+      strokes: strokesFromStored(stored),
+      canvasColor: data?.canvasColor || 'white',
+      name: data?.name || '',
+    };
+  };
+
+  /** Saves a finished stroke and returns its id; listeners get it right away */
+  const addStroke = (roomId: string, stroke: Omit<Stroke, 'id'>) => {
+    const strokeRef = push(databaseRef(db, `rooms/${roomId}/whiteboard/strokes`));
+    set(strokeRef, toStoredStroke(stroke)).catch((error) =>
+      console.error('Error saving stroke:', error),
+    );
+    return strokeRef.key as string;
+  };
+
+  const removeStrokes = async (roomId: string, ids: string[]) => {
+    if (ids.length === 0) return;
+    await update(
+      whiteboardRef(roomId),
+      Object.fromEntries(ids.map((id) => [`strokes/${id}`, null])),
+    );
+  };
+
+  // Puts strokes back under their own ids, e.g. when undoing a clear
+  const restoreStrokes = async (roomId: string, strokes: Stroke[]) => {
+    if (strokes.length === 0) return;
+    await update(
+      whiteboardRef(roomId),
+      Object.fromEntries(
+        strokes.map(({ id, ...stroke }) => [`strokes/${id}`, toStoredStroke(stroke)]),
+      ),
+    );
+  };
+
+  const updateCanvasColor = async (roomId: string, canvasColor: string) => {
+    await update(whiteboardRef(roomId), { canvasColor });
   };
 
   const updateWhiteBoardName = async (name: string, roomId: string) => {
@@ -168,55 +233,56 @@ export const useFirebase = () => {
     });
   };
 
+  // Reports an empty board too, so a room without one still finishes loading
   const listenToWhiteboardEvents = (
-    whiteBoardCallback: ({
-      paths,
-      canvasColor,
-      name,
-    }: {
-      paths: PathData[];
-      canvasColor: string;
-      name: string;
-    }) => void,
+    whiteBoardCallback: (board: WhiteboardBoard) => void,
     roomId: string,
-  ) => {
-    const whiteboardRef = databaseRef(db, `rooms/${roomId}/whiteboard`);
-
-    const unsubscribe = onValue(whiteboardRef, (snapshot) => {
-      const data = snapshot.val();
-
-      if (data) {
-        whiteBoardCallback({
-          paths: data.paths,
-          canvasColor: data.canvasColor,
-          name: data.name,
-        });
-      }
+  ) =>
+    onValue(whiteboardRef(roomId), (snapshot) => {
+      whiteBoardCallback(toBoard(roomId, snapshot.val()));
     });
 
-    // Return the unsubscribe function
-    return unsubscribe;
-  };
-
   const getWhiteboard = async (roomId: string) => {
-    const whiteboardRef = databaseRef(db, `rooms/${roomId}/whiteboard`);
-
-    return get(whiteboardRef);
+    const snapshot = await get(whiteboardRef(roomId));
+    return toBoard(roomId, snapshot.val());
   };
 
-  const saveWhiteboardSnapshot = async (roomId: string, snapshot: WhiteboardSnapshot) => {
+  const saveWhiteboardSnapshot = async (
+    roomId: string,
+    { strokes, ...snapshot }: WhiteboardSnapshot,
+  ) => {
     const snapshotsRef = databaseRef(db, `rooms/${roomId}/whiteboardSnapshots`);
-    await push(snapshotsRef, snapshot);
+    await push(snapshotsRef, {
+      ...snapshot,
+      strokes: strokes.map(({ id: _id, ...stroke }) => toStoredStroke(stroke)),
+    });
   };
 
+  // Snapshots saved before v2 are converted, and the converted strokes are
+  // stored beside their old `paths`
   const getWhiteboardSnapshots = async (roomId: string): Promise<WhiteboardSnapshot[]> => {
     const snapshotsRef = databaseRef(db, `rooms/${roomId}/whiteboardSnapshots`);
     const snapshot = await get(snapshotsRef);
     if (!snapshot.exists()) return [];
-    const data = snapshot.val() as Record<string, WhiteboardSnapshot>;
-    return Object.values(data).sort(
-      (a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime(),
-    );
+    const data = snapshot.val() as Record<string, StoredWhiteboardSnapshot>;
+
+    const conversions: Record<string, StoredStroke[]> = {};
+    const snapshots = Object.entries(data).map(([key, { strokes, paths, ...rest }]) => {
+      let stored = strokes;
+      if (!stored && paths) {
+        stored = Object.values(convertLegacyPaths(paths, legacyCanvasWidth()));
+        conversions[`${key}/strokes`] = stored;
+      }
+      return { ...rest, strokes: strokesFromStored(stored) };
+    });
+
+    if (Object.keys(conversions).length > 0) {
+      update(snapshotsRef, conversions).catch((error) =>
+        console.error('Error converting whiteboard snapshots:', error),
+      );
+    }
+
+    return snapshots.sort((a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime());
   };
 
   const joinRoom = async (roomId: string, userId: string) => {
@@ -264,6 +330,7 @@ export const useFirebase = () => {
     const messages: MessageType[] = [];
     snapshot.forEach((child) => {
       messages.push(toMessage(child));
+      return undefined;
     });
     return messages;
   };
@@ -302,17 +369,21 @@ export const useFirebase = () => {
     return toMessages(snapshot);
   };
 
-  // The page just before `oldest`; the key breaks ties between equal timestamps
+  // The page just before `oldest`; the key breaks ties between equal timestamps.
+  // React Native Firebase doesn't implement endBefore(), so this ends at
+  // `oldest` itself with one extra slot and drops it here.
   const getMessagesBefore = async (roomId: string, oldest: MessageType, limit: number) => {
     const snapshot = await readOnce(
       query(
         messagesRef(roomId),
         orderByChild('timestamp'),
-        endBefore(oldest.timestamp, oldest.id),
-        limitToLast(limit),
+        endAt(oldest.timestamp, oldest.id),
+        limitToLast(limit + 1),
       ),
     );
-    return toMessages(snapshot);
+    return toMessages(snapshot)
+      .filter((message) => message.id !== oldest.id)
+      .slice(-limit);
   };
 
   // Live adds, edits and deletes for every message from `fromTimestamp` on: the
@@ -382,12 +453,16 @@ export const useFirebase = () => {
           return;
         }
 
+        // startAt() is inclusive (React Native Firebase doesn't implement
+        // startAfter()), so a message sent exactly at lastRead is skipped here
         unsubscribeMessages = onValue(
-          query(messagesRef(roomId), orderByChild('timestamp'), startAfter(lastRead)),
+          query(messagesRef(roomId), orderByChild('timestamp'), startAt(lastRead)),
           (snapshot) => {
             let count = 0;
             snapshot.forEach((child) => {
-              if (child.val()?.uid !== uid) count += 1;
+              const message = child.val();
+              if (message?.uid !== uid && message?.timestamp > lastRead) count += 1;
+              return undefined;
             });
             callback(count);
           },
@@ -505,10 +580,12 @@ export const useFirebase = () => {
 
     // Store the question with the answer so editing the built-in list never
     // changes what a past day showed. Creating answers/{uid} triggers the
-    // partner notification Cloud Function.
+    // partner notification Cloud Function. An answer for a day that has ended
+    // is kept but marked late.
+    const late = dateKey < todayKey();
     await update(dayRef, {
       question,
-      [`answers/${uid}`]: { text, answeredAt: Date.now() },
+      [`answers/${uid}`]: { text, answeredAt: Date.now(), ...(late && { late: true }) },
     });
   };
 
@@ -752,18 +829,17 @@ export const useFirebase = () => {
     return unsubscribe;
   };
 
+  // Counts with the REST API's shallow read, which returns only the keys:
+  // journal entries can be long, and Home only shows how many there are
   const getNumberOfItemsInJournal = async (uid: string) => {
-    const roomRef = databaseRef(db, `rooms/${uid}/journal`);
-
-    const snapshot = await get(roomRef);
-
-    if (snapshot.exists()) {
-      const data = snapshot.val();
-
-      if (data) {
-        return Object.keys(data).length;
-      }
-    }
+    const user = ensureFirebaseApp().auth.currentUser;
+    const token = user ? await getIdToken(user) : undefined;
+    const response = await fetch(
+      `${firebaseConfig.databaseURL}rooms/${uid}/journal.json?shallow=true&auth=${token}`,
+    );
+    if (!response.ok) throw new Error(`Journal count failed: ${response.status}`);
+    const keys = await response.json();
+    return keys ? Object.keys(keys).length : 0;
   };
 
   // Favorites
@@ -1149,7 +1225,10 @@ export const useFirebase = () => {
     uploadToFirebaseStorage,
     listenToWhiteboardEvents,
     joinRoom,
-    updateWhiteboard,
+    addStroke,
+    removeStrokes,
+    restoreStrokes,
+    updateCanvasColor,
     getWhiteboard,
     saveWhiteboardSnapshot,
     getWhiteboardSnapshots,

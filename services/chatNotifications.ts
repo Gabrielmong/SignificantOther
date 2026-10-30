@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getDatabase, push, ref, serverTimestamp, set } from '@react-native-firebase/database';
 import * as Notifications from 'expo-notifications';
 import { Href, router, useSegments } from 'expo-router';
 import * as TaskManager from 'expo-task-manager';
-import { getDatabase, push, ref, serverTimestamp, set } from 'firebase/database';
 import { useEffect, useRef, useState } from 'react';
 import { AppState, Platform } from 'react-native';
 

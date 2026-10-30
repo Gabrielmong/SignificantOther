@@ -19,7 +19,9 @@ interface AppToast {
 }
 
 export function useAppToast() {
-  const toast = useToast();
+  // Only `show` is stable; the toast object changes whenever a toast appears,
+  // which would re-run every effect that lists showToast
+  const { show } = useToast();
 
   const showToast = useCallback(
     ({
@@ -30,7 +32,7 @@ export function useAppToast() {
       onCloseComplete,
       status,
     }: AppToast) => {
-      return toast.show({
+      return show({
         duration,
         placement,
         onCloseComplete,
@@ -52,7 +54,7 @@ export function useAppToast() {
         },
       });
     },
-    [toast],
+    [show],
   );
 
   return {

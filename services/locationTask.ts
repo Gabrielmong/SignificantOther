@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getDatabase, ref as databaseRef, update, get } from '@react-native-firebase/database';
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
-import { getDatabase, ref as databaseRef, update, get } from 'firebase/database';
 
 import { LOCATION_TASK_NAME } from '../hooks/useLocation';
 import { Zone } from '../types';

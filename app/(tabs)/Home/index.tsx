@@ -128,7 +128,7 @@ export default function Home() {
 
   // Custom hooks for feature logic
   const {
-    storedPaths,
+    storedStrokes,
     storedCanvasColor,
     boardName,
     handleOpenWhiteboard,
@@ -601,7 +601,7 @@ export default function Home() {
                   style={{ width: '100%', height: 180 }}>
                   <WhiteBoardPreview
                     boardName={boardName}
-                    paths={storedPaths}
+                    strokes={storedStrokes}
                     canvasColor={storedCanvasColor}
                     height={180}
                     loading={loading}

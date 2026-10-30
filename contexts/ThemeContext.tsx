@@ -6,7 +6,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getDatabase, onValue, ref, set } from 'firebase/database';
+import { getDatabase, onValue, ref, set } from '@react-native-firebase/database';
 import React, { createContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useColorScheme } from 'react-native';
 

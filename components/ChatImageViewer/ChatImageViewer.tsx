@@ -1,6 +1,7 @@
+import { Image } from 'expo-image';
 import { X } from 'lucide-react-native';
 import { useEffect } from 'react';
-import { Image, Modal, Pressable, StyleSheet, useWindowDimensions } from 'react-native';
+import { Modal, Pressable, StyleSheet, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -98,7 +99,7 @@ export const ChatImageViewer = ({ uri, onClose }: ChatImageViewerProps) => {
             {uri && (
               <Image
                 source={{ uri }}
-                resizeMode="contain"
+                contentFit="contain"
                 accessibilityLabel="Photo"
                 style={{ width: '100%', height: '100%' }}
               />

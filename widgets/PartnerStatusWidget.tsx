@@ -1,3 +1,7 @@
+// react-native-android-widget calls widget components as plain functions, so
+// React Compiler's memoization (which uses hooks) must stay out of this file
+'use no memo';
+
 import { FlexWidget, TextWidget, ImageWidget } from 'react-native-android-widget';
 
 import { FLOWER_MAP, FEELING_EMOJIS, FEELINGS_LABELS } from '../constants';

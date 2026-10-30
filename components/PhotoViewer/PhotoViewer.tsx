@@ -1,11 +1,11 @@
 import { Text } from '@gluestack-ui/themed';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Image } from 'expo-image';
 import { Pencil, Trash2, X } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   FlatList,
-  Image,
   Modal,
   ScrollView,
   TextInput,
@@ -177,7 +177,7 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
             currentId.current = photos[next]?.id ?? null;
           }}
           renderItem={({ item }) => (
-            <Image source={{ uri: item.url }} resizeMode="contain" style={{ width, height }} />
+            <Image source={{ uri: item.url }} contentFit="contain" style={{ width, height }} />
           )}
         />
 

@@ -1,9 +1,10 @@
 import { Text } from '@gluestack-ui/themed';
+import { Image } from 'expo-image';
 import { router, useLocalSearchParams, Href } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ArrowLeft } from 'lucide-react-native';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Image, SectionList, TouchableOpacity, View } from 'react-native';
+import { SectionList, TouchableOpacity, View } from 'react-native';
 
 import { PhotoViewer } from '../../../components';
 import { useAppTheme, useGallery, useMilestones, usePlaces } from '../../../hooks';

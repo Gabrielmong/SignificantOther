@@ -1,30 +1,33 @@
-import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
-import { getApp, getApps, initializeApp } from 'firebase/app';
-import { getAuth, getReactNativePersistence, initializeAuth } from 'firebase/auth';
+import { getApp } from '@react-native-firebase/app';
+import { getAuth, onAuthStateChanged } from '@react-native-firebase/auth';
+import { getDatabase, setPersistenceEnabled } from '@react-native-firebase/database';
 
-import { firebaseConfig } from '../config';
+// Firebase runs natively (React Native Firebase), configured from
+// google-services.json, so there's nothing to initialize in JS.
+//
+// Keep a disk copy of the data this device has seen, so screens fill in from
+// it on launch instead of waiting for the network. Native code reads this when
+// the database is first used, so index.js loads this module before anything
+// else, headless launches (widget, push, location task) included.
+setPersistenceEnabled(getDatabase(), true);
 
-// Initializes the Firebase JS SDK once, wherever it's first needed. Background
-// entry points (widget handler, location task) can run without the React tree
-// ever mounting, so they can't rely on useFirebase() having done this.
 export const ensureFirebaseApp = () => {
-  if (getApps().length) {
-    const app = getApp();
-    return { app, auth: getAuth(app) };
-  }
-
-  const app = initializeApp(firebaseConfig);
-  const auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(ReactNativeAsyncStorage),
-  });
-
-  return { app, auth };
+  const app = getApp();
+  return { app, auth: getAuth(app) };
 };
 
 // Database rules require a signed-in user, so background reads must wait for
 // the persisted session to be restored first. Returns false when signed out.
 export const ensureSignedIn = async () => {
-  const { auth } = ensureFirebaseApp();
-  await auth.authStateReady();
+  const auth = getAuth();
+  if (auth.currentUser) return true;
+
+  // The first event reports the restored session (or none)
+  await new Promise<void>((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth, () => {
+      unsubscribe();
+      resolve();
+    });
+  });
   return !!auth.currentUser;
 };

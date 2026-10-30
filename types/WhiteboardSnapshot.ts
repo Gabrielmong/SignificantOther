@@ -1,8 +1,14 @@
-import { PathData } from '../components';
+import { LegacyPath, StoredStroke, Stroke } from './Whiteboard';
 
 export type WhiteboardSnapshot = {
-  paths: PathData[];
+  strokes: Stroke[];
   canvasColor: string;
   savedBy: string;
   savedAt: string;
+};
+
+/** A snapshot as stored; ones saved before v2 only have `paths` */
+export type StoredWhiteboardSnapshot = Omit<WhiteboardSnapshot, 'strokes'> & {
+  strokes?: StoredStroke[];
+  paths?: LegacyPath[];
 };

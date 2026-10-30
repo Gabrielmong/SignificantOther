@@ -12,9 +12,10 @@ import {
   TextareaInput,
 } from '@gluestack-ui/themed';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, TouchableOpacity } from 'react-native';
 
 import { useAppTheme, useShareToChat } from '../../hooks';
 import type { MilestoneInput, PhotoChange } from '../../hooks/useMilestones';

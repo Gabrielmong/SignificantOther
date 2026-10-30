@@ -8,3 +8,4 @@ export * from './places';
 export * from './story';
 export * from './serial';
 export * from './checkin';
+export * from './whiteboard';

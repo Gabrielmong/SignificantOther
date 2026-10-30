@@ -1,4 +1,4 @@
-import type { Unsubscribe } from 'firebase/database';
+import type { Unsubscribe } from '@react-native-firebase/database';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { successFeedback } from '../utils/haptics';

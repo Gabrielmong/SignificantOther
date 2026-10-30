@@ -1,7 +1,8 @@
 import { Text } from '@gluestack-ui/themed';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { Image, View } from 'react-native';
+import { View } from 'react-native';
 
 import { applyOpacity } from '../../config/theme';
 import { useAppTheme } from '../../hooks';

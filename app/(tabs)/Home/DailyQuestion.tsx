@@ -5,21 +5,48 @@ import { ArrowLeft } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { RefreshControl, ScrollView, TouchableOpacity } from 'react-native';
 
-import { AnimatedHeartLoader } from '../../../components';
+import { AnimatedHeartLoader, AnswerModal } from '../../../components';
 import { useAppTheme, useAppToast, useAuth, useFirebase } from '../../../hooks';
 import { useAppSelector } from '../../../state';
-import { DailyQuestionDay } from '../../../types';
-import { formatDateKey, todayKey } from '../../../utils/dailyQuestion';
+import { DailyAnswer, DailyQuestionDay } from '../../../types';
+import {
+  MAX_ANSWER_LENGTH,
+  addDays,
+  formatDateKey,
+  questionForDate,
+  todayKey,
+} from '../../../utils/dailyQuestion';
 
 const HISTORY_DAYS = 30;
 
 type HistoryItem = { dateKey: string; day: DailyQuestionDay };
 
+// Days nobody answered have no data, but can still be answered late, so list
+// them too: back to the first stored day, so a new couple doesn't start with a
+// month of missed questions. `stored` is newest first.
+const withMissedDays = (stored: HistoryItem[], today: string): HistoryItem[] => {
+  const oldestStored = stored[stored.length - 1]?.dateKey;
+  if (!oldestStored) return stored;
+
+  const byDate = new Map(stored.map((item) => [item.dateKey, item.day]));
+  const windowStart = addDays(today, -(HISTORY_DAYS - 1));
+  const items: HistoryItem[] = [];
+  for (let dateKey = today; dateKey >= windowStart && dateKey >= oldestStored; ) {
+    items.push({ dateKey, day: byDate.get(dateKey) ?? {} });
+    dateKey = addDays(dateKey, -1);
+  }
+  // Older answered days the query returned stay listed
+  return [...items, ...stored.filter((item) => item.dateKey < windowStart)];
+};
+
+const formatAnsweredAt = (answeredAt: number) =>
+  new Date(answeredAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+
 export default function DailyQuestionHistory() {
   const { theme } = useAppTheme();
   const { user } = useAuth();
   const { showToast } = useAppToast();
-  const { getDailyQuestionHistory } = useFirebase();
+  const { getDailyQuestionHistory, saveDailyAnswer } = useFirebase();
   const { partnerId, partnerName } = useAppSelector((state) => state.room);
 
   const roomId = user.roomId || null;
@@ -28,6 +55,8 @@ export default function DailyQuestionHistory() {
 
   const [items, setItems] = useState<HistoryItem[] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  // The missed day being answered late
+  const [answering, setAnswering] = useState<HistoryItem | null>(null);
 
   const load = useCallback(async () => {
     if (!roomId) {
@@ -36,7 +65,7 @@ export default function DailyQuestionHistory() {
     }
 
     try {
-      setItems(await getDailyQuestionHistory(roomId, HISTORY_DAYS));
+      setItems(withMissedDays(await getDailyQuestionHistory(roomId, HISTORY_DAYS), todayKey()));
     } catch (error) {
       console.error('Error loading daily questions:', error);
       setItems((prev) => prev ?? []);
@@ -59,18 +88,64 @@ export default function DailyQuestionHistory() {
     setRefreshing(false);
   };
 
+  const handleSaveLate = async (text: string) => {
+    const answer = text.trim().slice(0, MAX_ANSWER_LENGTH);
+    if (!answering || !roomId || !userId || !answer) return;
+
+    const { dateKey, day } = answering;
+    try {
+      await saveDailyAnswer(
+        roomId,
+        userId,
+        dateKey,
+        day.question ?? questionForDate(dateKey),
+        answer,
+      );
+      setAnswering(null);
+      await load();
+    } catch (error) {
+      console.error('Error saving late answer:', error);
+      showToast({
+        title: "Couldn't save your answer",
+        description: 'Please try again',
+        status: 'error',
+      });
+    }
+  };
+
   const today = todayKey();
 
-  const answerRow = (label: string, text: string, muted: boolean) => (
+  // `answer` is passed only when its text is shown, to tag it if it was late
+  const answerRow = (label: string, text: string, muted: boolean, answer?: DailyAnswer) => (
     <Box style={{ marginTop: theme.spacing[2] }}>
-      <Text
-        style={{
-          fontSize: theme.fontSize.xs,
-          fontWeight: theme.fontWeight.semibold,
-          color: theme.colors.textSecondary,
-        }}>
-        {label}
-      </Text>
+      <HStack style={{ alignItems: 'center', gap: theme.spacing[2] }}>
+        <Text
+          style={{
+            fontSize: theme.fontSize.xs,
+            fontWeight: theme.fontWeight.semibold,
+            color: theme.colors.textSecondary,
+          }}>
+          {label}
+        </Text>
+        {answer?.late && (
+          <Box
+            style={{
+              paddingHorizontal: theme.spacing[2],
+              borderRadius: theme.radii.full,
+              borderWidth: 1,
+              borderColor: theme.colors.warning,
+            }}>
+            <Text
+              style={{
+                fontSize: theme.fontSize.xs,
+                fontWeight: theme.fontWeight.semibold,
+                color: theme.colors.warning,
+              }}>
+              {`Late · ${formatAnsweredAt(answer.answeredAt)}`}
+            </Text>
+          </Box>
+        )}
+      </HStack>
       <Text
         style={{
           fontSize: theme.fontSize.md,
@@ -144,12 +219,15 @@ export default function DailyQuestionHistory() {
             const isToday = dateKey === today;
             const mine = userId ? day.answers?.[userId] : undefined;
             const theirs = partnerId ? day.answers?.[partnerId] : undefined;
+            const question = day.question ?? questionForDate(dateKey);
 
-            // Today follows the same rule as the Home card; past days are over,
-            // so both answers show.
-            let partnerText = theirs?.text ?? (isToday ? 'Not answered yet' : "didn't answer");
+            // Same rule as the Home card on every day, since a missed day can
+            // still be answered late: the partner's answer shows once you've
+            // answered too.
+            const partnerRevealed = !!theirs && !!mine;
+            let partnerText = theirs?.text ?? 'Not answered yet';
             let partnerMuted = !theirs;
-            if (isToday && theirs && !mine) {
+            if (theirs && !mine) {
               partnerText = 'Answered — answer yours to see it';
               partnerMuted = true;
             }
@@ -178,19 +256,55 @@ export default function DailyQuestionHistory() {
                     color: theme.colors.text,
                     marginTop: 2,
                   }}>
-                  {day.question ?? ''}
+                  {question}
                 </Text>
-                {answerRow(
-                  'You',
-                  mine?.text ?? (isToday ? 'Not answered yet' : "didn't answer"),
-                  !mine,
+                {answerRow('You', mine?.text ?? 'Not answered yet', !mine, mine)}
+                {!!partnerId &&
+                  answerRow(
+                    partnerLabel,
+                    partnerText,
+                    partnerMuted,
+                    partnerRevealed ? theirs : undefined,
+                  )}
+                {!isToday && !mine && (
+                  <TouchableOpacity
+                    onPress={() => setAnswering({ dateKey, day })}
+                    style={{
+                      alignSelf: 'flex-start',
+                      marginTop: theme.spacing[3],
+                      paddingHorizontal: theme.spacing[4],
+                      paddingVertical: theme.spacing[2],
+                      borderRadius: theme.radii.full,
+                      backgroundColor: theme.colors.primary,
+                    }}>
+                    <Text
+                      style={{
+                        color: theme.colors.white,
+                        fontSize: theme.fontSize.sm,
+                        fontWeight: theme.fontWeight.semibold,
+                      }}>
+                      Answer late
+                    </Text>
+                  </TouchableOpacity>
                 )}
-                {!!partnerId && answerRow(partnerLabel, partnerText, partnerMuted)}
               </Box>
             );
           })
         )}
       </ScrollView>
+
+      <AnswerModal
+        isOpen={!!answering}
+        question={answering ? (answering.day.question ?? questionForDate(answering.dateKey)) : ''}
+        initialText=""
+        note={
+          answering
+            ? `${formatDateKey(answering.dateKey)} is over, so your answer will be marked late.`
+            : undefined
+        }
+        onClose={() => setAnswering(null)}
+        onSave={handleSaveLate}
+      />
     </Box>
   );
 }

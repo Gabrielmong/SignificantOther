@@ -1,16 +1,16 @@
 import { Box, Text } from '@gluestack-ui/themed';
 import { View } from 'react-native';
-import { Path, Svg } from 'react-native-svg';
 
-import { PathData } from './Whiteboard';
+import { BoardCanvas } from './BoardCanvas';
 import { useAppTheme } from '../../hooks';
+import { Stroke } from '../../types';
 import { Skeleton } from '../Skeleton';
 import { PressableScale } from '../styled/PressableScale';
 
 type WhiteBoardPreviewProps = {
   height: number;
   onPress?: () => void;
-  paths: PathData[];
+  strokes: Stroke[];
   canvasColor: string;
   boardName: string;
   loading?: boolean;
@@ -19,7 +19,7 @@ type WhiteBoardPreviewProps = {
 export const WhiteBoardPreview = ({
   height,
   onPress,
-  paths,
+  strokes,
   canvasColor,
   boardName,
   loading,
@@ -67,20 +67,11 @@ export const WhiteBoardPreview = ({
         {loading ? (
           <Skeleton height="100%" />
         ) : (
-          <Svg
-            height="100%"
-            width="100%"
-            style={{ backgroundColor: canvasColor, borderRadius: theme.radii.md }}>
-            {paths?.map((path, index) => (
-              <Path
-                key={index}
-                d={path.path.join(' ')}
-                fill="none"
-                stroke={path.color}
-                strokeWidth={path.width}
-              />
-            ))}
-          </Svg>
+          <BoardCanvas
+            strokes={strokes}
+            canvasColor={canvasColor}
+            style={{ width: '100%', height: '100%', borderRadius: theme.radii.md }}
+          />
         )}
       </Box>
     </Container>

@@ -8,9 +8,10 @@ import {
   Text,
 } from '@gluestack-ui/themed';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, ScrollView, TextInput, TouchableOpacity } from 'react-native';
 
 import { useAppTheme } from '../../hooks';
 import type { PendingPhoto } from '../../hooks/useGallery';

@@ -1,7 +1,8 @@
 import { Text } from '@gluestack-ui/themed';
+import { Image } from 'expo-image';
 import { Plus } from 'lucide-react-native';
 import React from 'react';
-import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 
 import { useAppTheme } from '../../hooks';
 import { Photo } from '../../types';

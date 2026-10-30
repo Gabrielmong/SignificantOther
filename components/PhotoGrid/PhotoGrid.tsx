@@ -1,6 +1,7 @@
 import { Text } from '@gluestack-ui/themed';
+import { Image } from 'expo-image';
 import React, { useCallback, useLayoutEffect, useMemo, useRef } from 'react';
-import { Image, SectionList, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { SectionList, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,

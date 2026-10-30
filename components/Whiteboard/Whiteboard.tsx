@@ -14,11 +14,12 @@ import {
   Text,
   ModalContent,
 } from '@gluestack-ui/themed';
+import { Path } from '@shopify/react-native-skia';
 import { Brush, Eraser, PaintBucket, Palette, UndoDot } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, GestureResponderEvent } from 'react-native';
-import { runOnJS } from 'react-native-reanimated';
-import { Svg, Path } from 'react-native-svg';
+import { Animated, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { runOnJS, useDerivedValue, useSharedValue } from 'react-native-reanimated';
 import ColorPicker, {
   Panel1,
   Swatches,
@@ -27,40 +28,62 @@ import ColorPicker, {
   HueSlider,
 } from 'reanimated-color-picker';
 
+import { BoardCanvas } from './BoardCanvas';
+import { buildStrokePath } from './strokePath';
 import { useAppTheme } from '../../hooks';
+import { Stroke } from '../../types';
+import { BOARD_WIDTH } from '../../utils/whiteboard';
 import { IconButton } from '../IconButton';
 
-export interface PathData {
-  path: string[];
-  color: string;
-  width: number;
-}
+// This session's own changes, so undo only takes back what you did
+type HistoryEntry = { kind: 'add'; id: string } | { kind: 'clear'; strokes: Stroke[] };
 
 interface WhiteboardProps {
-  pathCallback?: (path: PathData[]) => void;
-  canvasColorCallback?: (color: string) => void;
-  incomingPaths?: PathData[];
-  incomingCanvasColor?: string;
+  strokes: Stroke[];
+  canvasColor: string;
+  /** Saves a finished stroke and returns its id */
+  onStrokeAdd: (stroke: Omit<Stroke, 'id'>) => string;
+  onStrokesRemove: (ids: string[]) => void;
+  onStrokesRestore: (strokes: Stroke[]) => void;
+  onCanvasColorChange: (color: string) => void;
   toolsVisible: boolean;
   setToolsVisible: (visible: boolean) => void;
 }
 export const Whiteboard = ({
-  pathCallback,
-  canvasColorCallback,
-  incomingPaths,
-  incomingCanvasColor,
+  strokes,
+  canvasColor,
+  onStrokeAdd,
+  onStrokesRemove,
+  onStrokesRestore,
+  onCanvasColorChange,
   toolsVisible,
   setToolsVisible,
 }: WhiteboardProps) => {
   const { theme } = useAppTheme();
-  const [paths, setPaths] = useState<PathData[]>([]);
-  const [currentPath, setCurrentPath] = useState<string[]>([]);
   const [currentColor, setCurrentColor] = useState<string>('red');
   const [currentWidth, setCurrentWidth] = useState<number>(3);
   const [showModal, setShowModal] = useState(false);
-  const [previousPaths, setPreviousPaths] = useState<PathData[]>([]);
-  const [canvasColor, setCanvasColor] = useState<string>('white');
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [brushWidthOpen, setBrushWidthOpen] = useState(false);
+  // Screen pixels per board unit
+  const [scale, setScale] = useState(0);
+
+  // The stroke being drawn lives on the UI thread in screen pixels, so drawing
+  // never goes through React
+  const currentPoints = useSharedValue<number[]>([]);
+  const currentStroke = useDerivedValue(() => buildStrokePath(currentPoints.get()));
+  // Counts strokes started, so a finished stroke is never cleared over the next one
+  const strokeNumber = useSharedValue(0);
+  const pendingStrokeRef = useRef<{ id: string; number: number } | null>(null);
+
+  // Keep drawing a finished stroke until it comes back in `strokes`, so it
+  // never blinks out between the gesture ending and the save
+  useEffect(() => {
+    const pending = pendingStrokeRef.current;
+    if (!pending || !strokes.some((stroke) => stroke.id === pending.id)) return;
+    pendingStrokeRef.current = null;
+    if (strokeNumber.get() === pending.number) currentPoints.set([]);
+  }, [strokes, currentPoints, strokeNumber]);
 
   const fadeAnim = useRef(new Animated.Value(1)).current; // Animated value for opacity
 
@@ -82,84 +105,69 @@ export const Whiteboard = ({
     setToolsVisible(true);
   };
 
-  const onTouchStart = () => {
+  const handleStrokeStart = () => {
+    setBrushWidthOpen(false);
     fadeOut();
   };
 
-  const onTouchEnd = (event: GestureResponderEvent) => {
-    setBrushWidthOpen(false);
+  const handleStrokeEnd = (points: number[], number: number) => {
     fadeIn();
 
-    if (currentPath.length === 0) {
+    // A tap without movement leaves no stroke
+    if (points.length < 4 || scale === 0) {
+      if (strokeNumber.get() === number) currentPoints.set([]);
       return;
     }
 
-    const pathToSave: PathData = {
-      path: currentPath,
+    const id = onStrokeAdd({
+      points: points.map((value) => value / scale),
       color: currentColor,
-      width: currentWidth,
-    };
-
-    const newPaths = [...paths, pathToSave];
-    setPaths((prevPaths) => newPaths);
-    setPreviousPaths((prevPaths) => newPaths);
-    pathCallback && pathCallback(newPaths);
-    setCurrentPath([]);
+      width: currentWidth / scale,
+      createdAt: Date.now(),
+    });
+    pendingStrokeRef.current = { id, number };
+    setHistory((prev) => [...prev, { kind: 'add', id }]);
   };
 
-  const onTouchMove = (event: GestureResponderEvent) => {
-    setBrushWidthOpen(false);
-    const locationX = event.nativeEvent.locationX;
-    const locationY = event.nativeEvent.locationY;
-    const newPoint = `${currentPath.length === 0 ? 'M' : 'L'}${locationX.toFixed(0)},${locationY.toFixed(0)} `;
-    setCurrentPath([...currentPath, newPoint]);
-  };
+  const drawGesture = Gesture.Pan()
+    .minDistance(0)
+    .onBegin((event) => {
+      strokeNumber.set(strokeNumber.get() + 1);
+      currentPoints.set([event.x, event.y]);
+      runOnJS(handleStrokeStart)();
+    })
+    .onUpdate((event) => {
+      currentPoints.modify((points) => {
+        'worklet';
+        points.push(event.x, event.y);
+        return points;
+      });
+    })
+    .onFinalize(() => {
+      runOnJS(handleStrokeEnd)(currentPoints.get(), strokeNumber.get());
+    });
 
   const handleClearButtonClick = () => {
-    setPaths([]);
-    setCurrentPath([]);
-    setPreviousPaths(
-      (prevPaths) => [...prevPaths, { path: [], color: 'black', width: 3 }], // default path
-    );
+    if (strokes.length === 0) return;
+    setHistory((prev) => [...prev, { kind: 'clear', strokes }]);
+    onStrokesRemove(strokes.map((stroke) => stroke.id));
   };
 
   const handleUndoButtonClick = () => {
-    const newPaths = [...previousPaths];
-    newPaths.pop();
-    setPaths(newPaths);
-    setPreviousPaths(newPaths);
-    pathCallback && pathCallback(newPaths);
+    const last = history[history.length - 1];
+    if (!last) return;
+    setHistory(history.slice(0, -1));
+    if (last.kind === 'add') {
+      onStrokesRemove([last.id]);
+    } else {
+      onStrokesRestore(last.strokes);
+    }
   };
 
   const onSelectColor = ({ hex }: { hex: string }) => {
     'worklet';
     runOnJS(setCurrentColor)(hex);
   };
-
-  const setInternalCanvasColor = (color: string) => {
-    setCanvasColor(color);
-    canvasColorCallback && canvasColorCallback(color);
-  };
-
-  useEffect(() => {
-    if (incomingPaths) {
-      // Only update if the incoming paths are different from current paths
-      // to avoid resetting while user is actively drawing
-      if (JSON.stringify(incomingPaths) !== JSON.stringify(paths)) {
-        setPaths(incomingPaths);
-        setPreviousPaths(incomingPaths);
-      }
-    }
-    // Sync only when the incoming value changes; local edits must not trigger a reset
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [incomingPaths]);
-
-  useEffect(() => {
-    if (incomingCanvasColor && incomingCanvasColor !== canvasColor) {
-      setCanvasColor(incomingCanvasColor);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [incomingCanvasColor]);
 
   const handleOpenBrushWidth = () => {
     setBrushWidthOpen((prev) => !prev);
@@ -197,7 +205,7 @@ export const Whiteboard = ({
           <IconButton
             icon={UndoDot}
             onPress={handleUndoButtonClick}
-            disabled={previousPaths.length === 0}
+            disabled={history.length === 0}
             variant="ghost"
           />
 
@@ -205,7 +213,7 @@ export const Whiteboard = ({
 
           <IconButton
             icon={PaintBucket}
-            onPress={() => setInternalCanvasColor(currentColor)}
+            onPress={() => onCanvasColorChange(currentColor)}
             variant="ghost"
           />
 
@@ -278,46 +286,30 @@ export const Whiteboard = ({
         </Box>
       )}
 
-      <Box
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-        onTouchStart={onTouchStart}
-        style={{
-          height: '100%',
-          maxHeight: 700,
-          width: '100%',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1,
-        }}>
-        <Svg
-          height="100%"
-          width="100%"
-          style={{ backgroundColor: canvasColor, borderRadius: theme.radii.lg }}>
-          {paths &&
-            paths?.map(({ path, color, width }, index) => (
-              <Path
-                key={`path-${index}`}
-                d={path.join('')}
-                stroke={color}
-                fill="transparent"
-                strokeWidth={width}
-                strokeLinejoin="round"
-                strokeLinecap="round"
-              />
-            ))}
-          {currentPath?.length > 0 && (
+      <GestureDetector gesture={drawGesture}>
+        <View
+          onLayout={(event) => setScale(event.nativeEvent.layout.width / BOARD_WIDTH)}
+          style={{
+            height: '100%',
+            maxHeight: 700,
+            width: '100%',
+            zIndex: 1,
+          }}>
+          <BoardCanvas
+            strokes={strokes}
+            canvasColor={canvasColor}
+            style={{ flex: 1, borderRadius: theme.radii.lg }}>
             <Path
-              d={currentPath.join('')}
-              stroke={currentColor}
-              fill="transparent"
+              path={currentStroke}
+              color={currentColor}
+              style="stroke"
               strokeWidth={currentWidth}
-              strokeLinejoin="round"
-              strokeLinecap="round"
+              strokeJoin="round"
+              strokeCap="round"
             />
-          )}
-        </Svg>
-      </Box>
+          </BoardCanvas>
+        </View>
+      </GestureDetector>
 
       <Box
         style={{
