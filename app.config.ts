@@ -3,6 +3,8 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
 
 import { version } from './package.json';
 
+const EAS_PROJECT_ID = 'dd25f76b-ccc2-43b1-aef4-7f494942e3a9';
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Significant Other',
@@ -10,6 +12,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   // Bump it in package.json only; the build number (versionCode) is managed
   // by EAS (see eas.json appVersionSource)
   version,
+  // Fingerprint of the native code: `eas update` only reaches builds whose
+  // native side matches, so JS-only changes ship without a new build
+  runtimeVersion: { policy: 'fingerprint' },
+  updates: {
+    url: `https://u.expo.dev/${EAS_PROJECT_ID}`,
+  },
+  // `npx expo run:android` downloads a matching build from EAS instead of
+  // compiling, when one exists for the current fingerprint
+  buildCacheProvider: 'eas',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
@@ -110,6 +121,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     './plugins/withFcmManifestFix',
+    './plugins/withGradleBuildSettings',
   ],
   experiments: {
     typedRoutes: true,
@@ -120,7 +132,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       origin: false,
     },
     eas: {
-      projectId: 'dd25f76b-ccc2-43b1-aef4-7f494942e3a9',
+      projectId: EAS_PROJECT_ID,
     },
     // Environment variables accessible via expo-constants
     mapboxAccessToken: process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN,
