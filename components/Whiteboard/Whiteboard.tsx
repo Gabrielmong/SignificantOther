@@ -113,8 +113,8 @@ export const Whiteboard = ({
   const handleStrokeEnd = (points: number[], number: number) => {
     fadeIn();
 
-    // A tap without movement leaves no stroke
-    if (points.length < 4 || scale === 0) {
+    // A tap without movement is a single point, which draws as a dot
+    if (points.length < 2 || scale === 0) {
       if (strokeNumber.get() === number) currentPoints.set([]);
       return;
     }

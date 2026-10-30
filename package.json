@@ -11,7 +11,9 @@
     "web": "expo start --web",
     "lint": "eslint .",
     "build:preview": "eas build --profile preview --platform android",
-    "build:development": "eas build --profile development --platform android"
+    "build:development": "eas build --profile development --platform android",
+    "update:preview": "eas update --channel preview --platform android",
+    "update:production": "eas update --channel production --platform android"
   },
   "dependencies": {
     "@gluestack-style/react": "^1.0.57",

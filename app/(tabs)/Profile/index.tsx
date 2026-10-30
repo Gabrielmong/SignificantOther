@@ -10,8 +10,10 @@ import {
   Pressable,
 } from '@gluestack-ui/themed';
 import * as Clipboard from 'expo-clipboard';
+import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as Updates from 'expo-updates';
 import { Edit, Copy, Moon, Sun, Palette } from 'lucide-react-native';
 import { useState } from 'react';
 
@@ -20,6 +22,45 @@ import { accentThemes } from '../../../config/theme';
 import { useAppTheme, useAppToast } from '../../../hooks';
 import { useAuth } from '../../../hooks/useAuth';
 import { useAppSelector } from '../../../state';
+
+// The app version and the update this phone is running, so you can tell
+// whether an `eas update` has arrived. An update downloads in the background
+// and applies on the next launch; once it's downloaded, tapping restarts into it.
+function AppVersion() {
+  const { theme } = useAppTheme();
+  const { currentlyRunning, isUpdatePending } = Updates.useUpdates();
+
+  let running = 'development';
+  if (Updates.isEnabled) {
+    running = currentlyRunning.isEmbeddedLaunch
+      ? 'built-in'
+      : `update ${currentlyRunning.updateId?.slice(0, 7)} · ${currentlyRunning.createdAt?.toLocaleString(
+          undefined,
+          { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' },
+        )}`;
+  }
+
+  return (
+    <Pressable
+      disabled={!isUpdatePending}
+      onPress={() => Updates.reloadAsync()}
+      style={{ alignItems: 'center', paddingVertical: theme.spacing[2] }}>
+      <Text style={{ fontSize: theme.fontSize.xs, color: theme.colors.textTertiary }}>
+        {`v${Constants.expoConfig?.version} · ${running}`}
+      </Text>
+      {isUpdatePending && (
+        <Text
+          style={{
+            fontSize: theme.fontSize.xs,
+            fontWeight: theme.fontWeight.semibold,
+            color: theme.colors.primary,
+          }}>
+          New update ready · tap to restart
+        </Text>
+      )}
+    </Pressable>
+  );
+}
 
 export default function Profile() {
   const user = useAppSelector((state) => state.user);
@@ -279,6 +320,8 @@ export default function Profile() {
             Logout
           </Text>
         </Button>
+
+        <AppVersion />
       </VStack>
 
       <NotificationsModal
