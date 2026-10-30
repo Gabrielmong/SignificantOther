@@ -46,7 +46,9 @@ function AppVersion() {
       onPress={() => Updates.reloadAsync()}
       style={{ alignItems: 'center', paddingVertical: theme.spacing[2] }}>
       <Text style={{ fontSize: theme.fontSize.xs, color: theme.colors.textTertiary }}>
-        {`v${Constants.expoConfig?.version} · ${running}`}
+        {[`v${Constants.expoConfig?.version}`, Updates.channel, running]
+          .filter(Boolean)
+          .join(' · ')}
       </Text>
       {isUpdatePending && (
         <Text

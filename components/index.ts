@@ -11,6 +11,7 @@ export * from './FeelingModal';
 export * from './FeelingPressable';
 export * from './NotificationsModal';
 export * from './ThemePickerModal';
+export * from './UpdateBanner';
 export * from './AnimatedTabIcon';
 export * from './AnimatedHeartLoader';
 export * from './DistanceCard';

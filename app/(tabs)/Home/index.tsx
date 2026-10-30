@@ -35,6 +35,7 @@ import {
   DailyQuestionCard,
   KeyboardAwareModal,
   Skeleton,
+  UpdateBanner,
 } from '../../../components';
 import { GradientCard } from '../../../components/styled';
 import {
@@ -571,6 +572,7 @@ export default function Home() {
           gap: theme?.spacing[4],
         }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} />}>
+        <UpdateBanner />
         {loading ? (
           // Placeholders shaped like the cards below, so the board doesn't jump when it loads
           <Box
