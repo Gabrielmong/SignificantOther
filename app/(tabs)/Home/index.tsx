@@ -60,6 +60,14 @@ import { fadeEntering } from '../../../utils/motion';
 // Flower/feeling card height: 100px image plus the card's padding
 const PRESSABLE_CARD_HEIGHT = 140;
 
+// Greeting for the phone's local time of day
+const greeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+};
+
 export default function Home() {
   const { theme } = useAppTheme();
   const { partnerId, partnerName } = useAppSelector((state) => state.room);
@@ -558,7 +566,7 @@ export default function Home() {
             fontSize: theme?.fontSize?.md,
             color: theme?.colors?.textSecondary,
           }}>
-          Welcome back
+          {greeting()}
         </Text>
       </Box>
 
