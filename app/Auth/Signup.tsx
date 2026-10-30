@@ -1,21 +1,15 @@
-import {
-  Input,
-  InputField,
-  Button,
-  ButtonSpinner,
-  View,
-  Text,
-  Box,
-  Icon,
-} from '@gluestack-ui/themed';
+import { HStack, Text } from '@gluestack-ui/themed';
 import { Link, router } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
+import { Lock, Mail } from 'lucide-react-native';
 import { useState } from 'react';
-import { TouchableOpacity } from 'react-native';
 
-import { IconButton } from '../../components';
-import { AuthFooter } from '../../components/AuthFooter/AuthFooter';
+import {
+  AuthButton,
+  AuthDivider,
+  AuthInput,
+  AuthScreen,
+  GoogleSignInButton,
+} from '../../components';
 import { useAppTheme } from '../../hooks';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -24,11 +18,12 @@ export default function Signup() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [visible, setVisible] = useState(false);
-  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
-  const { signUp } = useAuth();
+  const { signUp, signInWithGoogle } = useAuth();
   const { theme } = useAppTheme();
+
+  const passwordsMismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
   const handleSignUp = async () => {
     if (password !== confirmPassword) {
@@ -42,170 +37,85 @@ export default function Signup() {
     setLoading(false);
   };
 
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    const success = await signInWithGoogle();
+
+    if (success) {
+      router.replace('/(tabs)/Home');
+    }
+
+    setGoogleLoading(false);
+  };
+
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: theme.commonSpacing.screenPadding,
-        backgroundColor: theme.colors.background,
-      }}>
-      <StatusBar backgroundColor={theme.colors.background} />
+    <AuthScreen title="Create your account" subtitle="Then invite your person to join you" showBack>
+      <AuthInput
+        icon={Mail}
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        inputMode="email"
+        keyboardType="email-address"
+        autoComplete="email"
+      />
 
-      <Box
-        style={{
-          width: '100%',
-        }}>
-        <IconButton icon={ArrowLeft} onPress={router.back} variant="ghost" />
-      </Box>
+      <AuthInput
+        icon={Lock}
+        placeholder="Password"
+        value={password}
+        onChangeText={setPassword}
+        autoComplete="new-password"
+        secure
+      />
 
-      <Box
-        style={{
-          width: '100%',
-          gap: theme.spacing[5],
-        }}>
+      <AuthInput
+        icon={Lock}
+        placeholder="Confirm Password"
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        autoComplete="new-password"
+        isInvalid={passwordsMismatch}
+        secure
+      />
+
+      {passwordsMismatch && (
         <Text
           style={{
-            fontSize: theme.fontSize['3xl'],
-            lineHeight: theme.lineHeight.tight * theme.fontSize['3xl'],
-            fontWeight: theme.fontWeight.bold,
-            color: theme.colors.text,
-            textAlign: 'center',
+            color: theme.colors.error,
+            fontSize: theme.fontSize.sm,
+            marginTop: -theme.spacing[2],
           }}>
-          Significant Other
+          Passwords don&apos;t match
         </Text>
+      )}
 
-        <Input
-          variant="outline"
-          style={{
-            borderRadius: theme.radii.md,
-            backgroundColor: theme.colors.inputBackground,
-          }}>
-          <InputField
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            style={{
-              fontSize: theme.fontSize.md,
-              color: theme.colors.text,
-            }}
-          />
-        </Input>
+      <AuthButton
+        title="Sign Up"
+        onPress={handleSignUp}
+        loading={loading}
+        disabled={googleLoading || passwordsMismatch}
+      />
 
-        <Input
-          variant="outline"
-          style={{
-            borderRadius: theme.radii.md,
-            backgroundColor: theme.colors.inputBackground,
-          }}>
-          <InputField
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!visible}
-            style={{
-              fontSize: theme.fontSize.md,
-              color: theme.colors.text,
-            }}
-          />
+      <AuthDivider />
 
-          <TouchableOpacity
-            style={{
-              width: 40,
-              borderRadius: theme.radii.full,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-            onPress={() => setVisible(!visible)}>
-            <Icon
-              as={visible ? EyeOff : Eye}
-              style={{
-                color: theme.colors.textTertiary,
-                width: 24,
-                height: 24,
-              }}
-            />
-          </TouchableOpacity>
-        </Input>
+      <GoogleSignInButton onPress={handleGoogleSignIn} loading={googleLoading} disabled={loading} />
 
-        <Input
-          variant="outline"
-          style={{
-            borderRadius: theme.radii.md,
-            backgroundColor: theme.colors.inputBackground,
-          }}>
-          <InputField
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry={!confirmVisible}
-            style={{
-              fontSize: theme.fontSize.md,
-              color: theme.colors.text,
-            }}
-          />
-
-          <TouchableOpacity
-            style={{
-              width: 40,
-              borderRadius: theme.radii.full,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-            onPress={() => setConfirmVisible(!confirmVisible)}>
-            <Icon
-              as={confirmVisible ? EyeOff : Eye}
-              style={{
-                color: theme.colors.textTertiary,
-                width: 24,
-                height: 24,
-              }}
-            />
-          </TouchableOpacity>
-        </Input>
-
-        <Button
-          onPress={handleSignUp}
-          isDisabled={loading}
-          style={{
-            backgroundColor: theme.colors.primary,
-            borderRadius: theme.radii.md,
-            ...theme.shadows.sm,
-          }}>
-          <Text
-            style={{
-              color: theme.colors.white,
-              fontSize: theme.fontSize.md,
-              fontWeight: theme.fontWeight.semibold,
-            }}>
-            Sign Up
-          </Text>
-
-          {loading && (
-            <ButtonSpinner
-              style={{
-                marginLeft: theme.spacing[2],
-              }}
-            />
-          )}
-        </Button>
-
+      <HStack style={{ justifyContent: 'center', gap: theme.spacing[1] }}>
+        <Text style={{ color: theme.colors.textSecondary, fontSize: theme.fontSize.md }}>
+          Already have an account?
+        </Text>
         <Link href="/Auth/Signin">
           <Text
             style={{
               color: theme.colors.primary,
               fontSize: theme.fontSize.md,
-              fontWeight: theme.fontWeight.medium,
+              fontWeight: theme.fontWeight.semibold,
             }}>
             Sign In
           </Text>
         </Link>
-      </Box>
-
-      <AuthFooter />
-    </View>
+      </HStack>
+    </AuthScreen>
   );
 }

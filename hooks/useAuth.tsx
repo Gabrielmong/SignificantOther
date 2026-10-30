@@ -1,7 +1,12 @@
 import type { ReactNativeFirebase } from '@react-native-firebase/app';
 import {
   createUserWithEmailAndPassword,
+  getAdditionalUserInfo,
+  GoogleAuthProvider,
   onAuthStateChanged,
+  reload,
+  sendEmailVerification,
+  signInWithCredential,
   signInWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
@@ -17,6 +22,12 @@ import {
   requestPermission,
   unregisterDeviceForRemoteMessages,
 } from '@react-native-firebase/messaging';
+import {
+  GoogleSignin,
+  isErrorWithCode,
+  isSuccessResponse,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 import { PermissionsAndroid, Platform } from 'react-native';
 import {
   BatteryOptEnabled,
@@ -25,6 +36,7 @@ import {
 
 import { useAppToast } from './useAppToast';
 import { useFirebase } from './useFirebase';
+import { GOOGLE_WEB_CLIENT_ID } from '../config';
 import { clearAccentStorage } from '../services/accentStorage';
 import { setLocationTaskUserInfo, clearLocationTaskUserInfo } from '../services/locationTask';
 import { clearOnThisDay } from '../services/onThisDay';
@@ -56,6 +68,8 @@ let notificationPermissionRequested = false;
 // Guards against re-prompting for battery optimization exemption — ask at
 // most once per app session.
 let batteryOptimizationPrompted = false;
+
+GoogleSignin.configure({ webClientId: GOOGLE_WEB_CLIENT_ID });
 
 // Persists an FCM token for a user as a plain array — the one shape every
 // call site (editExtraProfile, checkPermission, this) agrees on — deduping
@@ -162,6 +176,9 @@ export const useAuth = () => {
     return signOut(auth).then(async () => {
       dispatch(stateLogout());
       dispatch(resetRoom());
+      // Forget the Google account too, so the next Google sign-in shows the
+      // account picker instead of silently reusing this one
+      await GoogleSignin.signOut().catch(() => {});
       await clearLocationTaskUserInfo();
       await clearWidgetTaskUserInfo();
       await clearAccentStorage();
@@ -225,6 +242,12 @@ export const useAuth = () => {
 
         dispatch(setUser(userPayload));
 
+        // A verified email is what lets the password survive a later Google
+        // sign-in with the same address (Firebase drops unverified passwords)
+        sendEmailVerification(userCredential.user).catch((error) => {
+          console.error('Error sending verification email:', error);
+        });
+
         // Create user entry in Firebase Realtime Database
         const userDocRef = ref(db, `users/${userCredential.user?.uid}`);
         update(userDocRef, {
@@ -237,7 +260,7 @@ export const useAuth = () => {
 
         showToast({
           title: 'Sign up success',
-          description: `Welcome, ${userPayload?.email}`,
+          description: `Welcome, ${userPayload?.email}. Check your inbox to verify your email`,
           status: 'success',
         });
 
@@ -254,6 +277,77 @@ export const useAuth = () => {
 
         return false;
       });
+  };
+
+  // Covers both sign in and sign up: Firebase creates the account on first use
+  const signInWithGoogle = async (): Promise<boolean> => {
+    if (!auth) return false;
+
+    try {
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const response = await GoogleSignin.signIn();
+
+      if (!isSuccessResponse(response)) return false;
+
+      const { idToken } = response.data;
+      if (!idToken) throw new Error('Google did not return an ID token');
+
+      const userCredential = await signInWithCredential(
+        auth,
+        GoogleAuthProvider.credential(idToken),
+      );
+      const isNewUser = getAdditionalUserInfo(userCredential)?.isNewUser;
+
+      // Only seed the database entry for new accounts, so a returning user's
+      // edited name or photo isn't overwritten by their Google profile
+      if (isNewUser) {
+        const userDocRef = ref(db, `users/${userCredential.user?.uid}`);
+        await update(userDocRef, {
+          displayName: userCredential.user?.displayName || '',
+          email: userCredential.user?.email || '',
+          photoURL: userCredential.user?.photoURL || null,
+        }).catch((error) => {
+          console.error('Error creating user in database:', error);
+        });
+      } else {
+        await getExtraProfile();
+      }
+
+      const userPayload: UserPayload = {
+        displayName: userCredential.user?.displayName,
+        email: userCredential.user?.email,
+        uid: userCredential.user?.uid,
+        photoURL: userCredential.user?.photoURL,
+      };
+      dispatch(setUser(userPayload));
+
+      showToast({
+        title: isNewUser ? 'Sign up success' : 'Sign in',
+        description: isNewUser ? `Welcome, ${userPayload?.email}` : 'Welcome back',
+        status: 'success',
+      });
+
+      return true;
+    } catch (error) {
+      if (isErrorWithCode(error) && error.code === statusCodes.IN_PROGRESS) return false;
+
+      // Firebase only auto-links Google into an existing password account for
+      // addresses Google is authoritative for (e.g. @gmail.com); other emails land here
+      const accountExists =
+        isErrorWithCode(error) && error.code === 'auth/account-exists-with-different-credential';
+
+      showToast({
+        title: 'Google sign in failed',
+        description: accountExists
+          ? 'This email already has an account. Sign in with your email and password instead.'
+          : error instanceof Error
+            ? error.message
+            : String(error),
+        status: 'error',
+      });
+
+      return false;
+    }
   };
 
   const initialize = () => {
@@ -307,6 +401,42 @@ export const useAuth = () => {
 
         return false;
       });
+  };
+
+  const sendVerificationEmail = (): Promise<boolean> => {
+    if (!auth?.currentUser) return Promise.resolve(false);
+
+    return sendEmailVerification(auth.currentUser)
+      .then(() => {
+        showToast({
+          title: 'Verification email sent',
+          description: `Check ${auth.currentUser?.email} for the link`,
+          status: 'success',
+        });
+
+        return true;
+      })
+      .catch((error: ReactNativeFirebase.NativeFirebaseError) => {
+        showToast({
+          title: 'Could not send email',
+          description:
+            error.code === 'auth/too-many-requests'
+              ? 'We just sent one, give it a few minutes'
+              : error.message,
+          status: 'error',
+        });
+
+        return false;
+      });
+  };
+
+  // Clicking the link verifies the account server side; the local user only
+  // finds out after a reload
+  const refreshEmailVerified = async (): Promise<boolean> => {
+    if (!auth?.currentUser) return false;
+
+    await reload(auth.currentUser).catch(() => {});
+    return !!auth.currentUser?.emailVerified;
   };
 
   const editProfile = ({ displayName, photoURL }: { displayName?: string; photoURL?: string }) => {
@@ -475,7 +605,10 @@ export const useAuth = () => {
     initialize,
     logout,
     signIn,
+    signInWithGoogle,
     signUp,
+    sendVerificationEmail,
+    refreshEmailVerified,
     user,
     editExtraProfile,
     getExtraProfile,

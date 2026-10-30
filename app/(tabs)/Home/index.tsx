@@ -36,6 +36,7 @@ import {
   KeyboardAwareModal,
   Skeleton,
   UpdateBanner,
+  VerifyEmailBanner,
 } from '../../../components';
 import { GradientCard } from '../../../components/styled';
 import {
@@ -581,6 +582,7 @@ export default function Home() {
         }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} />}>
         <UpdateBanner />
+        <VerifyEmailBanner />
         {loading ? (
           // Placeholders shaped like the cards below, so the board doesn't jump when it loads
           <Box

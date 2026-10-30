@@ -1,16 +1,12 @@
-import { Input, InputField, ButtonSpinner, Box, View, Button, Text } from '@gluestack-ui/themed';
-import { router } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { ArrowLeft } from 'lucide-react-native';
+import { Mail } from 'lucide-react-native';
 import { useState } from 'react';
 
-import { AuthFooter, IconButton } from '../../components';
-import { useAppTheme, useAuth } from '../../hooks';
+import { AuthButton, AuthInput, AuthScreen } from '../../components';
+import { useAuth } from '../../hooks';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const { theme } = useAppTheme();
   const { forgotPassword } = useAuth();
 
   const handleForgotPassword = async () => {
@@ -21,78 +17,21 @@ export default function ForgotPassword() {
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: theme.commonSpacing.screenPadding,
-        backgroundColor: theme.colors.background,
-      }}>
-      <StatusBar backgroundColor={theme.colors.background} />
+    <AuthScreen
+      title="Forgot password"
+      subtitle="We'll email you a link to choose a new one"
+      showBack>
+      <AuthInput
+        icon={Mail}
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        inputMode="email"
+        keyboardType="email-address"
+        autoComplete="email"
+      />
 
-      <Box
-        style={{
-          width: '100%',
-        }}>
-        <IconButton icon={ArrowLeft} onPress={router.back} variant="ghost" />
-      </Box>
-
-      <Box
-        style={{
-          width: '100%',
-          gap: theme.spacing[5],
-        }}>
-        <Text
-          style={{
-            fontSize: theme.fontSize['3xl'],
-            lineHeight: theme.lineHeight.tight * theme.fontSize['3xl'],
-            fontWeight: theme.fontWeight.bold,
-            color: theme.colors.text,
-            textAlign: 'center',
-          }}>
-          Forgot Password
-        </Text>
-
-        <Input
-          variant="outline"
-          style={{
-            borderRadius: theme.radii.md,
-            backgroundColor: theme.colors.inputBackground,
-          }}>
-          <InputField
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            style={{
-              fontSize: theme.fontSize.md,
-              color: theme.colors.text,
-            }}
-          />
-        </Input>
-
-        <Button
-          onPress={handleForgotPassword}
-          isDisabled={loading}
-          style={{
-            backgroundColor: theme.colors.primary,
-            borderRadius: theme.radii.md,
-            ...theme.shadows.sm,
-          }}>
-          <Text
-            style={{
-              color: theme.colors.white,
-              fontSize: theme.fontSize.md,
-              fontWeight: theme.fontWeight.semibold,
-            }}>
-            Send code
-          </Text>
-
-          {loading && <ButtonSpinner />}
-        </Button>
-      </Box>
-
-      <AuthFooter />
-    </View>
+      <AuthButton title="Send reset link" onPress={handleForgotPassword} loading={loading} />
+    </AuthScreen>
   );
 }

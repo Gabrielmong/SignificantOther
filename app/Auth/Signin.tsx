@@ -1,21 +1,15 @@
-import {
-  Input,
-  InputField,
-  Button,
-  ButtonSpinner,
-  View,
-  Text,
-  Box,
-  HStack,
-  Icon,
-} from '@gluestack-ui/themed';
+import { Box, HStack, Text } from '@gluestack-ui/themed';
 import { Link, router } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { Eye, EyeOff } from 'lucide-react-native';
+import { Lock, Mail } from 'lucide-react-native';
 import { useState } from 'react';
-import { TouchableOpacity } from 'react-native';
 
-import { AuthFooter } from '../../components';
+import {
+  AuthButton,
+  AuthDivider,
+  AuthInput,
+  AuthScreen,
+  GoogleSignInButton,
+} from '../../components';
 import { useAppTheme } from '../../hooks';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -23,9 +17,9 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [visible, setVisible] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
   const { theme } = useAppTheme();
 
   const handleSignIn = async () => {
@@ -39,146 +33,77 @@ export default function Home() {
     setLoading(false);
   };
 
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: theme.commonSpacing.screenPadding,
-        backgroundColor: theme.colors.background,
-      }}>
-      <StatusBar backgroundColor={theme.colors.background} />
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    const success = await signInWithGoogle();
 
-      <Box
-        style={{
-          width: '100%',
-        }}
+    if (success) {
+      router.replace('/(tabs)/Home');
+    }
+
+    setGoogleLoading(false);
+  };
+
+  return (
+    <AuthScreen title="Significant Other" subtitle="Welcome back, your person is waiting">
+      <AuthInput
+        icon={Mail}
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        inputMode="email"
+        keyboardType="email-address"
+        autoComplete="email"
       />
 
-      <Box
-        style={{
-          width: '100%',
-          gap: theme.spacing[5],
-        }}>
-        <Text
-          style={{
-            fontSize: theme.fontSize['3xl'],
-            lineHeight: theme.lineHeight.tight * theme.fontSize['3xl'],
-            fontWeight: theme.fontWeight.bold,
-            color: theme.colors.text,
-            textAlign: 'center',
-          }}>
-          Significant Other
-        </Text>
+      <AuthInput
+        icon={Lock}
+        placeholder="Password"
+        value={password}
+        onChangeText={setPassword}
+        autoComplete="current-password"
+        secure
+      />
 
-        <Input
-          variant="outline"
-          style={{
-            borderRadius: theme.radii.md,
-            backgroundColor: theme.colors.inputBackground,
-          }}>
-          <InputField
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            inputMode="email"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            style={{
-              fontSize: theme.fontSize.md,
-              color: theme.colors.text,
-            }}
-          />
-        </Input>
-
-        <Input
-          variant="outline"
-          style={{
-            borderRadius: theme.radii.md,
-            backgroundColor: theme.colors.inputBackground,
-          }}>
-          <InputField
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!visible}
-            style={{
-              fontSize: theme.fontSize.md,
-              color: theme.colors.text,
-            }}
-          />
-
-          <TouchableOpacity
-            style={{
-              width: 40,
-              borderRadius: theme.radii.full,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-            onPress={() => setVisible(!visible)}>
-            <Icon
-              as={visible ? EyeOff : Eye}
-              style={{
-                color: theme.colors.textTertiary,
-                width: 24,
-                height: 24,
-              }}
-            />
-          </TouchableOpacity>
-        </Input>
-
-        <Button
-          onPress={handleSignIn}
-          isDisabled={loading}
-          style={{
-            backgroundColor: theme.colors.primary,
-            borderRadius: theme.radii.md,
-            ...theme.shadows.sm,
-          }}>
+      <Box style={{ alignItems: 'flex-end', marginTop: -theme.spacing[1] }}>
+        <Link href="/Auth/ForgotPassword">
           <Text
             style={{
-              color: theme.colors.white,
+              color: theme.colors.primary,
+              fontSize: theme.fontSize.sm,
+              fontWeight: theme.fontWeight.medium,
+            }}>
+            Forgot password?
+          </Text>
+        </Link>
+      </Box>
+
+      <AuthButton
+        title="Sign In"
+        onPress={handleSignIn}
+        loading={loading}
+        disabled={googleLoading}
+      />
+
+      <AuthDivider />
+
+      <GoogleSignInButton onPress={handleGoogleSignIn} loading={googleLoading} disabled={loading} />
+
+      <HStack style={{ justifyContent: 'center', gap: theme.spacing[1] }}>
+        <Text style={{ color: theme.colors.textSecondary, fontSize: theme.fontSize.md }}>
+          New here?
+        </Text>
+        <Link href="/Auth/Signup">
+          <Text
+            style={{
+              color: theme.colors.primary,
               fontSize: theme.fontSize.md,
               fontWeight: theme.fontWeight.semibold,
             }}>
-            Sign In
+            Create an account
           </Text>
-
-          {loading && <ButtonSpinner />}
-        </Button>
-
-        <HStack
-          style={{
-            justifyContent: 'space-between',
-          }}>
-          <Link href="/Auth/Signup">
-            <Text
-              style={{
-                color: theme.colors.primary,
-                fontSize: theme.fontSize.md,
-                fontWeight: theme.fontWeight.medium,
-              }}>
-              Sign Up
-            </Text>
-          </Link>
-
-          <Link href="/Auth/ForgotPassword">
-            <Text
-              style={{
-                color: theme.colors.primary,
-                fontSize: theme.fontSize.md,
-                fontWeight: theme.fontWeight.medium,
-              }}>
-              Forgot Password?
-            </Text>
-          </Link>
-        </HStack>
-      </Box>
-
-      <AuthFooter />
-    </View>
+        </Link>
+      </HStack>
+    </AuthScreen>
   );
 }

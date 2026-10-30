@@ -1,9 +1,22 @@
 import 'dotenv/config';
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
+import googleServices from './google-services.json';
 import { version } from './package.json';
 
 const EAS_PROJECT_ID = 'dd25f76b-ccc2-43b1-aef4-7f494942e3a9';
+
+// Google sign-in needs the project's web OAuth client to mint an ID token
+// Firebase accepts. It lands in google-services.json (client_type 3) once the
+// app's SHA fingerprints are registered in the Firebase console.
+const GOOGLE_WEB_CLIENT_ID =
+  process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
+  googleServices.client
+    .flatMap(
+      (client: { oauth_client?: { client_id: string; client_type: number }[] }) =>
+        client.oauth_client ?? [],
+    )
+    .find((oauthClient) => oauthClient.client_type === 3)?.client_id;
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -70,6 +83,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     '@react-native-firebase/messaging',
+    '@react-native-google-signin/google-signin',
     [
       'expo-audio',
       {
@@ -136,6 +150,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     // Environment variables accessible via expo-constants
     mapboxAccessToken: process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN,
+    googleWebClientId: GOOGLE_WEB_CLIENT_ID,
   },
   notification: {
     icon: './assets/notification-icon.png',
