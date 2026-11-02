@@ -12,6 +12,34 @@ MapboxGL.setAccessToken(MAPBOX_ACCESS_TOKEN);
 
 const PADDING = 60;
 const WORLD = { center: [0, 20] as [number, number], zoom: 1 };
+const PIN_HIT_RADIUS = 28; // Screen points, a little past the pin's edge
+
+// Web Mercator position in screen points at this zoom (512-point tiles)
+const toScreen = ([lng, lat]: [number, number], zoom: number): [number, number] => {
+  const scale = 512 * 2 ** zoom;
+  const sin = Math.sin((lat * Math.PI) / 180);
+  return [
+    ((lng + 180) / 360) * scale,
+    (0.5 - Math.log((1 + sin) / (1 - sin)) / (4 * Math.PI)) * scale,
+  ];
+};
+
+// The pin under a map tap, if any. A backup for the pins' own Pressable, which
+// on some Android devices never gets the touch inside a MarkerView.
+const pinNear = (places: Place[], tap: [number, number], zoom: number): Place | null => {
+  const [tx, ty] = toScreen(tap, zoom);
+  let nearest: Place | null = null;
+  let best = PIN_HIT_RADIUS;
+  for (const p of places) {
+    const [px, py] = toScreen([p.longitude, p.latitude], zoom);
+    const distance = Math.hypot(px - tx, py - ty);
+    if (distance <= best) {
+      nearest = p;
+      best = distance;
+    }
+  }
+  return nearest;
+};
 
 interface PlaceMapProps {
   places: Place[];
@@ -40,6 +68,7 @@ export const PlaceMap: React.FC<PlaceMapProps> = ({
 }) => {
   const { theme, colorMode } = useAppTheme();
   const moved = useRef(false);
+  const zoom = useRef<number>(WORLD.zoom);
 
   const camera = useMemo(() => {
     if (focus) return { centerCoordinate: focus, zoomLevel: 15 };
@@ -89,7 +118,14 @@ export const PlaceMap: React.FC<PlaceMapProps> = ({
         const coords = (feature.geometry as GeoJSON.Point | undefined)?.coordinates;
         if (onLongPress && coords) onLongPress([coords[0], coords[1]]);
       }}
+      onPress={(feature) => {
+        const coords = (feature.geometry as GeoJSON.Point | undefined)?.coordinates;
+        if (!onPinPress || !coords) return;
+        const p = pinNear(places, [coords[0], coords[1]], zoom.current);
+        if (p) onPinPress(p);
+      }}
       onCameraChanged={(state) => {
+        zoom.current = state.properties.zoom;
         if (state.gestures.isGestureActive) moved.current = true;
       }}
       onMapIdle={(state) => {

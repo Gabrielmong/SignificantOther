@@ -2,8 +2,8 @@ import { Box, HStack, Heading, Text } from '@gluestack-ui/themed';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ArrowLeft } from 'lucide-react-native';
-import React, { useCallback, useEffect, useState } from 'react';
-import { RefreshControl, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ScrollView, TouchableOpacity } from 'react-native';
 
 import { AnimatedHeartLoader, AnswerModal } from '../../../components';
 import { useAppTheme, useAppToast, useAuth, useFirebase } from '../../../hooks';
@@ -46,7 +46,7 @@ export default function DailyQuestionHistory() {
   const { theme } = useAppTheme();
   const { user } = useAuth();
   const { showToast } = useAppToast();
-  const { getDailyQuestionHistory, saveDailyAnswer } = useFirebase();
+  const { listenToDailyQuestionHistory, saveDailyAnswer } = useFirebase();
   const { partnerId, partnerName } = useAppSelector((state) => state.room);
 
   const roomId = user.roomId || null;
@@ -54,45 +54,41 @@ export default function DailyQuestionHistory() {
   const partnerLabel = partnerName || 'Partner';
 
   const [items, setItems] = useState<HistoryItem[] | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
   // The missed day being answered late
   const [answering, setAnswering] = useState<HistoryItem | null>(null);
 
-  const load = useCallback(async () => {
+  // Live, so a late answer (yours or your partner's) shows as soon as it's saved
+  useEffect(() => {
     if (!roomId) {
       setItems([]);
       return;
     }
 
-    try {
-      setItems(withMissedDays(await getDailyQuestionHistory(roomId, HISTORY_DAYS), todayKey()));
-    } catch (error) {
-      console.error('Error loading daily questions:', error);
-      setItems((prev) => prev ?? []);
-      showToast({
-        title: "Couldn't load past questions",
-        description: 'Pull down to try again',
-        status: 'error',
-      });
-    }
+    return listenToDailyQuestionHistory(
+      roomId,
+      HISTORY_DAYS,
+      (stored) => setItems(withMissedDays(stored, todayKey())),
+      (error) => {
+        console.error('Error loading daily questions:', error);
+        setItems((prev) => prev ?? []);
+        showToast({
+          title: "Couldn't load past questions",
+          description: 'Please try again later',
+          status: 'error',
+        });
+      },
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await load();
-    setRefreshing(false);
-  };
 
   const handleSaveLate = async (text: string) => {
     const answer = text.trim().slice(0, MAX_ANSWER_LENGTH);
     if (!answering || !roomId || !userId || !answer) return;
 
+    // The listener shows the answer right away, so don't hold the modal open
+    // waiting for the server to confirm
     const { dateKey, day } = answering;
+    setAnswering(null);
     try {
       await saveDailyAnswer(
         roomId,
@@ -101,8 +97,6 @@ export default function DailyQuestionHistory() {
         day.question ?? questionForDate(dateKey),
         answer,
       );
-      setAnswering(null);
-      await load();
     } catch (error) {
       console.error('Error saving late answer:', error);
       showToast({
@@ -189,17 +183,7 @@ export default function DailyQuestionHistory() {
         </HStack>
       </Box>
 
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ padding: 16, gap: 12 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={theme.colors.primary}
-            colors={[theme.colors.primary]}
-          />
-        }>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, gap: 12 }}>
         {items === null ? (
           <Box style={{ paddingVertical: 60, alignItems: 'center' }}>
             <AnimatedHeartLoader />

@@ -6,13 +6,19 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
-import { PlaceCard, PlaceEditor, PlaceMap, PlaceSearch, PhotoViewer } from '../../../components';
+import {
+  PlaceCard,
+  PlaceEditor,
+  PlaceList,
+  PlaceMap,
+  PlaceSearch,
+  PhotoViewer,
+} from '../../../components';
 import { useAppTheme, useGallery, useMilestones, usePlaces, useShareToChat } from '../../../hooks';
 import type { PlaceInput } from '../../../hooks/usePlaces';
 import { Milestone, Place } from '../../../types';
-import { parseDay } from '../../../utils/milestones';
 import { listItemEntering, listItemExiting } from '../../../utils/motion';
-import { addDraftAt, linkedTo } from '../../../utils/places';
+import { addDraftAt, linkedTo, placeSubtitle } from '../../../utils/places';
 
 export default function Places() {
   const { theme, colorMode } = useAppTheme();
@@ -28,6 +34,7 @@ export default function Places() {
   const [moved, setMoved] = useState(false);
   const [editing, setEditing] = useState<Partial<PlaceInput> | null>(null);
   const [viewingIndex, setViewingIndex] = useState<number | null>(null);
+  const [listOpen, setListOpen] = useState(false);
 
   // Opened from a "📍 place" link: center on it with its card open. A link to
   // a place that no longer exists just shows the usual view.
@@ -66,21 +73,20 @@ export default function Places() {
     ]);
 
   // Same venue · date line the card shows
-  const handleShare = (p: Place) => {
-    const date = p.day
-      ? parseDay(p.day).toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-        })
-      : null;
+  const handleShare = (p: Place) =>
     shareToChat({
       kind: 'place',
       id: p.id,
       title: p.name,
-      subtitle: [p.venue, date].filter(Boolean).join(' · ') || undefined,
+      subtitle: placeSubtitle(p) || undefined,
       emoji: p.emoji,
     });
+
+  // Same as tapping the pin
+  const selectPlace = (p: Place) => {
+    setListOpen(false);
+    setSelectedId(p.id);
+    setFocus([p.longitude, p.latitude]);
   };
 
   // navigate (not push) returns to the existing You Two screen instead of
@@ -141,10 +147,7 @@ export default function Places() {
           places={places}
           selectedId={selectedId}
           focus={focus}
-          onPinPress={(p) => {
-            setSelectedId(p.id);
-            setFocus([p.longitude, p.latitude]);
-          }}
+          onPinPress={selectPlace}
           onLongPress={([lng, lat]) => openEditor({ longitude: lng, latitude: lat })}
           onCenterChange={(c, wasMoved) => {
             setCenter(c);
@@ -169,6 +172,16 @@ export default function Places() {
               Search for a place or long-press the map to drop a pin
             </Text>
           </View>
+        )}
+
+        {/* Gives way to a place's card, and comes back when it closes */}
+        {!selected && places.length > 0 && (
+          <PlaceList
+            places={places}
+            open={listOpen}
+            onToggle={() => setListOpen((o) => !o)}
+            onSelect={selectPlace}
+          />
         )}
 
         {/* The card pins itself to the bottom, so the wrapper fills the map and

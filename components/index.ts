@@ -40,6 +40,7 @@ export * from './PlaceSearch';
 export * from './PlaceForm';
 export * from './PlaceEditor';
 export * from './PlaceCard';
+export * from './PlaceList';
 export * from './PlacesPreview';
 export * from './PlacePicker';
 export * from './OnThisDayCard';

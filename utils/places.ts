@@ -4,6 +4,7 @@
  * outside the app.
  */
 
+import { parseDay } from './milestones';
 import type { Milestone } from '../types/Milestone';
 import type { Photo } from '../types/Photo';
 import type { Place } from '../types/Place';
@@ -136,3 +137,15 @@ export const addDraftAt = (
   placeCount: number,
 ): { longitude: number; latitude: number } | null =>
   center && (moved || placeCount > 0) ? { longitude: center[0], latitude: center[1] } : null;
+
+/** The venue · date line shown under a place's name, or '' when it has neither */
+export const placeSubtitle = (p: Place): string => {
+  const date = p.day
+    ? parseDay(p.day).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : null;
+  return [p.venue, date].filter(Boolean).join(' · ');
+};

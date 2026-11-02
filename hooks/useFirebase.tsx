@@ -609,21 +609,32 @@ const createFirebaseApi = (showToast: ShowToast) => {
     });
   };
 
-  const getDailyQuestionHistory = async (
+  // A listener, not get(): with persistence on, get() of a query can answer
+  // from the stale disk copy, hiding answers saved since (even your own).
+  const listenToDailyQuestionHistory = (
     roomId: string,
     limit: number,
-  ): Promise<{ dateKey: string; day: DailyQuestionDay }[]> => {
+    callback: (items: { dateKey: string; day: DailyQuestionDay }[]) => void,
+    onError: (error: Error) => void,
+  ) => {
     const historyQuery = query(
       databaseRef(db, `rooms/${roomId}/dailyQuestions`),
       orderByKey(),
       limitToLast(limit),
     );
-    const snapshot = await get(historyQuery);
-    const data = (snapshot.val() || {}) as { [dateKey: string]: DailyQuestionDay };
 
-    return Object.entries(data)
-      .map(([dateKey, day]) => ({ dateKey, day }))
-      .sort((a, b) => b.dateKey.localeCompare(a.dateKey));
+    return onValue(
+      historyQuery,
+      (snapshot) => {
+        const data = (snapshot.val() || {}) as { [dateKey: string]: DailyQuestionDay };
+        callback(
+          Object.entries(data)
+            .map(([dateKey, day]) => ({ dateKey, day }))
+            .sort((a, b) => b.dateKey.localeCompare(a.dateKey)),
+        );
+      },
+      onError,
+    );
   };
 
   const listenToFeelingChanges = (
@@ -1256,7 +1267,7 @@ const createFirebaseApi = (showToast: ShowToast) => {
     saveDailyAnswer,
     editDailyAnswer,
     listenToDailyQuestionDay,
-    getDailyQuestionHistory,
+    listenToDailyQuestionHistory,
     getWishlist,
     updateEntryInWishlist,
     listenToWishlistChanges,

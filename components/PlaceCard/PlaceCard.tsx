@@ -6,7 +6,7 @@ import { ScrollView, TouchableOpacity, View } from 'react-native';
 
 import { useAppTheme } from '../../hooks';
 import { Milestone, Photo, Place } from '../../types';
-import { parseDay } from '../../utils/milestones';
+import { placeSubtitle } from '../../utils/places';
 
 interface PlaceCardProps {
   place: Place;
@@ -33,14 +33,7 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({
   onClose,
 }) => {
   const { theme } = useAppTheme();
-  const date = place.day
-    ? parseDay(place.day).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      })
-    : null;
-  const subtitle = [place.venue, date].filter(Boolean).join(' · ');
+  const subtitle = placeSubtitle(place);
 
   return (
     <View
