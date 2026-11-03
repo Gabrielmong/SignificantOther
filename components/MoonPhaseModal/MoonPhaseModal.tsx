@@ -86,7 +86,7 @@ export const MoonPhaseModal = ({
             gap: theme.spacing[3],
             padding: theme.commonSpacing.screenPadding,
           }}>
-          <MoonImage index={index} size={200} />
+          <MoonImage index={index} size={200} scrubbing />
           <Box style={{ alignItems: 'center' }}>
             <Text
               style={{
