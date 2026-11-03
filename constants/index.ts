@@ -12,6 +12,7 @@ export const TAB_HIDDEN_ROUTES = [
   '/Home/Zones',
   '/Home/Countdowns',
   '/Home/DailyQuestion',
+  '/Home/Moon',
   '/Home/Journal',
   '/YouTwo/Photos',
   '/YouTwo/Places',
@@ -122,3 +123,5 @@ export const FEELINGS_LABELS: {
   upset: 'upset',
   worried: 'worried',
 } as const;
+
+export * from './moonPhases';

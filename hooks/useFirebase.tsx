@@ -506,6 +506,21 @@ const createFirebaseApi = (showToast: ShowToast) => {
     });
   };
 
+  // Favorite moon phase, in degrees (0 = new, 180 = full); null when not set
+  const listenToFavoriteMoonPhase = (
+    roomId: string,
+    uid: string,
+    callback: (angle: number | null) => void,
+  ) =>
+    onValue(databaseRef(db, `rooms/${roomId}/users/${uid}/favoriteMoonPhase`), (s) => {
+      const value = s.val();
+      callback(typeof value === 'number' ? value : null);
+    });
+
+  const updateFavoriteMoonPhase = async (roomId: string, uid: string, angle: number) => {
+    await set(databaseRef(db, `rooms/${roomId}/users/${uid}/favoriteMoonPhase`), angle);
+  };
+
   const listenToFlowerChanges = (
     flowerCallback: ({ flower, message }: { flower: string; message: string }) => void,
     roomId: string,
@@ -1258,6 +1273,8 @@ const createFirebaseApi = (showToast: ShowToast) => {
     listenToTyping,
     getFlower,
     updateFlower,
+    listenToFavoriteMoonPhase,
+    updateFavoriteMoonPhase,
     listenToFlowerChanges,
     getFeeling,
     updateFeeling,

@@ -34,6 +34,7 @@ import {
   CountdownsSection,
   DailyQuestionCard,
   KeyboardAwareModal,
+  MoonCard,
   Skeleton,
   UpdateBanner,
   VerifyEmailBanner,
@@ -52,6 +53,8 @@ import {
   useWhiteboard,
   useZones,
   useShareToChat,
+  useMoonNow,
+  useMoonFavorites,
 } from '../../../hooks';
 import { setLocationTaskUserInfo } from '../../../services/locationTask';
 import { useAppSelector } from '../../../state';
@@ -78,6 +81,12 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [userDataReady, setUserDataReady] = useState(false);
   const [roomId, setRoomId] = useState<string>(user.roomId || '');
+  const { now: moonNow, moon } = useMoonNow();
+  const { partnerFavorite: partnerMoonFavorite } = useMoonFavorites({
+    roomId: user.roomId,
+    userId: user.uid,
+    partnerId,
+  });
   const [showModal, setShowModal] = useState(false);
   const [numberOfItems, setNumberOfItems] = useState(0);
   const [numberOfItemsInJournal, setNumberOfItemsInJournal] = useState(0);
@@ -465,6 +474,10 @@ export default function Home() {
     router.push('/(tabs)/Home/DailyQuestion');
   }, []);
 
+  const handleMoonPress = useCallback(() => {
+    router.push('/(tabs)/Home/Moon');
+  }, []);
+
   // Handle case where theme is not yet loaded
   if (!theme) {
     return (
@@ -591,6 +604,7 @@ export default function Home() {
             <Skeleton height={180} borderRadius={theme.radii.xl} />
             <Skeleton height={PRESSABLE_CARD_HEIGHT} />
             <Skeleton height={PRESSABLE_CARD_HEIGHT} />
+            <Skeleton height={PRESSABLE_CARD_HEIGHT} />
             <Skeleton height={120} borderRadius={theme.radii.lg} />
             <HStack style={{ width: '100%', gap: theme?.spacing?.[3] || 12 }}>
               <Skeleton height={96} borderRadius={theme.radii.lg} style={{ flex: 1 }} />
@@ -651,6 +665,16 @@ export default function Home() {
                     </Text>
                   </TouchableOpacity>
                 </Box>
+
+                {/* Tonight's moon, with a countdown to the partner's favorite phase */}
+                <MoonCard
+                  moon={moon}
+                  now={moonNow}
+                  partnerName={partnerName || 'Partner'}
+                  hasPartner={!!partnerId}
+                  partnerFavorite={partnerMoonFavorite}
+                  onPress={handleMoonPress}
+                />
 
                 {/* Daily Question */}
                 <DailyQuestionCard
