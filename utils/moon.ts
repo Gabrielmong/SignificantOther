@@ -113,6 +113,15 @@ export const countdownText = (partnerName: string, status: FavoriteStatus | null
   return `${partnerName}'s favorite in ${status.days} days`;
 };
 
+/** When an event happens relative to `now`, by local calendar day */
+export const relativeDayLabel = (date: Date, now: Date) => {
+  const dayStart = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const days = Math.round((dayStart(date) - dayStart(now)) / DAY_MS);
+  if (days === 0) return date < now ? 'Earlier today' : 'Tonight';
+  if (days === 1) return 'Tomorrow';
+  return `In ${days} days`;
+};
+
 export type LunarEvent = {
   date: Date;
   type: 'fullMoon' | 'eclipse';

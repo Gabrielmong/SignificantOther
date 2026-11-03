@@ -15,10 +15,9 @@ import {
   countdownText,
   favoriteStatus,
   phaseName,
+  relativeDayLabel,
   upcomingLunarEvents,
 } from '../../../utils/moon';
-
-const DAY_MS = 86_400_000;
 
 const eventTitle = (e: LunarEvent) => {
   const tags = [e.supermoon && 'Supermoon', e.blueMoon && 'Blue moon'].filter(Boolean);
@@ -27,13 +26,6 @@ const eventTitle = (e: LunarEvent) => {
   if (e.eclipseKind === 'total') return `🔴 Blood Moon (total lunar eclipse)${suffix}`;
   if (e.eclipseKind === 'partial') return `🌘 Partial lunar eclipse${suffix}`;
   return `🌒 Penumbral lunar eclipse${suffix}`;
-};
-
-const relativeDays = (date: Date, now: Date) => {
-  const days = Math.round((date.getTime() - now.getTime()) / DAY_MS);
-  if (days <= 0) return 'Tonight';
-  if (days === 1) return 'Tomorrow';
-  return `In ${days} days`;
 };
 
 export default function Moon() {
@@ -240,7 +232,7 @@ export default function Moon() {
                   </Text>
                 </Box>
                 <Text style={{ fontSize: theme.fontSize.sm, color: theme.colors.textTertiary }}>
-                  {relativeDays(e.date, now)}
+                  {relativeDayLabel(e.date, now)}
                 </Text>
               </HStack>
             );
