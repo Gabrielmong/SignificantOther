@@ -9,24 +9,16 @@ import { MoonImage, MoonPhaseModal } from '../../../components';
 import { useAppTheme, useAppToast, useAuth, useMoonFavorites, useMoonNow } from '../../../hooks';
 import { useAppSelector } from '../../../state';
 import {
-  LunarEvent,
   PHASE_EMOJIS,
   PHASE_LABELS,
   countdownText,
   favoriteStatus,
+  lunarEventIcon,
+  lunarEventTitle,
   phaseName,
   relativeDayLabel,
   upcomingLunarEvents,
 } from '../../../utils/moon';
-
-const eventTitle = (e: LunarEvent) => {
-  const tags = [e.supermoon && 'Supermoon', e.blueMoon && 'Blue moon'].filter(Boolean);
-  const suffix = tags.length ? ` · ${tags.join(' · ')}` : '';
-  if (e.type === 'fullMoon') return `🌕 Full Moon${suffix}`;
-  if (e.eclipseKind === 'total') return `🔴 Blood Moon (total lunar eclipse)${suffix}`;
-  if (e.eclipseKind === 'partial') return `🌘 Partial lunar eclipse${suffix}`;
-  return `🌒 Penumbral lunar eclipse${suffix}`;
-};
 
 export default function Moon() {
   const { theme } = useAppTheme();
@@ -221,7 +213,7 @@ export default function Moon() {
                         e.type === 'eclipse' ? theme.fontWeight.semibold : theme.fontWeight.normal,
                       color: total ? theme.colors.error : theme.colors.text,
                     }}>
-                    {eventTitle(e)}
+                    {`${lunarEventIcon(e)} ${lunarEventTitle(e)}`}
                   </Text>
                   <Text style={{ fontSize: theme.fontSize.sm, color: theme.colors.textSecondary }}>
                     {e.date.toLocaleDateString(undefined, {

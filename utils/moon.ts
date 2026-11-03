@@ -1,5 +1,7 @@
 import * as Astronomy from 'astronomy-engine';
 
+import type { CountdownOccurrence } from './feelingHistory';
+
 // Moon phases, favorite-phase countdowns and lunar events, all computed on the
 // device. Angles are the moon's phase angle in degrees: 0 = new, 180 = full.
 
@@ -177,4 +179,76 @@ export const upcomingLunarEvents = (from: Date, months = 12): LunarEvent[] => {
   }
 
   return events.sort((a, b) => a.date.getTime() - b.date.getTime());
+};
+
+export const lunarEventIcon = (e: LunarEvent) => {
+  if (e.type === 'fullMoon') return '🌕';
+  if (e.eclipseKind === 'total') return '🔴';
+  if (e.eclipseKind === 'partial') return '🌘';
+  return '🌒';
+};
+
+export const lunarEventTitle = (e: LunarEvent) => {
+  const tags = [e.supermoon && 'Supermoon', e.blueMoon && 'Blue moon'].filter(Boolean);
+  const suffix = tags.length ? ` · ${tags.join(' · ')}` : '';
+  if (e.type === 'fullMoon') return `Full Moon${suffix}`;
+  if (e.eclipseKind === 'total') return `Blood Moon (total lunar eclipse)${suffix}`;
+  if (e.eclipseKind === 'partial') return `Partial lunar eclipse${suffix}`;
+  return `Penumbral lunar eclipse${suffix}`;
+};
+
+/**
+ * Moon days in `month` (YYYY-MM) for the calendar, grouped by local day in the same
+ * shape as countdown occurrences. Each day lists eclipses, then favorites, then full moons.
+ */
+export const moonOccurrencesInMonth = (
+  month: string,
+  {
+    myFavorite,
+    partnerFavorite,
+    partnerName,
+  }: { myFavorite: number | null; partnerFavorite: number | null; partnerName: string },
+): { [day: number]: CountdownOccurrence[] } => {
+  const [year, monthNumber] = month.split('-').map(Number);
+  const start = new Date(year, monthNumber - 1, 1);
+  const end = new Date(year, monthNumber, 1);
+  const items: (CountdownOccurrence & { rank: number })[] = [];
+
+  for (const e of upcomingLunarEvents(start, 1)) {
+    if (e.date >= end) continue;
+    items.push({
+      id: `moon-${e.type}-${e.date.getTime()}`,
+      title: lunarEventTitle(e),
+      icon: lunarEventIcon(e),
+      date: e.date.getTime(),
+      rank: e.type === 'eclipse' ? 0 : 2,
+    });
+  }
+
+  const favorites: [number | null, string, string][] = [
+    [myFavorite, 'mine', 'Your favorite moon'],
+    [partnerFavorite, 'partner', `${partnerName}'s favorite moon`],
+  ];
+  for (const [angle, who, title] of favorites) {
+    if (angle === null) continue;
+    let t = start;
+    for (;;) {
+      const date = nextPhaseTime(angle, t);
+      if (date >= end) break;
+      items.push({
+        id: `moon-${who}-${date.getTime()}`,
+        title,
+        icon: PHASE_EMOJIS[phaseName(angle)],
+        date: date.getTime(),
+        rank: 1,
+      });
+      t = new Date(date.getTime() + DAY_MS);
+    }
+  }
+
+  const byDay: { [day: number]: CountdownOccurrence[] } = {};
+  for (const { rank, ...occurrence } of items.sort((a, b) => a.rank - b.rank || a.date - b.date)) {
+    (byDay[new Date(occurrence.date).getDate()] ??= []).push(occurrence);
+  }
+  return byDay;
 };

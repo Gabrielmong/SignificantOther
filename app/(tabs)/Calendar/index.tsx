@@ -11,7 +11,7 @@ import {
   MoodDayModal,
   MoodDaySection,
 } from '../../../components';
-import { useAppTheme, useAppToast, useAuth, useFirebase } from '../../../hooks';
+import { useAppTheme, useAppToast, useAuth, useFirebase, useMoonFavorites } from '../../../hooks';
 import { useAppSelector } from '../../../state';
 import { CountdownObject, FeelingHistoryEntry } from '../../../types';
 import {
@@ -24,6 +24,7 @@ import {
   monthKey,
   shiftMonth,
 } from '../../../utils/feelingHistory';
+import { moonOccurrencesInMonth } from '../../../utils/moon';
 
 type MonthData = {
   mine: FeelingHistoryEntry[];
@@ -46,6 +47,7 @@ export default function Calendar() {
   const currentMonth = monthKey(now);
   const lastMonth = shiftMonth(currentMonth, MONTHS_AHEAD);
   const partnerLabel = partnerName || 'Partner';
+  const { myFavorite, partnerFavorite } = useMoonFavorites({ roomId, userId, partnerId });
 
   const [month, setMonth] = useState(currentMonth);
   const monthRef = useRef(month);
@@ -137,10 +139,23 @@ export default function Calendar() {
   const data = months[month];
   const mineByDay = useMemo(() => groupByDay(data?.mine ?? [], month), [data, month]);
   const partnerByDay = useMemo(() => groupByDay(data?.partner ?? [], month), [data, month]);
-  const eventsByDay = useMemo(
-    () => countdownOccurrencesInMonth(countdowns, month),
-    [countdowns, month],
+  const moonByDay = useMemo(
+    () =>
+      moonOccurrencesInMonth(month, {
+        myFavorite,
+        partnerFavorite,
+        partnerName: partnerLabel,
+      }),
+    [month, myFavorite, partnerFavorite, partnerLabel],
   );
+  // Countdowns first on each day, so their icon keeps the day's spot on the grid
+  const eventsByDay = useMemo(() => {
+    const byDay = { ...countdownOccurrencesInMonth(countdowns, month) };
+    for (const [day, occurrences] of Object.entries(moonByDay)) {
+      byDay[Number(day)] = [...(byDay[Number(day)] ?? []), ...occurrences];
+    }
+    return byDay;
+  }, [countdowns, month, moonByDay]);
   const eventIconsByDay = useMemo(() => {
     const icons: { [day: number]: string } = {};
     for (const [day, occurrences] of Object.entries(eventsByDay)) {

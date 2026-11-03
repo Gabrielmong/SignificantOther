@@ -652,18 +652,6 @@ export default function Home() {
                     onPress={handleFeelingPress}
                     loading={loading}
                   />
-                  <TouchableOpacity
-                    onPress={handleCalendarPress}
-                    style={{ alignSelf: 'flex-end', marginTop: theme?.spacing?.[2] || 8 }}>
-                    <Text
-                      style={{
-                        fontSize: theme?.fontSize?.sm,
-                        fontWeight: theme?.fontWeight?.semibold,
-                        color: theme?.colors?.primary,
-                      }}>
-                      Calendar →
-                    </Text>
-                  </TouchableOpacity>
                 </Box>
 
                 {/* Tonight's moon, with a countdown to the partner's favorite phase */}
